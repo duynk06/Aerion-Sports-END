@@ -21,4 +21,11 @@ public interface LichSuHoaDonRepository
     @Modifying
     @Query("DELETE FROM LichSuHoaDon l WHERE l.hoaDon.id = :idHoaDon")
     void deleteByHoaDonId(@Param("idHoaDon") Integer idHoaDon);
+    @Query("""
+    SELECT lshd FROM LichSuHoaDon lshd
+    LEFT JOIN FETCH lshd.nhanVien nv
+    WHERE lshd.hoaDon.id = :idHoaDon
+    ORDER BY lshd.thoiGianHanhDong DESC
+    """)
+    List<LichSuHoaDon> findByHoaDonIdWithNhanVien(@Param("idHoaDon") Integer idHoaDon);
 }

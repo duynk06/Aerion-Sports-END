@@ -15,4 +15,6 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
     // Trong NhanVienRepository.java
     boolean existsBySdtAndIdNot(String sdt, Integer id);
     boolean existsByEmailAndIdNot(String email, Integer id);
+    Optional<NhanVien> findByEmail(String email);
+
 }

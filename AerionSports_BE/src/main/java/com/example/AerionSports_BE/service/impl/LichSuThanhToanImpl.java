@@ -19,7 +19,7 @@ public class LichSuThanhToanImpl implements LichSuThanhToanService {
     getByHoaDon(Integer idHoaDon) {
 
         List<LichSuThanhToan> list =
-                lichSuThanhToanRepository.findByHoaDon_Id(idHoaDon);
+                lichSuThanhToanRepository.findByHoaDonId(idHoaDon);
 
         return list.stream()
                 .map(LichSuThanhToanResponse::new)

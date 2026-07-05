@@ -92,4 +92,35 @@ public class HoaDonResponse {
             this.maPhieuGiamGia = hoaDon.getPhieuGiamGia().getMaPhieuGiamGia();
         }
     }
+
+    // Trả về class CSS tương ứng
+    public String getTrangThaiClass() {
+        if (this.trangThai == null) return "";
+        return switch (this.trangThai) {
+            case 0 -> "status-wait-confirm";
+            case 1 -> "status-confirmed";
+            case 2 -> "status-wait-delivery";
+            case 3 -> "status-delivering";
+            case 4 -> "status-delivered";
+            case 5 -> "status-completed";
+            case 6 -> "status-cancel";
+            case 7 -> "status-request-cancel";
+            default -> "";
+        };
+    }
+
+    public String getTrangThaiName() {
+        if (this.trangThai == null) return "Không xác định";
+        return switch (this.trangThai) {
+            case 0 -> "Chờ xác nhận";
+            case 1 -> "Đã xác nhận";
+            case 2 -> "Chờ giao hàng";
+            case 3 -> "Đang giao hàng";
+            case 4 -> "Đã giao hàng";
+            case 5 -> "Đã hoàn thành";
+            case 6 -> "Đã hủy";
+            case 7 -> "Yêu cầu hủy";
+            default -> "Không xác định";
+        };
+    }
 }

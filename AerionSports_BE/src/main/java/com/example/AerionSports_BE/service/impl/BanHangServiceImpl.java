@@ -38,13 +38,10 @@ public class BanHangServiceImpl implements BanHangService {
     private final LichSuHoaDonRepository lichSuHoaDonRepository;
     private final EmailService emailService;
     // BanHangServiceImpl.java — sửa hàm taoHoaDonCho
+    // BanHangServiceImpl.java
     @Override
-    public BanHangResponse taoHoaDonCho() {
-
-        // ✅ Đếm số hóa đơn chờ hiện tại
-        long soHoaDonCho = hoaDonRepository
-                .countByTrangThaiAndLoaiHoaDon(0, 0);
-
+    public BanHangResponse taoHoaDonCho(String username) {
+        long soHoaDonCho = hoaDonRepository.countByTrangThaiAndLoaiHoaDon(0, 0);
         if (soHoaDonCho >= 5) {
             throw new RuntimeException("Đã đạt tối đa 5 hóa đơn chờ!");
         }
@@ -59,23 +56,36 @@ public class BanHangServiceImpl implements BanHangService {
         hoaDon.setTongTienThanhToan(BigDecimal.ZERO);
         hoaDon.setTrangThai(0);
 
+        // Gán khách vãng lai
         KhachHang khachVangLai = khachHangRepository.findById(999).orElse(null);
         hoaDon.setKhachHang(khachVangLai);
 
-        HoaDon hoaDonSaved = hoaDonRepository.save(hoaDon);
-        // Lưu lịch sử khởi tạo
+        // ✅ Tìm nhân viên theo email (username trong JWT)
+        NhanVien nhanVien = null;
+        if (username != null) {
+            nhanVien = nhanVienRepository.findByEmail(username).orElse(null);
+        }
+        // Fallback về NV id=1 nếu không tìm được
+        if (nhanVien == null) {
+            nhanVien = nhanVienRepository.findById(1)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên!"));
+        }
+        hoaDon.setNhanVien(nhanVien);
+
+        HoaDon saved = hoaDonRepository.save(hoaDon);
+
+        // Lưu lịch sử
         LichSuHoaDon lichSu = new LichSuHoaDon();
-        lichSu.setHoaDon(hoaDon);
-        NhanVien nv = nhanVienRepository.findById(1)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên!"));
-        lichSu.setNhanVien(nv);
+        lichSu.setHoaDon(saved);
+        lichSu.setNhanVien(nhanVien);
         lichSu.setTrangThaiCu(0);
         lichSu.setTrangThaiMoi(0);
         lichSu.setHanhDong("Tạo hóa đơn chờ");
-        lichSu.setGhiChu("Hóa đơn được tạo tại quầy");
+        lichSu.setGhiChu("Tạo bởi: " + nhanVien.getTenNv());
         lichSu.setThoiGianHanhDong(LocalDateTime.now());
         lichSuHoaDonRepository.save(lichSu);
-        return new BanHangResponse(hoaDonSaved);
+
+        return new BanHangResponse(saved);
     }
 
     @Override
