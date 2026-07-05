@@ -13,8 +13,6 @@ import java.util.Optional;
 
 @Repository
 public interface ChiTietHoaDonRepository extends JpaRepository<ChiTietHoaDon, Integer> {
-    Optional<ChiTietHoaDon> findByHoaDon_IdAndChiTietSanPham_Id(Integer idHoaDon, Integer idSanPhamChiTiet);
-
     @Query("""
 SELECT new com.example.AerionSports_BE.dto.response.ChiTietHoaDonResponse(
     cthd.id,
@@ -37,4 +35,13 @@ WHERE cthd.hoaDon.id = :idHoaDon
 
     @Query("SELECT SUM(ct.thanhTien) FROM ChiTietHoaDon ct WHERE ct.hoaDon.id = :idHoaDon")
     BigDecimal tinhTongTienHang(@Param("idHoaDon") Integer idHoaDon);
+    @Query("""
+    SELECT cthd FROM ChiTietHoaDon cthd
+    JOIN FETCH cthd.chiTietSanPham ctsp
+    JOIN FETCH ctsp.idSanPham sp
+    JOIN FETCH ctsp.idTrongLuong tl
+    JOIN FETCH ctsp.idMauSac ms
+    WHERE cthd.hoaDon.id = :idHoaDon
+    """)
+    List<ChiTietHoaDon> findByHoaDonIdWithDetail(@Param("idHoaDon") Integer idHoaDon);
 }

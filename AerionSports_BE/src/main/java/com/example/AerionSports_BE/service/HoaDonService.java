@@ -1,13 +1,18 @@
 package com.example.AerionSports_BE.service;
 
+import com.example.AerionSports_BE.dto.response.ChiTietHoaDonResponse;
 import com.example.AerionSports_BE.dto.response.HoaDonResponse;
+import com.example.AerionSports_BE.dto.response.LichSuHoaDonResponse;
+import com.example.AerionSports_BE.dto.response.LichSuThanhToanResponse;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
 
-public interface HoaDonService {
+import java.time.LocalDate;
+import java.util.List;
 
+public interface HoaDonService {
     List<HoaDonResponse> hienThi();
 
     List<HoaDonResponse> search(String keyword);
@@ -24,5 +29,11 @@ public interface HoaDonService {
     );
 
     HoaDonResponse detail(Integer id);
-    HoaDonResponse chuyenTrangThai(Integer id, Integer trangThaiMoi, String ghiChu);
+    // HoaDonService.java
+    HoaDonResponse chuyenTrangThai(Integer id, Integer trangThaiMoi, String ghiChu, String username);
+    List<ChiTietHoaDonResponse> getChiTietHoaDon(Integer idHoaDon);
+
+    List<LichSuThanhToanResponse> getLichSuThanhToan(Integer idHoaDon);
+
+    List<LichSuHoaDonResponse> getLichSuHoaDon(Integer idHoaDon);
 }

@@ -1,15 +1,15 @@
 package com.example.AerionSports_BE.service.impl;
 
 import com.example.AerionSports_BE.dto.ChiTietEmailDTO;
+import com.example.AerionSports_BE.dto.response.ChiTietHoaDonResponse;
+import com.example.AerionSports_BE.dto.response.LichSuHoaDonResponse;
+import com.example.AerionSports_BE.dto.response.LichSuThanhToanResponse;
 import com.example.AerionSports_BE.entity.HoaDon;
 import com.example.AerionSports_BE.entity.LichSuHoaDon;
 import com.example.AerionSports_BE.entity.LichSuThanhToan;
 import com.example.AerionSports_BE.entity.NhanVien;
-import com.example.AerionSports_BE.repository.HoaDonRepository;
+import com.example.AerionSports_BE.repository.*;
 import com.example.AerionSports_BE.dto.response.HoaDonResponse;
-import com.example.AerionSports_BE.repository.LichSuHoaDonRepository;
-import com.example.AerionSports_BE.repository.LichSuThanhToanRepository;
-import com.example.AerionSports_BE.repository.NhanVienRepository;
 import com.example.AerionSports_BE.service.EmailService;
 import com.example.AerionSports_BE.service.HoaDonService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +35,13 @@ public class HoaDonServiceImpl implements HoaDonService {
     @Autowired
     private NhanVienRepository nhanVienRepository;
     @Autowired
+    private ChiTietHoaDonRepository chiTietHoaDonRepository;
+    @Autowired
     private EmailService emailService;
+
     @Autowired
     private LichSuThanhToanRepository lichSuThanhToanRepository;
+
     @Override
     @Transactional(readOnly = true) // 🌟 Bổ sung cho hàm hiển thị
     public List<HoaDonResponse> hienThi() {
@@ -94,25 +98,29 @@ public class HoaDonServiceImpl implements HoaDonService {
 
     @Override
     @Transactional
-    public HoaDonResponse chuyenTrangThai(Integer id, Integer trangThaiMoi, String ghiChu) {
+    public HoaDonResponse chuyenTrangThai(Integer id, Integer trangThaiMoi, String ghiChu, String username) {
         HoaDon hoaDon = hoaDonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
 
         Integer trangThaiCu = hoaDon.getTrangThai();
-
-        // Validate luồng trạng thái hợp lệ
         validateChuyenTrangThai(trangThaiCu, trangThaiMoi, hoaDon.getLoaiHoaDon());
 
         hoaDon.setTrangThai(trangThaiMoi);
         hoaDon.setNgayCapNhat(LocalDateTime.now());
         hoaDonRepository.save(hoaDon);
 
-        // Lưu lịch sử hóa đơn
+        // ✅ Tìm NV theo email từ JWT, fallback về ID=1
+        NhanVien nv = null;
+        if (username != null) {
+            nv = nhanVienRepository.findByEmail(username).orElse(null);
+        }
+        if (nv == null) {
+            nv = nhanVienRepository.findById(1)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên!"));
+        }
+
         LichSuHoaDon lichSu = new LichSuHoaDon();
         lichSu.setHoaDon(hoaDon);
-        // Dùng nhân viên mặc định ID=1 nếu chưa có auth
-        NhanVien nv = nhanVienRepository.findById(1)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên!"));
         lichSu.setNhanVien(nv);
         lichSu.setTrangThaiCu(trangThaiCu);
         lichSu.setTrangThaiMoi(trangThaiMoi);
@@ -121,10 +129,7 @@ public class HoaDonServiceImpl implements HoaDonService {
         lichSu.setThoiGianHanhDong(LocalDateTime.now());
         lichSuHoaDonRepository.save(lichSu);
 
-        // Gửi mail thông báo trạng thái mới cho khách hàng (nếu có email)
-        // Gửi mail thông báo trạng thái mới cho khách hàng (nếu có email)
         HoaDon hdSauKhiSave = hoaDonRepository.findByIdWithChiTiet(id);
-
         if (hdSauKhiSave != null
                 && hdSauKhiSave.getKhachHang() != null
                 && hdSauKhiSave.getKhachHang().getEmail() != null
@@ -139,21 +144,17 @@ public class HoaDonServiceImpl implements HoaDonService {
                                         ? ct.getChiTietSanPham().getIdMauSac().getTenMauSac() : "",
                                 ct.getChiTietSanPham().getIdTrongLuong() != null
                                         ? ct.getChiTietSanPham().getIdTrongLuong().getTenTrongLuong() : "",
-                                ct.getSoLuong(),
-                                ct.getDonGia(),
-                                ct.getThanhTien()
+                                ct.getSoLuong(), ct.getDonGia(), ct.getThanhTien()
                         ))
                         .collect(Collectors.toList());
             }
 
             String tenPhuongThuc = lichSuThanhToanRepository
                     .findByHoaDon_IdOrderByNgayThanhToanDesc(id)
-                    .stream()
-                    .findFirst()
+                    .stream().findFirst()
                     .map(LichSuThanhToan::getPhuongThucThanhToan)
                     .orElse("Chuyển khoản");
 
-            // ✅ Đổi hdWithChiTiet → hdSauKhiSave cho đồng nhất
             emailService.sendOrderStatusEmail(
                     hdSauKhiSave.getKhachHang().getEmail(),
                     hdSauKhiSave.getKhachHang().getHoTen(),
@@ -165,14 +166,12 @@ public class HoaDonServiceImpl implements HoaDonService {
                     hdSauKhiSave.getTienGiam(),
                     hdSauKhiSave.getTienVanChuyen(),
                     hdSauKhiSave.getTongTienThanhToan(),
-                    spEmail,
-                    tenPhuongThuc
+                    spEmail, tenPhuongThuc
             );
         }
 
         return new HoaDonResponse(hoaDonRepository.findById(id).orElse(hoaDon));
     }
-
     private void validateChuyenTrangThai(Integer cu, Integer moi, Integer loaiHoaDon) {
         // Đã hủy hoặc hoàn thành không cho đổi
         if (cu == 6 || cu == 5) {
@@ -200,8 +199,40 @@ public class HoaDonServiceImpl implements HoaDonService {
             case 5 -> "Đã hoàn thành";
             case 6 -> "Đã hủy";
             case 7 -> "Yêu cầu hủy";
-            case 8 -> "Đã hoàn tiền";
             default -> "Khởi tạo";
         };
+    }
+
+    @Override
+    public List<ChiTietHoaDonResponse> getChiTietHoaDon(Integer idHoaDon) {
+        return chiTietHoaDonRepository.findByHoaDonIdWithDetail(idHoaDon)
+                .stream()
+                .map(ct -> new ChiTietHoaDonResponse(
+                        ct.getId(),
+                        ct.getChiTietSanPham().getMaCtsp(),
+                        ct.getChiTietSanPham().getIdSanPham().getTenSanPham(),
+                        ct.getChiTietSanPham().getIdTrongLuong().getTenTrongLuong(),
+                        ct.getChiTietSanPham().getIdMauSac().getTenMauSac(),
+                        ct.getSoLuong(),
+                        ct.getDonGia(),
+                        ct.getThanhTien()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LichSuThanhToanResponse> getLichSuThanhToan(Integer idHoaDon) {
+        return lichSuThanhToanRepository.findByHoaDonId(idHoaDon)
+                .stream()
+                .map(LichSuThanhToanResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LichSuHoaDonResponse> getLichSuHoaDon(Integer idHoaDon) {
+        return lichSuHoaDonRepository.findByHoaDonIdWithNhanVien(idHoaDon)
+                .stream()
+                .map(LichSuHoaDonResponse::new)
+                .collect(Collectors.toList());
     }
 }

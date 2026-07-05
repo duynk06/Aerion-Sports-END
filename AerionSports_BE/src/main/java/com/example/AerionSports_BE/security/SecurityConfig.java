@@ -59,8 +59,14 @@
                             // 🔓 PHÂN HỆ CÔNG KHAI TỰ DO
                             .requestMatchers("/api/auth/**", "/auth/**").permitAll()
                             .requestMatchers("/public/client-auth/**", "/api/public/client-auth/**").permitAll()
-                            .requestMatchers("/ban-hang/**").permitAll()
-                            .requestMatchers("/hoa-don/**").permitAll()
+
+                            // THÊM DÒNG NÀY ĐỂ MỞ KHÓA TRANG LỖI VÀ FILE TĨNH (CSS, JS) CỦA THYMELEAF
+                            .requestMatchers("/error").permitAll()
+                            .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+
+                            // Các đường dẫn bạn đã mở khóa
+                            .requestMatchers("/ban-hang", "/ban-hang/**").permitAll()
+                            .requestMatchers("/hoa-don", "/hoa-don/**").permitAll()
                             .requestMatchers("/chi-tiet-hoa-don/**").permitAll()
                             .requestMatchers("/lich-su-hoa-don/**").permitAll()
                             .requestMatchers("/lich-su-thanh-toan/**").permitAll()

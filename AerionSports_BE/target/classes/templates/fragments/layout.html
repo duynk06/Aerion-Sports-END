@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!-- Định nghĩa mảnh ghép tên là 'main-layout' và nhận một tham số là 'dynamicContent' -->
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="main-layout(dynamicContent)">
+<head>
+  <meta charset="UTF-8">
+  <title>Aerion Sports - Quản trị</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Bạn có thể để CSS chung (như của thẻ body, thẻ a) ở đây -->
+  <style>
+    body { margin: 0; background-color: #f3f4f6; font-family: Arial, sans-serif; }
+  </style>
+</head>
+<body>
+
+<!-- KHUNG CHÍNH -->
+<div style="display: flex; height: 100vh; overflow: hidden;">
+
+  <!-- SIDEBAR (Gọi từ file sidebar.html bạn đã tạo ở bước trước) -->
+  <div th:replace="~{fragments/sidebar :: menu-sidebar}"></div>
+
+  <!-- CỘT PHẢI -->
+  <div style="flex: 1; display: flex; flex-direction: column;">
+
+    <!-- HEADER CỐ ĐỊNH CHUNG -->
+    <div style="height: 65px; background: #fff; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb;">
+      <!-- Dùng biến động để thay đổi Tiêu đề theo từng trang nếu muốn -->
+      <h2 style="margin: 0; font-size: 20px; color: #1f2937;">Quản lý hệ thống</h2>
+
+      <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+        <div style="width: 36px; height: 36px; background: #f79b66; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <div style="line-height: 1.2;">
+          <div style="font-weight: 600; font-size: 14px; color: #111827;">Admin</div>
+          <div style="font-size: 12px; color: #6b7280;">Quản trị viên</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHẦN MAIN CONTENT (LỖ HỔNG) -->
+    <div style="flex: 1; padding: 24px; overflow-y: auto;">
+      <!-- Mã lệnh này sẽ nhúng nội dung từ trang khác vào chính xác vị trí này -->
+      <div th:replace="${dynamicContent}"></div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

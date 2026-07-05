@@ -67,8 +67,6 @@ public class BanHangResponse {
             this.idKhachHang = hoaDon.getKhachHang().getId();
             this.tenKhachHang = hoaDon.getKhachHang().getHoTen();
             this.sdt = hoaDon.getKhachHang().getSdt();
-            // ❌ XÓA đoạn getAddresses() — gây LazyInitializationException
-            // this.diaChiKhachHang = ...
         }
 
         if (hoaDon.getNhanVien() != null) {

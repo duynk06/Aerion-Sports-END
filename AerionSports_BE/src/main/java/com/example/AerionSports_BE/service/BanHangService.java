@@ -11,7 +11,8 @@ import java.util.List;
 
 public interface BanHangService {
 
-    BanHangResponse taoHoaDonCho();
+    // BanHangService.java
+    BanHangResponse taoHoaDonCho(String username);
 
     BanHangResponse capNhatKhachHangVaoHoaDon(Integer idHoaDon, Integer idKhachHang);
 

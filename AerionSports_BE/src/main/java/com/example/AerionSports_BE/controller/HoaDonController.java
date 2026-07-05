@@ -6,59 +6,83 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@CrossOrigin("*")
-@RestController
+@Controller
 @RequestMapping("/hoa-don")
 public class HoaDonController {
 
-    // CHỈ NÊN INJECT SERVICE, KHÔNG INJECT REPOSITORY VÀO CONTROLLER
     @Autowired
     private HoaDonService hoaDonService;
 
-    @GetMapping("/hien-thi")
-    public ResponseEntity<List<HoaDonResponse>> hienthi() {
-        return ResponseEntity.ok(hoaDonService.hienThi());
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<HoaDonResponse>> search(@RequestParam String keyword) {
-        return ResponseEntity.ok(hoaDonService.search(keyword));
-    }
-
-    @GetMapping("/filter")
-    public ResponseEntity<Page<HoaDonResponse>> filterHoaDon(
+    @GetMapping
+    public String hienThiDanhSach(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer loaiHoaDon, // Đã sửa thành Integer
-            @RequestParam(required = false) Integer trangThai,
+            @RequestParam(required = false) Integer loaiHoaDonFilter,
+            @RequestParam(required = false) Integer trangThaiFilter,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate tuNgay,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate denNgay,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size
+            @RequestParam(defaultValue = "5") int size,
+            Model model
     ) {
-        return ResponseEntity.ok(
-                hoaDonService.filterHoaDon(keyword, loaiHoaDon, trangThai, tuNgay, denNgay, page, size)
-        );
+        if (tuNgay == null) {
+            tuNgay = LocalDate.now();
+        }
+        if (denNgay == null) {
+            denNgay = LocalDate.now();
+        }
+        Page<HoaDonResponse> pageData = hoaDonService.filterHoaDon(keyword, loaiHoaDonFilter, trangThaiFilter, tuNgay, denNgay, page, size);
+        model.addAttribute("listHoaDon", pageData.getContent());
+        model.addAttribute("totalPages", pageData.getTotalPages());
+        model.addAttribute("totalElements", pageData.getTotalElements());
+        model.addAttribute("page", page);
+        model.addAttribute("size", size);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("loaiHoaDonFilter", loaiHoaDonFilter);
+        model.addAttribute("trangThaiFilter", trangThaiFilter);
+        model.addAttribute("tuNgay", tuNgay);
+        model.addAttribute("denNgay", denNgay);
+        return "hoa-don/index";
     }
+    @GetMapping("/chi-tiet/{id}")
+    public String detail(@PathVariable Integer id, Model model) {
+        HoaDonResponse hoaDon = hoaDonService.detail(id);
 
-    @GetMapping("/{id}")
-    public ResponseEntity<HoaDonResponse> detail(@PathVariable Integer id) {
-        return ResponseEntity.ok(hoaDonService.detail(id));
+        // Bổ sung 3 danh sách còn thiếu (đổi tên method cho khớp service thật của bạn)
+        var chiTietSanPham = hoaDonService.getChiTietHoaDon(id);     // List<...>
+        var lichSuThanhToan = hoaDonService.getLichSuThanhToan(id);  // List<...>
+        var lichSuHoaDon    = hoaDonService.getLichSuHoaDon(id);     // List<...>
+
+        model.addAttribute("hoaDon", hoaDon);
+        model.addAttribute("chiTietSanPham", chiTietSanPham);
+        model.addAttribute("lichSuThanhToan", lichSuThanhToan);
+        model.addAttribute("lichSuHoaDon", lichSuHoaDon);
+
+        return "hoa-don/detail";
     }
-    @PutMapping("/{id}/chuyen-trang-thai")
-    public ResponseEntity<?> chuyenTrangThai(
+    @PostMapping("/{id}/chuyen-trang-thai")
+    public String chuyenTrangThai(
             @PathVariable Integer id,
             @RequestParam Integer trangThaiMoi,
-            @RequestParam(required = false) String ghiChu
+            @RequestParam(required = false) String ghiChu,
+            RedirectAttributes redirectAttributes
     ) {
         try {
-            return ResponseEntity.ok(hoaDonService.chuyenTrangThai(id, trangThaiMoi, ghiChu));
+            hoaDonService.chuyenTrangThai(id, trangThaiMoi, ghiChu, "admin@example.com");
+            redirectAttributes.addFlashAttribute("successMessage", "Chuyển trạng thái thành công!");
+            return "redirect:/hoa-don/chi-tiet/" + id;
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/hoa-don/chi-tiet/" + id;
         }
     }
 }
