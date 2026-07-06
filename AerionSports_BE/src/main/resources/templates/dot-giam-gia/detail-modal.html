@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="detailModal(detail, detailProducts)"
+     th:with="detailData=${detail},
+              detailList=${detailProducts != null ? detailProducts : T(java.util.Collections).emptyList()}">
+  <div class="page-shell create-shell">
+    <div class="create-header">
+      <div class="list-title">
+        <div class="title-icon">
+          <i class="fa-solid fa-eye"></i>
+        </div>
+        <div>
+          <h3>Chi tiết đợt giảm giá</h3>
+          <span>Xem thông tin đợt giảm giá và sản phẩm áp dụng</span>
+        </div>
+      </div>
+      <a class="btn-close" th:href="@{/dot-giam-gia}" title="Đóng">
+        <i class="fa-solid fa-xmark"></i>
+      </a>
+    </div>
+
+    <section class="card create-card">
+      <section class="detail-panel">
+        <div class="detail-summary">
+          <div class="summary-item">
+            <span>Mã đợt giảm giá</span>
+            <strong th:text="${detailData != null && detailData.maDotGiamGia != null ? detailData.maDotGiamGia : '-'}"></strong>
+          </div>
+          <div class="summary-item">
+            <span>Tên đợt giảm giá</span>
+            <strong th:text="${detailData != null && detailData.tenDotGiamGia != null ? detailData.tenDotGiamGia : '-'}"></strong>
+          </div>
+          <div class="summary-item">
+            <span>Giá trị giảm</span>
+            <strong th:text="${detailData != null && detailData.giaTriGiam != null ? #numbers.formatDecimal(detailData.giaTriGiam, 0, 'COMMA', 0, 'POINT') + '%' : '-'}"></strong>
+          </div>
+          <div class="summary-item">
+            <span>Trạng thái</span>
+            <strong>
+              <span class="status-badge"
+                    th:classappend="${detailData != null && detailData.trangThai == 1 ? ' status-wait' : detailData != null && detailData.trangThai == 2 ? ' status-running' : detailData != null && detailData.trangThai == 3 ? ' status-end' : ' status-cancel'}"
+                    th:text="${detailData != null && detailData.trangThaiText != null ? detailData.trangThaiText : 'Không xác định'}"></span>
+            </strong>
+          </div>
+          <div class="summary-item">
+            <span>Ngày bắt đầu</span>
+            <strong th:text="${detailData != null && detailData.ngayBatDau != null ? #temporals.format(detailData.ngayBatDau, 'dd/MM/yyyy HH:mm') : '-'}"></strong>
+          </div>
+          <div class="summary-item">
+            <span>Ngày kết thúc</span>
+            <strong th:text="${detailData != null && detailData.ngayKetThuc != null ? #temporals.format(detailData.ngayKetThuc, 'dd/MM/yyyy HH:mm') : '-'}"></strong>
+          </div>
+          <div class="summary-item summary-note">
+            <span>Mô tả</span>
+            <strong th:text="${detailData != null && detailData.moTa != null ? detailData.moTa : '-'}"></strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="detail-products-panel">
+        <div class="list-header">
+          <div class="list-title">
+            <div class="title-icon">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <div>
+              <h3>Sản phẩm áp dụng</h3>
+              <span th:text="${#lists.size(detailList) + ' sản phẩm'}">0 sản phẩm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="selected-list" th:if="${!#lists.isEmpty(detailList)}">
+          <div class="selected-group-table-wrap">
+            <table class="detail-table">
+              <colgroup>
+                <col style="width: 70px">
+                <col style="width: 130px">
+                <col style="width: 220px">
+                <col style="width: 130px">
+                <col style="width: 120px">
+                <col style="width: 120px">
+                <col style="width: 110px">
+                <col style="width: 110px">
+                <col style="width: 110px">
+                <col style="width: 130px">
+              </colgroup>
+              <thead>
+              <tr>
+                <th style="width: 5%">STT</th>
+                <th style="width: 12%">Mã CTSP</th>
+                <th style="width: 18%">Tên SP</th>
+                <th style="width: 10%">Hãng</th>
+                <th style="width: 10%">Màu sắc</th>
+                <th style="width: 10%">Trọng lượng</th>
+                <th style="width: 10%">Độ cứng</th>
+                <th style="width: 8%">Xuất xứ</th>
+                <th style="width: 8%">Tồn kho</th>
+                <th style="width: 9%">Giá bán</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="product, iterStat : ${detailList}">
+                <td th:text="${iterStat.count}"></td>
+                <td th:text="${product.maCtsp != null ? product.maCtsp : '-'}"></td>
+                <td th:text="${product.tenSanPham != null ? product.tenSanPham : '-'}"></td>
+                <td th:text="${product.tenThuongHieu != null ? product.tenThuongHieu : '-'}"></td>
+                <td th:text="${product.tenMauSac != null ? product.tenMauSac : '-'}"></td>
+                <td th:text="${product.tenTrongLuong != null ? product.tenTrongLuong : '-'}"></td>
+                <td th:text="${product.tenDoCung != null ? product.tenDoCung : '-'}"></td>
+                <td th:text="${product.tenXuatXu != null ? product.tenXuatXu : '-'}"></td>
+                <td th:text="${product.soLuongTon != null ? product.soLuongTon : '-'}"></td>
+                <td th:text="${product.giaBan != null ? #numbers.formatDecimal(product.giaBan, 0, 'COMMA', 0, 'POINT') + ' đ' : '-'}"></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="state-cell" th:if="${#lists.isEmpty(detailList)}">Không có sản phẩm áp dụng</div>
+      </section>
+    </section>
+  </div>
+</div>
+
+</body>
+</html>

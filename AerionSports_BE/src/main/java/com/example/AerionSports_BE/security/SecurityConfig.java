@@ -67,6 +67,7 @@
                             // Các đường dẫn bạn đã mở khóa
                             .requestMatchers("/ban-hang", "/ban-hang/**").permitAll()
                             .requestMatchers("/hoa-don", "/hoa-don/**").permitAll()
+                            .requestMatchers("/dot-giam-gia", "/dot-giam-gia/**").permitAll()
                             .requestMatchers("/chi-tiet-hoa-don/**").permitAll()
                             .requestMatchers("/lich-su-hoa-don/**").permitAll()
                             .requestMatchers("/lich-su-thanh-toan/**").permitAll()

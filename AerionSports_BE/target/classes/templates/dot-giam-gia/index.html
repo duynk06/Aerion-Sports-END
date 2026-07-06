@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: main-layout(~{::#dot-giam-gia-page}, ~{::extraHead})}">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${pageTitle != null ? pageTitle : 'Quản lý đợt giảm giá'}">Quản lý đợt giảm giá</title>
+  <th:block th:fragment="extraHead">
+    <link rel="stylesheet" th:href="@{/dot-giam-gia/dot-giam-gia.css(v=3)}">
+  </th:block>
+</head>
+<body>
+<div id="dot-giam-gia-page" class="dot-giam-gia-page" th:attr="data-view-mode=${viewMode != null ? viewMode : 'list'}">
+  <th:block th:if="${viewMode == 'create'}">
+    <th:block th:replace="~{dot-giam-gia/create-modal :: createModal(${form}, ${groupedProducts}, ${selectedProductIds}, ${selectedProducts}, ${errorMessage}, ${formAction})}"></th:block>
+  </th:block>
+
+  <th:block th:if="${viewMode == 'edit'}">
+    <th:block th:replace="~{dot-giam-gia/edit-modal :: editModal(${form}, ${detail}, ${groupedProducts}, ${selectedProductIds}, ${selectedProducts}, ${errorMessage}, ${formAction})}"></th:block>
+  </th:block>
+
+  <th:block th:if="${viewMode == 'view'}">
+    <th:block th:replace="~{dot-giam-gia/detail-modal :: detailModal(${detail}, ${detailProducts})}"></th:block>
+  </th:block>
+
+  <th:block th:if="${viewMode == null or viewMode == '' or viewMode == 'list'}">
+    <form th:action="@{/dot-giam-gia}" method="get">
+      <section class="card">
+        <div class="card-header">
+          <i class="fa-solid fa-filter"></i>
+          Bộ lọc tìm kiếm
+        </div>
+
+        <div class="filter-grid">
+          <div>
+            <label for="discount-search">Tìm kiếm</label>
+            <input id="discount-search" name="keyword" type="text" th:value="${keyword}" placeholder="Nhập mã / tên đợt giảm giá...">
+          </div>
+
+          <div>
+            <label for="discount-status">Trạng thái</label>
+            <select id="discount-status" name="trangThai">
+              <option value="">Tất cả</option>
+              <option value="1" th:selected="${trangThai != null and trangThai == 1}">Sắp diễn ra</option>
+              <option value="2" th:selected="${trangThai != null and trangThai == 2}">Đang diễn ra</option>
+              <option value="3" th:selected="${trangThai != null and trangThai == 3}">Đã kết thúc</option>
+              <option value="0" th:selected="${trangThai != null and trangThai == 0}">Đã hủy</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="from-date">Từ ngày</label>
+            <input id="from-date" name="tuNgay" type="date" th:value="${tuNgay}">
+          </div>
+
+          <div>
+            <label for="to-date">Đến ngày</label>
+            <input id="to-date" name="denNgay" type="date" th:value="${denNgay}">
+          </div>
+        </div>
+
+        <div class="filter-action">
+          <a class="btn-reset" th:href="@{/dot-giam-gia}">
+            <i class="fa-solid fa-rotate-right"></i>
+            Đặt lại
+          </a>
+
+          <button class="btn-search" type="submit">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Lọc dữ liệu
+          </button>
+        </div>
+      </section>
+    </form>
+
+    <section class="card">
+      <div class="list-header">
+        <div class="list-title">
+          <div class="title-icon">
+            <i class="fa-solid fa-percent"></i>
+          </div>
+          <div>
+            <h3>Danh sách đợt giảm giá</h3>
+          </div>
+        </div>
+
+        <a class="btn-add" th:href="@{/dot-giam-gia(action='create')}">
+          <i class="fa-solid fa-plus"></i>
+          Thêm mới
+        </a>
+      </div>
+
+      <table class="discount-table">
+        <colgroup>
+          <col style="width: 5%">
+          <col style="width: 14%">
+          <col style="width: 22%">
+          <col style="width: 12%">
+          <col style="width: 21%">
+          <col style="width: 10%">
+          <col style="width: 16%">
+        </colgroup>
+        <thead>
+        <tr>
+          <th scope="col">STT</th>
+          <th scope="col">Mã DGG</th>
+          <th scope="col">Tên DGG</th>
+          <th scope="col">Giá trị</th>
+          <th scope="col">Thời gian</th>
+          <th scope="col">Trạng thái</th>
+          <th scope="col">Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(rows)}">
+          <td class="state-cell" colspan="7">Không có dữ liệu</td>
+        </tr>
+
+        <tr th:each="item, iterStat : ${rows}">
+          <td th:text="${page * size + iterStat.count}"></td>
+          <td th:text="${item.maDotGiamGia != null ? item.maDotGiamGia : '-'}"></td>
+          <td th:text="${item.tenDotGiamGia != null ? item.tenDotGiamGia : '-'}"></td>
+          <td th:text="${item.giaTriGiam != null ? #numbers.formatDecimal(item.giaTriGiam, 0, 'COMMA', 0, 'POINT') + '%' : '-'}"></td>
+          <td th:text="${item.ngayBatDau != null and item.ngayKetThuc != null ? #temporals.format(item.ngayBatDau, 'dd/MM/yyyy HH:mm') + ' - ' + #temporals.format(item.ngayKetThuc, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+          <td>
+            <span class="status-badge"
+                  th:classappend="${item.trangThai == 1 ? ' status-wait' : item.trangThai == 2 ? ' status-running' : item.trangThai == 3 ? ' status-end' : ' status-cancel'}"
+                  th:text="${item.trangThaiText != null ? item.trangThaiText : 'Không xác định'}"></span>
+          </td>
+          <td>
+            <div class="row-actions">
+              <a class="action-btn" th:href="@{/dot-giam-gia(action='edit', id=${item.id})}" title="Sửa">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </a>
+
+              <form th:action="@{/dot-giam-gia/{id}/trang-thai(id=${item.id})}" method="post" th:id="'status-form-' + ${item.id}" style="display: inline-flex;">
+                <label class="toggle-switch" title="Thay đổi trạng thái">
+                  <input type="checkbox"
+                         th:checked="${item.trangThai == 1 or item.trangThai == 2}"
+                         th:attr="data-id=${item.id}, data-status=${item.trangThai}"
+                         onchange="toggleStatus(this)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </form>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <div>
+          Tổng: <strong th:text="${totalElements}">0</strong> đợt giảm giá
+        </div>
+
+        <div class="page-center">
+          <a th:href="${page > 0} ? @{/dot-giam-gia(page=${page - 1}, keyword=${keyword}, trangThai=${trangThai}, tuNgay=${tuNgay}, denNgay=${denNgay})} : '#'"
+             th:classappend="${page == 0} ? 'disabled' : ''">
+            <i class="fa-solid fa-chevron-left"></i>
+          </a>
+
+          <span>Trang <span th:text="${page + 1}"></span> / <span th:text="${totalPages > 0 ? totalPages : 1}"></span></span>
+
+          <a th:href="${page + 1 < totalPages} ? @{/dot-giam-gia(page=${page + 1}, keyword=${keyword}, trangThai=${trangThai}, tuNgay=${tuNgay}, denNgay=${denNgay})} : '#'"
+             th:classappend="${page + 1 >= totalPages} ? 'disabled' : ''">
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+  </th:block>
+
+  <script>
+    function normalizeText(value) {
+      return (value || '').toString().toLowerCase().trim();
+    }
+
+    function toggleStatus(checkbox) {
+      const id = checkbox.dataset.id;
+      const form = document.getElementById('status-form-' + id);
+      const isChecked = checkbox.checked;
+      
+      let confirmMsg = isChecked 
+        ? 'Bạn muốn kích hoạt lại đợt giảm giá này?' 
+        : 'Bạn chắc chắn muốn kết thúc đợt giảm giá này?';
+      
+      if (confirm(confirmMsg)) {
+        let statusInput = form.querySelector('input[name="trangThai"]');
+        if (!statusInput) {
+          statusInput = document.createElement('input');
+          statusInput.type = 'hidden';
+          statusInput.name = 'trangThai';
+          form.appendChild(statusInput);
+        }
+        statusInput.value = isChecked ? 2 : 3;
+        form.submit();
+      } else {
+        checkbox.checked = !isChecked;
+      }
+    }
+
+    function filterModalProducts(mode) {
+      const input = document.getElementById('product-filter-' + mode);
+      if (!input) return;
+      const keyword = normalizeText(input.value);
+      const groups = document.querySelectorAll('.' + mode + '-product-group');
+      groups.forEach(function (group) {
+        const text = normalizeText(group.dataset.search);
+        const childRows = group.querySelectorAll('.' + mode + '-product-row');
+        let hasVisibleChild = false;
+        childRows.forEach(function (row) {
+          const rowText = normalizeText(row.dataset.search);
+          const rowVisible = !keyword || rowText.includes(keyword);
+          row.style.display = rowVisible ? '' : 'none';
+          if (rowVisible) {
+            hasVisibleChild = true;
+          }
+        });
+        const groupMatch = !keyword || text.includes(keyword);
+        group.style.display = (groupMatch || hasVisibleChild) ? '' : 'none';
+      });
+    }
+
+    function populateSelectedFilterOptions(mode, field) {
+      const select = document.getElementById(mode + '-selected-' + field);
+      if (!select) return;
+      const rows = document.querySelectorAll('[data-selected-row="' + mode + '"]');
+      const values = new Set();
+      rows.forEach(function (row) {
+        const value = row.dataset[field];
+        if (value && value.toString().trim() && value.toString().trim() !== '-') {
+          values.add(value.toString().trim());
+        }
+      });
+
+      const currentValue = select.value;
+      const options = Array.from(values).sort(function (a, b) {
+        return a.localeCompare(b, 'vi');
+      });
+
+      select.innerHTML = '<option value="">Tất cả</option>';
+      options.forEach(function (value) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+
+      if (Array.from(select.options).some(function (option) { return option.value === currentValue; })) {
+        select.value = currentValue;
+      }
+    }
+
+    function matchesSelectedPrice(price, filterValue) {
+      const numericPrice = Number(price || 0);
+      if (!filterValue) return true;
+      if (filterValue === 'lt500') return numericPrice < 500000;
+      if (filterValue === '500to1000') return numericPrice >= 500000 && numericPrice <= 1000000;
+      if (filterValue === 'gt1000') return numericPrice > 1000000;
+      return true;
+    }
+
+    function filterSelectedProducts(mode) {
+      const keywordInput = document.getElementById(mode + '-selected-search');
+      const brandSelect = document.getElementById(mode + '-selected-brand');
+      const colorSelect = document.getElementById(mode + '-selected-color');
+      const frameMaterialSelect = document.getElementById(mode + '-selected-frameMaterial');
+      const hardnessSelect = document.getElementById(mode + '-selected-hardness');
+      const priceSelect = document.getElementById(mode + '-selected-price');
+      const rows = document.querySelectorAll('[data-selected-row="' + mode + '"]');
+
+      const keyword = normalizeText(keywordInput ? keywordInput.value : '');
+      const brand = normalizeText(brandSelect ? brandSelect.value : '');
+      const color = normalizeText(colorSelect ? colorSelect.value : '');
+      const frameMaterial = normalizeText(frameMaterialSelect ? frameMaterialSelect.value : '');
+      const hardness = normalizeText(hardnessSelect ? hardnessSelect.value : '');
+      const price = priceSelect ? priceSelect.value : '';
+
+      rows.forEach(function (row) {
+        const rowKeyword = normalizeText(row.dataset.search);
+        const rowBrand = normalizeText(row.dataset.brand);
+        const rowColor = normalizeText(row.dataset.color);
+        const rowFrameMaterial = normalizeText(row.dataset.frameMaterial);
+        const rowHardness = normalizeText(row.dataset.hardness);
+        const rowPrice = row.dataset.price;
+
+        const visible = (!keyword || rowKeyword.includes(keyword)) &&
+          (!brand || rowBrand === brand) &&
+          (!color || rowColor === color) &&
+          (!frameMaterial || rowFrameMaterial === frameMaterial) &&
+          (!hardness || rowHardness === hardness) &&
+          matchesSelectedPrice(rowPrice, price);
+
+        row.style.display = visible ? '' : 'none';
+      });
+    }
+
+    function toggleGroupChildren(checkbox) {
+      const group = checkbox.closest('.product-group');
+      if (!group) return;
+      const childCheckboxes = group.querySelectorAll('input[data-role="child-checkbox"]');
+      childCheckboxes.forEach(function (child) {
+        if (child.checked !== checkbox.checked) {
+          child.checked = checkbox.checked;
+          child.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    }
+
+    function updateGroupCheckboxState(group) {
+      const groupCheckbox = group.querySelector('.group-checkbox');
+      if (!groupCheckbox) return;
+      const childCheckboxes = group.querySelectorAll('input[data-role="child-checkbox"]');
+      if (childCheckboxes.length === 0) return;
+      const allChecked = Array.from(childCheckboxes).every(function(cb) {
+        return cb.checked;
+      });
+      groupCheckbox.checked = allChecked;
+    }
+
+    function deselectProduct(mode, id) {
+      const checkbox = document.querySelector('.' + mode + '-product-row input[value="' + id + '"]');
+      if (checkbox) {
+        checkbox.checked = false;
+        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+
+    function toggleSelectAllSelected(mode, masterCheckbox) {
+      if (!masterCheckbox.checked) {
+        if (confirm('Bỏ chọn tất cả các sản phẩm đã chọn?')) {
+          const checkboxes = document.querySelectorAll('.' + mode + '-product-row input[data-role="child-checkbox"]');
+          checkboxes.forEach(function(cb) {
+            if (cb.checked) {
+              cb.checked = false;
+              cb.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          });
+        } else {
+          masterCheckbox.checked = true;
+        }
+      }
+    }
+
+    function updateSelectedProductsList(mode) {
+      const container = document.querySelector('.' + mode + '-shell');
+      if (!container) return;
+      
+      const rightCheckboxes = container.querySelectorAll('.' + mode + '-product-row input[data-role="child-checkbox"]');
+      const bottomTableBody = container.querySelector('[data-selected-table="' + mode + '"] tbody');
+      
+      const formCounter = container.querySelector('.create-form-panel .create-summary .summary-item:first-child strong');
+      const headerCounter = container.querySelector('.selected-details-header .selected-count-badge');
+      
+      const filterBar = container.querySelector('.selected-filter-bar');
+      const selectedList = container.querySelector('.selected-list');
+      const emptyState = container.querySelector('.empty-selected-state');
+      
+      let checkedCount = 0;
+      const checkedRows = [];
+      
+      rightCheckboxes.forEach(function(checkbox) {
+        if (checkbox.checked) {
+          checkedCount++;
+          const tr = checkbox.closest('tr');
+          if (tr) {
+            checkedRows.push({
+              id: checkbox.value,
+              maCtsp: tr.dataset.maCtsp || '-',
+              tenSp: tr.dataset.tenSp || '-',
+              hang: tr.dataset.hang || '-',
+              mauSac: tr.dataset.mauSac || '-',
+              trongLuong: tr.dataset.trongLuong || '-',
+              doCung: tr.dataset.doCung || '-',
+              diemCanBang: tr.dataset.diemCanBang || '-',
+              chatLieuThan: tr.dataset.chatLieuThan || '-',
+              chatLieuKhung: tr.dataset.chatLieuKhung || '-',
+              chuVi: tr.dataset.chuVi || '-',
+              xuatXu: tr.dataset.xuatXu || '-',
+              tonKho: tr.dataset.tonKho || '-',
+              giaBan: tr.dataset.giaBan || '-'
+            });
+          }
+        }
+      });
+      
+      if (formCounter) {
+        formCounter.textContent = checkedCount;
+      }
+      if (headerCounter) {
+        headerCounter.textContent = checkedCount + ' biến thể';
+      }
+      
+      if (checkedCount === 0) {
+        if (filterBar) filterBar.style.display = 'none';
+        if (selectedList) selectedList.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+      } else {
+        if (filterBar) filterBar.style.display = '';
+        if (selectedList) selectedList.style.display = '';
+        if (emptyState) emptyState.style.display = 'none';
+      }
+      
+      if (bottomTableBody) {
+        let html = '';
+        checkedRows.forEach(function(item, index) {
+          html += `
+            <tr data-selected-row="${mode}"
+                data-id="${item.id}"
+                data-search="${(item.maCtsp + ' ' + item.tenSp + ' ' + item.hang + ' ' + item.mauSac + ' ' + item.trongLuong + ' ' + item.doCung + ' ' + item.xuatXu).toLowerCase()}"
+                data-brand="${item.hang}"
+                data-color="${item.mauSac}"
+                data-frame-material="${item.chatLieuKhung}"
+                data-hardness="${item.doCung}"
+                data-price="${parseFloat(item.giaBan.replace(/[^0-9]/g, '')) || 0}">
+              <td>
+                <input type="checkbox" class="selected-row-checkbox" value="${item.id}" checked onchange="deselectProduct('${mode}', '${item.id}')">
+              </td>
+              <td>${index + 1}</td>
+              <td>${item.maCtsp}</td>
+              <td>${item.tenSp}</td>
+              <td>${item.hang}</td>
+              <td>${item.mauSac}</td>
+              <td>${item.trongLuong}</td>
+              <td>${item.doCung}</td>
+              <td>${item.diemCanBang}</td>
+              <td>${item.chatLieuThan}</td>
+              <td>${item.chatLieuKhung}</td>
+              <td>${item.chuVi}</td>
+              <td>${item.xuatXu}</td>
+              <td>${item.tonKho}</td>
+              <td>${item.giaBan}</td>
+            </tr>
+          `;
+        });
+        bottomTableBody.innerHTML = html;
+      }
+      
+      filterSelectedProducts(mode);
+      populateSelectedFilterOptions(mode, 'brand');
+      populateSelectedFilterOptions(mode, 'color');
+      populateSelectedFilterOptions(mode, 'frameMaterial');
+      populateSelectedFilterOptions(mode, 'hardness');
+    }
+
+    function initReactivity(mode) {
+      const container = document.querySelector('.' + mode + '-shell');
+      if (!container) return;
+      
+      const childCheckboxes = container.querySelectorAll('.' + mode + '-product-row input[data-role="child-checkbox"]');
+      childCheckboxes.forEach(function(cb) {
+        cb.addEventListener('change', function() {
+          const group = cb.closest('.product-group');
+          if (group) {
+            updateGroupCheckboxState(group);
+          }
+          updateSelectedProductsList(mode);
+        });
+      });
+      
+      const groups = container.querySelectorAll('.product-group');
+      groups.forEach(function(group) {
+        updateGroupCheckboxState(group);
+      });
+      
+      updateSelectedProductsList(mode);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      ['create', 'edit'].forEach(function (mode) {
+        initReactivity(mode);
+      });
+    });
+  </script>
+</div>
+
+</body>
+</html>

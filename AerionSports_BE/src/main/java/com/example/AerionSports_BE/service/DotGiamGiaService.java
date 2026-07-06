@@ -187,7 +187,20 @@ public class DotGiamGiaService {
                     group.put("tenDanhMuc", sanPhamCha.getIdDanhMuc() != null ? sanPhamCha.getIdDanhMuc().getTenDanhMuc() : null);
                     group.put("tenChuViCanVot", sanPhamCha.getIdChuViCanVot() != null ? sanPhamCha.getIdChuViCanVot().getTenChuViCanVot() : null);
                     group.put("mangBienTheCon", entry.getValue().stream()
-                            .map(ctsp -> buildVariantSelectionMap(ctsp, sanPhamCha))
+                            .map(this::toChiTietDTO)
+                            .peek(dto -> {
+                                dto.setMaSanPham(sanPhamCha.getMaSanPham());
+                                dto.setTenSanPham(sanPhamCha.getTenSanPham());
+                                dto.setTenThuongHieu(sanPhamCha.getIdThuongHieu() != null ? sanPhamCha.getIdThuongHieu().getTenThuongHieu() : null);
+                                dto.setTenXuatXu(sanPhamCha.getIdXuatXu() != null ? sanPhamCha.getIdXuatXu().getTenXuatXu() : null);
+                                dto.setTenDoCung(sanPhamCha.getIdDoCung() != null ? sanPhamCha.getIdDoCung().getTenDoCung() : null);
+                                dto.setTenDiemCanBang(sanPhamCha.getIdDiemCanBang() != null ? sanPhamCha.getIdDiemCanBang().getTenDiemCanBang() : null);
+                                dto.setTenChatLieuThanVot(sanPhamCha.getIdChatLieuThanVot() != null ? sanPhamCha.getIdChatLieuThanVot().getTenChatLieuThanVot() : null);
+                                dto.setTenChatLieuKhungVot(sanPhamCha.getIdChatLieuKhungVot() != null ? sanPhamCha.getIdChatLieuKhungVot().getTenChatLieuKhungVot() : null);
+                                dto.setTenDanhMuc(sanPhamCha.getIdDanhMuc() != null ? sanPhamCha.getIdDanhMuc().getTenDanhMuc() : null);
+                                dto.setTenChuViCanVot(sanPhamCha.getIdChuViCanVot() != null ? sanPhamCha.getIdChuViCanVot().getTenChuViCanVot() : null);
+                                dto.setChuViCanVot(sanPhamCha.getIdChuViCanVot() != null ? sanPhamCha.getIdChuViCanVot().getTenChuViCanVot() : null);
+                            })
                             .collect(Collectors.toList()));
                     return group;
                 })
@@ -462,48 +475,4 @@ public class DotGiamGiaService {
         return dto;
     }
 
-    private Map<String, Object> buildVariantSelectionMap(ChiTietSanPham ctsp, SanPham sanPhamCha) {
-        Map<String, Object> variant = new LinkedHashMap<>();
-        variant.put("idChiTietSanPham", ctsp.getId());
-        variant.put("id", ctsp.getId());
-        variant.put("maCtsp", ctsp.getMaCtsp());
-        variant.put("maSanPham", sanPhamCha != null ? sanPhamCha.getMaSanPham() : null);
-        variant.put("tenSanPham", sanPhamCha != null ? sanPhamCha.getTenSanPham() : null);
-        variant.put("giaBan", ctsp.getGiaBan());
-        variant.put("giaNhap", ctsp.getGiaNhap());
-        variant.put("soLuong", ctsp.getSoLuong());
-        variant.put("soLuongTon", ctsp.getSoLuong());
-        variant.put("trangThai", ctsp.getTrangThai());
-        variant.put("tenThuongHieu", sanPhamCha != null && sanPhamCha.getIdThuongHieu() != null
-                ? sanPhamCha.getIdThuongHieu().getTenThuongHieu()
-                : null);
-        variant.put("tenXuatXu", sanPhamCha != null && sanPhamCha.getIdXuatXu() != null
-                ? sanPhamCha.getIdXuatXu().getTenXuatXu()
-                : null);
-        variant.put("tenDoCung", sanPhamCha != null && sanPhamCha.getIdDoCung() != null
-                ? sanPhamCha.getIdDoCung().getTenDoCung()
-                : null);
-        variant.put("tenDiemCanBang", sanPhamCha != null && sanPhamCha.getIdDiemCanBang() != null
-                ? sanPhamCha.getIdDiemCanBang().getTenDiemCanBang()
-                : null);
-        variant.put("tenChatLieuThanVot", sanPhamCha != null && sanPhamCha.getIdChatLieuThanVot() != null
-                ? sanPhamCha.getIdChatLieuThanVot().getTenChatLieuThanVot()
-                : null);
-        variant.put("tenChatLieuKhungVot", sanPhamCha != null && sanPhamCha.getIdChatLieuKhungVot() != null
-                ? sanPhamCha.getIdChatLieuKhungVot().getTenChatLieuKhungVot()
-                : null);
-        variant.put("tenDanhMuc", sanPhamCha != null && sanPhamCha.getIdDanhMuc() != null
-                ? sanPhamCha.getIdDanhMuc().getTenDanhMuc()
-                : null);
-        variant.put("tenChuViCanVot", sanPhamCha != null && sanPhamCha.getIdChuViCanVot() != null
-                ? sanPhamCha.getIdChuViCanVot().getTenChuViCanVot()
-                : null);
-        variant.put("chuViCanVot", sanPhamCha != null && sanPhamCha.getIdChuViCanVot() != null
-                ? sanPhamCha.getIdChuViCanVot().getTenChuViCanVot()
-                : null);
-        variant.put("xuatXuChiTiet", sanPhamCha != null && sanPhamCha.getIdXuatXu() != null
-                ? sanPhamCha.getIdXuatXu().getTenXuatXu()
-                : null);
-        return variant;
-    }
 }

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: main-layout(~{::#hoa-don-view})}">
+      th:replace="~{fragments/layout :: main-layout(~{::#hoa-don-view}, ~{::extraHead})}">
 <head>
     <meta charset="UTF-8">
     <title>Quản lý hóa đơn</title>
+    <th:block th:fragment="extraHead"></th:block>
 </head>
 <body>
 
