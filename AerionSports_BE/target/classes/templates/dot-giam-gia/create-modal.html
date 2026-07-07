@@ -7,7 +7,7 @@
               createGroups=${groupedProducts != null ? groupedProducts : T(java.util.Collections).emptyList()},
               createSelectedIds=${selectedProductIds != null ? selectedProductIds : T(java.util.Collections).emptyList()},
               createSelectedProducts=${selectedProducts != null ? selectedProducts : T(java.util.Collections).emptyList()}">
-  <form class="page-shell create-shell" th:action="${formAction}" method="post">
+  <form class="page-shell create-shell" th:action="${formAction}" method="post" novalidate>
     <div class="create-header">
       <div class="list-title">
         <div class="title-icon">
@@ -29,6 +29,7 @@
               <input id="create-name" name="tenDotGiamGia" type="text"
                      th:value="${createForm != null ? createForm.tenDotGiamGia : ''}"
                      placeholder="Nhập tên đợt giảm giá">
+              <small class="field-error" data-error-for="name" aria-live="polite"></small>
             </div>
 
             <div class="create-field">
@@ -36,18 +37,21 @@
               <input id="create-value" name="giaTriGiam" type="number" min="1" max="100" step="1"
                      th:value="${createForm != null ? createForm.giaTriGiam : ''}"
                      placeholder="Nhập giá trị giảm">
+              <small class="field-error" data-error-for="value" aria-live="polite"></small>
             </div>
 
             <div class="create-field">
               <label for="create-start">Ngày bắt đầu</label>
               <input id="create-start" name="ngayBatDau" type="datetime-local"
                      th:value="${createForm != null and createForm.ngayBatDau != null ? #temporals.format(createForm.ngayBatDau, 'yyyy-MM-dd''T''HH:mm') : ''}">
+              <small class="field-error" data-error-for="start" aria-live="polite"></small>
             </div>
 
             <div class="create-field">
               <label for="create-end">Ngày kết thúc</label>
               <input id="create-end" name="ngayKetThuc" type="datetime-local"
                      th:value="${createForm != null and createForm.ngayKetThuc != null ? #temporals.format(createForm.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm') : ''}">
+              <small class="field-error" data-error-for="end" aria-live="polite"></small>
             </div>
 
             <div class="create-field">

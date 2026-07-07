@@ -261,6 +261,20 @@
   line-height: 1.45;
 }
 
+.dot-giam-gia-page .field-error {
+  display: block;
+  min-height: 16px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #b00020;
+  line-height: 1.35;
+}
+
+.dot-giam-gia-page .is-invalid {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.12);
+}
+
 .dot-giam-gia-page .status-badge,
 .dot-giam-gia-page .status-pill {
   display: inline-flex;

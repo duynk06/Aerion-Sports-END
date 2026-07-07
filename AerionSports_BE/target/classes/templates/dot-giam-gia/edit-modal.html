@@ -8,7 +8,9 @@
               editGroups=${groupedProducts != null ? groupedProducts : T(java.util.Collections).emptyList()},
               editSelectedIds=${selectedProductIds != null ? selectedProductIds : T(java.util.Collections).emptyList()},
               editSelectedProducts=${selectedProducts != null ? selectedProducts : T(java.util.Collections).emptyList()}">
-  <form class="page-shell edit-shell" th:action="${formAction}" method="post">
+  <form class="page-shell edit-shell" th:action="${formAction}" method="post"
+        novalidate
+        th:attr="data-current-status=${editDetail != null ? editDetail.trangThai : ''}, data-original-start=${editForm != null and editForm.ngayBatDau != null ? #temporals.format(editForm.ngayBatDau, 'yyyy-MM-dd''T''HH:mm') : ''}">
     <div class="create-header">
       <div class="list-title">
         <div class="title-icon">
@@ -37,6 +39,7 @@
               <input id="edit-name" name="tenDotGiamGia" type="text"
                      th:value="${editForm != null ? editForm.tenDotGiamGia : ''}"
                      placeholder="Nhập tên đợt giảm giá">
+              <small class="field-error" data-error-for="name" aria-live="polite"></small>
             </div>
 
             <div class="create-field">
@@ -44,18 +47,21 @@
               <input id="edit-value" name="giaTriGiam" type="number" min="1" max="100" step="1"
                      th:value="${editForm != null ? editForm.giaTriGiam : ''}"
                      placeholder="Nhập giá trị giảm">
+              <small class="field-error" data-error-for="value" aria-live="polite"></small>
             </div>
 
             <div class="create-field">
               <label for="edit-start">Ngày bắt đầu</label>
               <input id="edit-start" name="ngayBatDau" type="datetime-local"
                      th:value="${editForm != null and editForm.ngayBatDau != null ? #temporals.format(editForm.ngayBatDau, 'yyyy-MM-dd''T''HH:mm') : ''}">
+              <small class="field-error" data-error-for="start" aria-live="polite"></small>
             </div>
 
             <div class="create-field">
               <label for="edit-end">Ngày kết thúc</label>
               <input id="edit-end" name="ngayKetThuc" type="datetime-local"
                      th:value="${editForm != null and editForm.ngayKetThuc != null ? #temporals.format(editForm.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm') : ''}">
+              <small class="field-error" data-error-for="end" aria-live="polite"></small>
             </div>
 
             <div class="create-field">

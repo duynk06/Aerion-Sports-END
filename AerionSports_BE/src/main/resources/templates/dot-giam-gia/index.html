@@ -10,6 +10,7 @@
 </head>
 <body>
 <div id="dot-giam-gia-page" class="dot-giam-gia-page" th:attr="data-view-mode=${viewMode != null ? viewMode : 'list'}">
+  <!-- Modal nào sẽ được render phụ thuộc vào action trên URL: create / edit / view. -->
   <th:block th:if="${viewMode == 'create'}">
     <th:block th:replace="~{dot-giam-gia/create-modal :: createModal(${form}, ${groupedProducts}, ${selectedProductIds}, ${selectedProducts}, ${errorMessage}, ${formAction})}"></th:block>
   </th:block>
@@ -22,6 +23,7 @@
     <th:block th:replace="~{dot-giam-gia/detail-modal :: detailModal(${detail}, ${detailProducts})}"></th:block>
   </th:block>
 
+  <!-- Khi không mở modal, trang chạy ở chế độ danh sách để lọc, xem và đổi trạng thái đợt giảm giá. -->
   <th:block th:if="${viewMode == null or viewMode == '' or viewMode == 'list'}">
     <form th:action="@{/dot-giam-gia}" method="get">
       <section class="card">
@@ -169,11 +171,278 @@
     </section>
   </th:block>
 
+  <!-- Script dùng chung cho trang này: validate realtime, lọc sản phẩm, đồng bộ checkbox và dựng bảng đã chọn. -->
   <script>
     function normalizeText(value) {
       return (value || '').toString().toLowerCase().trim();
     }
 
+    // Tạo chuỗi datetime-local theo thời gian local để dùng làm fallback khi không lấy được múi giờ chuẩn.
+    function formatDateTimeLocal(date) {
+      const pad = function (value) {
+        return String(value).padStart(2, '0');
+      };
+
+      return date.getFullYear() + '-' +
+        pad(date.getMonth() + 1) + '-' +
+        pad(date.getDate()) + 'T' +
+        pad(date.getHours()) + ':' +
+        pad(date.getMinutes());
+    }
+
+    // Lấy "thời gian hiện tại" theo múi giờ Việt Nam, sau đó cắt xuống phút để so với input datetime-local.
+    function getCurrentMinuteValueInZone(timeZone) {
+      try {
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+          timeZone: timeZone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23'
+        });
+
+        const parts = formatter.formatToParts(new Date());
+        const values = {};
+        parts.forEach(function (part) {
+          if (part.type !== 'literal') {
+            values[part.type] = part.value;
+          }
+        });
+
+        return values.year + '-' + values.month + '-' + values.day + 'T' + values.hour + ':' + values.minute;
+      } catch (error) {
+        const now = new Date();
+        now.setSeconds(0, 0);
+        return formatDateTimeLocal(now);
+      }
+    }
+
+    function normalizeDateTimeValue(value) {
+      return (value || '').toString().trim();
+    }
+
+    // Kiểm tra nhanh chuỗi datetime-local có parse được thành thời gian hợp lệ hay không.
+    function isValidDateTimeLocalValue(value) {
+      if (!value) {
+        return false;
+      }
+
+      return !Number.isNaN(new Date(value).getTime());
+    }
+
+    // Khởi tạo validate realtime cho form thêm/sửa:
+    // - báo lỗi ngay khi nhập
+    // - chặn submit nếu dữ liệu chưa hợp lệ
+    // - xử lý riêng rule cho màn edit khi campaign đang diễn ra
+    function initDiscountRealtimeValidation(mode) {
+      const form = document.querySelector('.' + mode + '-shell');
+      if (!form) {
+        return;
+      }
+
+      const nameInput = document.getElementById(mode + '-name');
+      const valueInput = document.getElementById(mode + '-value');
+      const startInput = document.getElementById(mode + '-start');
+      const endInput = document.getElementById(mode + '-end');
+
+      if (!nameInput || !valueInput || !startInput || !endInput) {
+        return;
+      }
+
+      const nameError = form.querySelector('[data-error-for="name"]');
+      const valueError = form.querySelector('[data-error-for="value"]');
+      const startError = form.querySelector('[data-error-for="start"]');
+      const endError = form.querySelector('[data-error-for="end"]');
+      const serverError = form.querySelector('.create-error');
+      const currentStatus = Number(form.dataset.currentStatus || 0);
+      const originalStart = normalizeDateTimeValue(form.dataset.originalStart);
+
+      // Set trạng thái hiển thị của từng field: đổi viền input và nội dung lỗi bên dưới.
+      function setFieldState(input, errorNode, message) {
+        if (errorNode) {
+          errorNode.textContent = message || '';
+        }
+        input.classList.toggle('is-invalid', !!message);
+        input.setAttribute('aria-invalid', message ? 'true' : 'false');
+      }
+
+      // Hàm này được tách riêng để lần nào validate cũng dùng chung một cách tính thời gian.
+      function currentMinuteValue() {
+        return getCurrentMinuteValueInZone('Asia/Ho_Chi_Minh');
+      }
+
+      // Tên campaign chỉ cần không rỗng.
+      function validateName(showMessage) {
+        const value = normalizeText(nameInput.value);
+        const message = value ? '' : (showMessage ? 'Tên đợt giảm giá không được để trống' : '');
+        setFieldState(nameInput, nameError, message);
+        return !message;
+      }
+
+      // Giá trị giảm phải là số từ 1 đến 100.
+      function validateValue(showMessage) {
+        const raw = normalizeDateTimeValue(valueInput.value);
+        let message = '';
+
+        if (!raw) {
+          message = showMessage ? 'Giá trị giảm không được để trống' : '';
+        } else {
+          const numeric = Number(raw);
+          if (Number.isNaN(numeric)) {
+            message = 'Giá trị giảm không hợp lệ';
+          } else if (numeric <= 0) {
+            message = 'Giá trị giảm phải lớn hơn 0%';
+          } else if (numeric > 100) {
+            message = 'Giá trị giảm không được vượt quá 100%';
+          }
+        }
+
+        setFieldState(valueInput, valueError, message);
+        return !message;
+      }
+
+      // Ngày bắt đầu:
+      // - không được trống
+      // - không được ở quá khứ
+      // - nếu đang sửa campaign đang diễn ra thì không cho đổi ngày bắt đầu
+      // - phải nhỏ hơn ngày kết thúc
+      function validateStart(showMessage, checkRelation) {
+        const value = normalizeDateTimeValue(startInput.value);
+        let message = '';
+
+        if (!value) {
+          message = showMessage ? 'Ngày bắt đầu không được để trống' : '';
+        } else if (!isValidDateTimeLocalValue(value)) {
+          message = 'Ngày bắt đầu không hợp lệ';
+        } else if (mode === 'edit' && currentStatus === 2 && originalStart && value !== originalStart) {
+          message = 'Đợt giảm giá đang diễn ra không được sửa ngày bắt đầu';
+        } else if (currentStatus !== 2 && value < currentMinuteValue()) {
+          message = 'Ngày bắt đầu không được chọn thời gian trong quá khứ';
+        }
+
+        if (!message && checkRelation) {
+          const endValue = normalizeDateTimeValue(endInput.value);
+          if (endValue && value >= endValue) {
+            message = 'Ngày bắt đầu phải trước ngày kết thúc';
+          }
+        }
+
+        setFieldState(startInput, startError, message);
+        return !message;
+      }
+
+      // Ngày kết thúc:
+      // - không được trống
+      // - không được ở quá khứ
+      // - phải lớn hơn ngày bắt đầu
+      function validateEnd(showMessage, checkRelation) {
+        const value = normalizeDateTimeValue(endInput.value);
+        let message = '';
+
+        if (!value) {
+          message = showMessage ? 'Ngày kết thúc không được để trống' : '';
+        } else if (!isValidDateTimeLocalValue(value)) {
+          message = 'Ngày kết thúc không hợp lệ';
+        } else if (value < currentMinuteValue()) {
+          message = 'Ngày kết thúc không được chọn thời gian trong quá khứ';
+        }
+
+        if (!message && checkRelation) {
+          const startValue = normalizeDateTimeValue(startInput.value);
+          if (startValue && value <= startValue) {
+            message = 'Ngày bắt đầu phải trước ngày kết thúc';
+          }
+        }
+
+        setFieldState(endInput, endError, message);
+        return !message;
+      }
+
+      // Ẩn lỗi trả về từ server khi người dùng bắt đầu sửa lại dữ liệu.
+      function hideServerError() {
+        if (serverError) {
+          serverError.hidden = true;
+        }
+      }
+
+      // Validate đúng field đang thay đổi để phản hồi nhanh, không cần đợi submit.
+      function validateField(name) {
+        if (name === 'name') {
+          validateName(true);
+          return;
+        }
+
+        if (name === 'value') {
+          validateValue(true);
+          return;
+        }
+
+        if (name === 'start') {
+          validateStart(true, true);
+          if (normalizeDateTimeValue(endInput.value)) {
+            validateEnd(false, false);
+          }
+          return;
+        }
+
+        if (name === 'end') {
+          validateEnd(true, true);
+          if (normalizeDateTimeValue(startInput.value)) {
+            validateStart(false, false);
+          }
+        }
+      }
+
+      // Validate toàn bộ form trước khi submit.
+      function validateForm() {
+        const validName = validateName(true);
+        const validValue = validateValue(true);
+        const validStart = validateStart(true, true);
+        const validEnd = validateEnd(true, true);
+        return validName && validValue && validStart && validEnd;
+      }
+
+      [nameInput, valueInput, startInput, endInput].forEach(function (input) {
+        input.addEventListener('input', function () {
+          hideServerError();
+          validateField(input.id.indexOf('-name') > -1 ? 'name'
+            : input.id.indexOf('-value') > -1 ? 'value'
+            : input.id.indexOf('-start') > -1 ? 'start'
+            : 'end');
+        });
+
+        input.addEventListener('change', function () {
+          hideServerError();
+          validateField(input.id.indexOf('-name') > -1 ? 'name'
+            : input.id.indexOf('-value') > -1 ? 'value'
+            : input.id.indexOf('-start') > -1 ? 'start'
+            : 'end');
+        });
+
+        input.addEventListener('blur', function () {
+          validateField(input.id.indexOf('-name') > -1 ? 'name'
+            : input.id.indexOf('-value') > -1 ? 'value'
+            : input.id.indexOf('-start') > -1 ? 'start'
+            : 'end');
+        });
+      });
+
+      form.addEventListener('submit', function (event) {
+        if (!validateForm()) {
+          event.preventDefault();
+          const firstInvalid = [nameInput, valueInput, startInput, endInput].find(function (input) {
+            return input.classList.contains('is-invalid');
+          });
+          if (firstInvalid) {
+            firstInvalid.focus();
+          }
+        }
+      });
+    }
+
+    // Nút switch ở bảng danh sách sẽ gọi endpoint đổi trạng thái campaign.
     function toggleStatus(checkbox) {
       const id = checkbox.dataset.id;
       const form = document.getElementById('status-form-' + id);
@@ -198,6 +467,7 @@
       }
     }
 
+    // Lọc cây sản phẩm ở bên phải theo từ khóa gõ vào ô tìm kiếm.
     function filterModalProducts(mode) {
       const input = document.getElementById('product-filter-' + mode);
       if (!input) return;
@@ -220,6 +490,7 @@
       });
     }
 
+    // Sau khi chọn sản phẩm, lấy ra tập giá trị duy nhất để đổ vào dropdown lọc.
     function populateSelectedFilterOptions(mode, field) {
       const select = document.getElementById(mode + '-selected-' + field);
       if (!select) return;
@@ -250,6 +521,7 @@
       }
     }
 
+    // Helper so sánh giá bán với các mốc lọc nhanh ở bảng sản phẩm đã chọn.
     function matchesSelectedPrice(price, filterValue) {
       const numericPrice = Number(price || 0);
       if (!filterValue) return true;
@@ -259,6 +531,7 @@
       return true;
     }
 
+    // Áp bộ lọc keyword / hãng / màu / độ cứng / giá lên bảng sản phẩm đã chọn phía dưới.
     function filterSelectedProducts(mode) {
       const keywordInput = document.getElementById(mode + '-selected-search');
       const brandSelect = document.getElementById(mode + '-selected-brand');
@@ -294,6 +567,7 @@
       });
     }
 
+    // Tick checkbox của group cha thì tự tick toàn bộ biến thể con trong group đó.
     function toggleGroupChildren(checkbox) {
       const group = checkbox.closest('.product-group');
       if (!group) return;
@@ -306,6 +580,7 @@
       });
     }
 
+    // Khi tick/bỏ tick từng biến thể con, cập nhật lại trạng thái checkbox của group cha.
     function updateGroupCheckboxState(group) {
       const groupCheckbox = group.querySelector('.group-checkbox');
       if (!groupCheckbox) return;
@@ -317,6 +592,7 @@
       groupCheckbox.checked = allChecked;
     }
 
+    // Bỏ chọn 1 sản phẩm từ bảng phía dưới và sync ngược lên bảng bên phải.
     function deselectProduct(mode, id) {
       const checkbox = document.querySelector('.' + mode + '-product-row input[value="' + id + '"]');
       if (checkbox) {
@@ -325,6 +601,7 @@
       }
     }
 
+    // Checkbox master dùng để bỏ chọn toàn bộ sản phẩm đã được tick.
     function toggleSelectAllSelected(mode, masterCheckbox) {
       if (!masterCheckbox.checked) {
         if (confirm('Bỏ chọn tất cả các sản phẩm đã chọn?')) {
@@ -341,6 +618,7 @@
       }
     }
 
+    // Dựng lại bảng "chi tiết sản phẩm đã chọn" dựa trên những checkbox đang được tick.
     function updateSelectedProductsList(mode) {
       const container = document.querySelector('.' + mode + '-shell');
       if (!container) return;
@@ -443,6 +721,7 @@
       populateSelectedFilterOptions(mode, 'hardness');
     }
 
+    // Gắn toàn bộ listener cho màn create/edit để danh sách chọn sản phẩm hoạt động live.
     function initReactivity(mode) {
       const container = document.querySelector('.' + mode + '-shell');
       if (!container) return;
@@ -466,8 +745,10 @@
       updateSelectedProductsList(mode);
     }
 
+    // Khi DOM sẵn sàng thì kích hoạt cả validate realtime và logic đồng bộ checkbox.
     document.addEventListener('DOMContentLoaded', function () {
       ['create', 'edit'].forEach(function (mode) {
+        initDiscountRealtimeValidation(mode);
         initReactivity(mode);
       });
     });

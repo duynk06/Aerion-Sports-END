@@ -174,6 +174,248 @@
       return (value || '').toString().toLowerCase().trim();
     }
 
+    function formatDateTimeLocal(date) {
+      const pad = function (value) {
+        return String(value).padStart(2, '0');
+      };
+
+      return date.getFullYear() + '-' +
+        pad(date.getMonth() + 1) + '-' +
+        pad(date.getDate()) + 'T' +
+        pad(date.getHours()) + ':' +
+        pad(date.getMinutes());
+    }
+
+    function getCurrentMinuteValueInZone(timeZone) {
+      try {
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+          timeZone: timeZone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23'
+        });
+
+        const parts = formatter.formatToParts(new Date());
+        const values = {};
+        parts.forEach(function (part) {
+          if (part.type !== 'literal') {
+            values[part.type] = part.value;
+          }
+        });
+
+        return values.year + '-' + values.month + '-' + values.day + 'T' + values.hour + ':' + values.minute;
+      } catch (error) {
+        const now = new Date();
+        now.setSeconds(0, 0);
+        return formatDateTimeLocal(now);
+      }
+    }
+
+    function normalizeDateTimeValue(value) {
+      return (value || '').toString().trim();
+    }
+
+    function isValidDateTimeLocalValue(value) {
+      if (!value) {
+        return false;
+      }
+
+      return !Number.isNaN(new Date(value).getTime());
+    }
+
+    function initDiscountRealtimeValidation(mode) {
+      const form = document.querySelector('.' + mode + '-shell');
+      if (!form) {
+        return;
+      }
+
+      const nameInput = document.getElementById(mode + '-name');
+      const valueInput = document.getElementById(mode + '-value');
+      const startInput = document.getElementById(mode + '-start');
+      const endInput = document.getElementById(mode + '-end');
+
+      if (!nameInput || !valueInput || !startInput || !endInput) {
+        return;
+      }
+
+      const nameError = form.querySelector('[data-error-for="name"]');
+      const valueError = form.querySelector('[data-error-for="value"]');
+      const startError = form.querySelector('[data-error-for="start"]');
+      const endError = form.querySelector('[data-error-for="end"]');
+      const serverError = form.querySelector('.create-error');
+      const currentStatus = Number(form.dataset.currentStatus || 0);
+      const originalStart = normalizeDateTimeValue(form.dataset.originalStart);
+
+      function setFieldState(input, errorNode, message) {
+        if (errorNode) {
+          errorNode.textContent = message || '';
+        }
+        input.classList.toggle('is-invalid', !!message);
+        input.setAttribute('aria-invalid', message ? 'true' : 'false');
+      }
+
+      function currentMinuteValue() {
+        return getCurrentMinuteValueInZone('Asia/Ho_Chi_Minh');
+      }
+
+      function validateName(showMessage) {
+        const value = normalizeText(nameInput.value);
+        const message = value ? '' : (showMessage ? 'Tên đợt giảm giá không được để trống' : '');
+        setFieldState(nameInput, nameError, message);
+        return !message;
+      }
+
+      function validateValue(showMessage) {
+        const raw = normalizeDateTimeValue(valueInput.value);
+        let message = '';
+
+        if (!raw) {
+          message = showMessage ? 'Giá trị giảm không được để trống' : '';
+        } else {
+          const numeric = Number(raw);
+          if (Number.isNaN(numeric)) {
+            message = 'Giá trị giảm không hợp lệ';
+          } else if (numeric <= 0) {
+            message = 'Giá trị giảm phải lớn hơn 0%';
+          } else if (numeric > 100) {
+            message = 'Giá trị giảm không được vượt quá 100%';
+          }
+        }
+
+        setFieldState(valueInput, valueError, message);
+        return !message;
+      }
+
+      function validateStart(showMessage, checkRelation) {
+        const value = normalizeDateTimeValue(startInput.value);
+        let message = '';
+
+        if (!value) {
+          message = showMessage ? 'Ngày bắt đầu không được để trống' : '';
+        } else if (!isValidDateTimeLocalValue(value)) {
+          message = 'Ngày bắt đầu không hợp lệ';
+        } else if (mode === 'edit' && currentStatus === 2 && originalStart && value !== originalStart) {
+          message = 'Đợt giảm giá đang diễn ra không được sửa ngày bắt đầu';
+        } else if (currentStatus !== 2 && value < currentMinuteValue()) {
+          message = 'Ngày bắt đầu không được chọn thời gian trong quá khứ';
+        }
+
+        if (!message && checkRelation) {
+          const endValue = normalizeDateTimeValue(endInput.value);
+          if (endValue && value >= endValue) {
+            message = 'Ngày bắt đầu phải trước ngày kết thúc';
+          }
+        }
+
+        setFieldState(startInput, startError, message);
+        return !message;
+      }
+
+      function validateEnd(showMessage, checkRelation) {
+        const value = normalizeDateTimeValue(endInput.value);
+        let message = '';
+
+        if (!value) {
+          message = showMessage ? 'Ngày kết thúc không được để trống' : '';
+        } else if (!isValidDateTimeLocalValue(value)) {
+          message = 'Ngày kết thúc không hợp lệ';
+        } else if (value < currentMinuteValue()) {
+          message = 'Ngày kết thúc không được chọn thời gian trong quá khứ';
+        }
+
+        if (!message && checkRelation) {
+          const startValue = normalizeDateTimeValue(startInput.value);
+          if (startValue && value <= startValue) {
+            message = 'Ngày bắt đầu phải trước ngày kết thúc';
+          }
+        }
+
+        setFieldState(endInput, endError, message);
+        return !message;
+      }
+
+      function hideServerError() {
+        if (serverError) {
+          serverError.hidden = true;
+        }
+      }
+
+      function validateField(name) {
+        if (name === 'name') {
+          validateName(true);
+          return;
+        }
+
+        if (name === 'value') {
+          validateValue(true);
+          return;
+        }
+
+        if (name === 'start') {
+          validateStart(true, true);
+          if (normalizeDateTimeValue(endInput.value)) {
+            validateEnd(false, false);
+          }
+          return;
+        }
+
+        if (name === 'end') {
+          validateEnd(true, true);
+          if (normalizeDateTimeValue(startInput.value)) {
+            validateStart(false, false);
+          }
+        }
+      }
+
+      function validateForm() {
+        const validName = validateName(true);
+        const validValue = validateValue(true);
+        const validStart = validateStart(true, true);
+        const validEnd = validateEnd(true, true);
+        return validName && validValue && validStart && validEnd;
+      }
+
+      [nameInput, valueInput, startInput, endInput].forEach(function (input) {
+        input.addEventListener('input', function () {
+          hideServerError();
+          validateField(input.id.indexOf('-name') > -1 ? 'name'
+            : input.id.indexOf('-value') > -1 ? 'value'
+            : input.id.indexOf('-start') > -1 ? 'start'
+            : 'end');
+        });
+
+        input.addEventListener('change', function () {
+          hideServerError();
+          validateField(input.id.indexOf('-name') > -1 ? 'name'
+            : input.id.indexOf('-value') > -1 ? 'value'
+            : input.id.indexOf('-start') > -1 ? 'start'
+            : 'end');
+        });
+
+        input.addEventListener('blur', function () {
+          validateField(input.id.indexOf('-name') > -1 ? 'name'
+            : input.id.indexOf('-value') > -1 ? 'value'
+            : input.id.indexOf('-start') > -1 ? 'start'
+            : 'end');
+        });
+      });
+
+      form.addEventListener('submit', function (event) {
+        if (!validateForm()) {
+          event.preventDefault();
+          const firstInvalid = [nameInput, valueInput, startInput, endInput].find(function (input) {
+            return input.classList.contains('is-invalid');
+          });
+          if (firstInvalid) {
+            firstInvalid.focus();
+          }
+        }
+      });
+    }
+
     function toggleStatus(checkbox) {
       const id = checkbox.dataset.id;
       const form = document.getElementById('status-form-' + id);
@@ -468,6 +710,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
       ['create', 'edit'].forEach(function (mode) {
+        initDiscountRealtimeValidation(mode);
         initReactivity(mode);
       });
     });
