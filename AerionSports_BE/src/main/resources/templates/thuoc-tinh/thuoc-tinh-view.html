@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main-layout(~{::content})}">
+<head>
+</head>
+<body>
+
+<div th:fragment="content">
+    <link class="stat-style" rel="stylesheet" th:href="@{/san-pham/san-pham.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <div class="breadcrumb-container">
+        <div class="breadcrumb-text">
+            Quản lý sản phẩm / Thuộc tính / <strong style="color: #f97316;" th:text="${title}">Thuộc tính</strong>
+        </div>
+    </div>
+
+    <div class="filter-container-orange">
+        <div class="filter-header-title">Bộ lọc tìm kiếm nhanh</div>
+        <div class="filter-body-content">
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label>Tìm kiếm thuộc tính</label>
+                    <input type="text" id="ttSearchInput" placeholder="Nhập mã hoặc tên thuộc tính để lọc nhanh..." oninput="locBangGiaoDien()" />
+                </div>
+                <div class="filter-item" style="max-width: 200px;">
+                    <label>Trạng thái hoạt động</label>
+                    <select id="ttStatusFilter" onchange="locBangGiaoDien()">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option value="1">Đang hoạt động</option>
+                        <option value="0">Ngừng hoạt động</option>
+                    </select>
+                </div>
+                <div class="filter-item filter-actions" style="display: flex; align-items: flex-end;">
+                    <button type="button" class="btn-filter-clear" onclick="xoaBoLocGiaoDien()">Xóa bộ lọc</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="data-table-container">
+        <div class="table-header-flex" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="table-summary-title">Danh sách <span th:text="${#strings.toLowerCase(title)}">dữ liệu</span> hiện tại trên hệ thống</div>
+            <div class="header-actions" style="display: flex; gap: 10px;">
+                <button type="button" class="btn-action-excel" id="ttBtnExport" onclick="xuatExcelLocal()">
+                    Xuất Excel
+                </button>
+                <button type="button" class="btn-action-solid" id="ttBtnToggleAdd" onclick="toggleQuickAddPanel()">
+                    Thêm <span th:text="${title}">thuộc tính</span> mới
+                </button>
+            </div>
+        </div>
+
+        <div class="quick-add-panel" id="ttQuickAddPanel" style="display: none;">
+            <form id="ttFormMonolith" th:action="@{/thuoc-tinh/{loai}/luu(loai=${apiPath})}" method="POST" novalidate>
+                <input type="hidden" name="id" id="itemId" value="" />
+
+                <div class="quick-add-panel-header">
+                    <span id="ttPanelTitle">Thêm mới <span th:text="${#strings.toLowerCase(title)}"></span></span>
+                    <button type="button" class="btn-close-x" onclick="dongPanelThemNhanh()">&times;</button>
+                </div>
+
+                <table class="quick-add-inline-table">
+                    <thead>
+                    <tr>
+                        <th style="width: 200px;">Mã thuộc tính</th>
+                        <th>Tên <span th:text="${title}"></span> <span class="required-star">*</span></th>
+                        <th style="width: 190px; text-align: center;">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td style="vertical-align: middle;">
+                            <span id="ttFormCodeLabel" style="font-weight: bold; color: #475569;">Hệ thống tự tăng</span>
+                        </td>
+                        <td>
+                            <input type="text" name="tenThuocTinh" id="ttFormValue" required
+                                   th:placeholder="'Nhập tên ' + ${#strings.toLowerCase(title)} + '...'" style="width: 100%; max-width: 400px;" />
+                            <span class="form-error-text" id="ttFormError" style="color: red; display: block; font-size: 12px; margin-top: 4px;"></span>
+                        </td>
+                        <td style="text-align: center; vertical-align: middle;">
+                            <button type="submit" class="btn-modal-submit">Lưu</button>
+                            <button type="button" class="btn-modal-cancel" onclick="dongPanelThemNhanh()">Hủy</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+
+        <div class="table-responsive" style="margin-top: 15px;">
+            <table class="custom-data-table" id="ttMainTable">
+                <thead>
+                <tr>
+                    <th style="width: 60px; text-align: center;">STT</th>
+                    <th>Mã thuộc tính</th>
+                    <th>Tên <span th:text="${title}">thuộc tính</span></th>
+                    <th style="width: 160px; text-align: center;">Trạng thái</th>
+                    <th style="width: 160px; text-align: center;">Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="ttTableBody">
+                <tr th:if="${#lists.isEmpty(dataList)}" id="emptyRow">
+                    <td colspan="5" class="empty-table-row">Không tìm thấy dữ liệu thuộc tính nào trên hệ thống!</td>
+                </tr>
+                <tr th:each="item, stat : ${dataList}" class="data-row" th:data-status="${item.trangThai}">
+                    <td style="text-align: center;" th:text="${currentPage * pageSize + stat.count}"></td>
+                    <td class="product-code-text search-target-code" th:text="${item.ma}">Mã</td>
+                    <td style="font-weight: 600; text-align: left;" class="search-target-name" th:text="${item.ten}">Tên thuộc tính</td>
+                    <td style="text-align: center;">
+                        <span th:classappend="${item.trangThai == 1} ? 'status-active' : 'status-stopped'"
+                              class="badge-status-text"
+                              th:text="${item.trangThai == 1} ? 'Đang hoạt động' : 'Ngừng hoạt động'">
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <div class="action-buttons-flex-group" style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                            <button type="button" class="icon-btn-circle edit-pen" title="Chỉnh sửa thuộc tính"
+                                    th:attr="onclick=|moPanelChinhSua('${item.id}', '${item.ten}', '${item.ma}')|">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <a th:href="@{/thuoc-tinh/{loai}/doi-trang-thai/{id}(loai=${apiPath}, id=${item.id}, trangThaiHienTai=${item.trangThai})}"
+                               class="status-toggle-container" title="Thay đổi trạng thái">
+                                <span class="toggle-track" th:classappend="${item.trangThai == 1} ? 'track-active' : 'track-inactive'">
+                                    <span class="toggle-handle"></span>
+                                </span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="custom-pagination-container" style="display: flex !important; justify-content: space-between !important; align-items: center !important; margin-top: 15px; padding: 10px 0;">
+            <div class="pagination-left-summary" style="font-size: 14px; color: #475569;">
+                Tổng số: <strong th:text="${totalElements}">0</strong> <span th:text="${#strings.toLowerCase(title)}">thuộc tính</span> hệ thống
+            </div>
+            <div class="custom-pagination-wrapper" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                <a class="page-arrow-btn" th:classappend="${currentPage == 0} ? 'disabled'"
+                   th:href="@{/thuoc-tinh/{loai}(loai=${apiPath}, page=${currentPage - 1}, size=5)}">&lt;</a>
+                <span class="page-text-indicator" th:text="'Trang ' + (${currentPage} + 1) + ' / ' + (${totalPages} > 0 ? ${totalPages} : 1)"></span>
+                <a class="page-arrow-btn" th:classappend="${currentPage >= totalPages - 1 or totalPages <= 1} ? 'disabled'"
+                   th:href="@{/thuoc-tinh/{loai}(loai=${apiPath}, page=${currentPage + 1}, size=5)}">&gt;</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script th:inline="javascript">
+        window.TT_CONFIG = {
+            title: /*[[${title}]]*/ 'Thuộc tính',
+            apiPath: /*[[${apiPath}]]*/ 'mau-sac',
+            propName: 'ten',
+            totalElements: /*[[${totalElements}]]*/ 0,
+            allItems: /*[[${allItemsForValidate}]]*/ []
+        };
+    </script>
+    <script th:src="@{/js/thuoc-tinh.js}"></script>
+</div>
+
+</body>
+</html>

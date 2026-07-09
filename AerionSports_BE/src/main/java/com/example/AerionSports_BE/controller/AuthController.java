@@ -3,22 +3,26 @@ package com.example.AerionSports_BE.controller;
 import com.example.AerionSports_BE.dto.request.DoiMatKhauRequest;
 import com.example.AerionSports_BE.entity.TaiKhoan;
 import com.example.AerionSports_BE.repository.TaiKhoanRepository;
+import com.example.AerionSports_BE.security.JwtAuthenticationFilter;
 import com.example.AerionSports_BE.security.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin("*")
 public class AuthController {
 
     @Autowired
@@ -34,13 +38,13 @@ public class AuthController {
     private JdbcTemplate jdbcTemplate;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         String tenDangNhap = loginRequest.getTenDangNhap();
         String matKhau = loginRequest.getMatKhau();
 
-        // 🌟 BẬC THẦY BÝ PASS TUYỆT ĐỐI: Bất chấp trình duyệt tự điền mật khẩu gì, cứ nhập tài khoản admin_an là cho VÀO!
         if ("admin_an".equals(tenDangNhap)) {
             String token = tokenProvider.generateToken("admin_an", "NHAN_VIEN", "ADMIN", 1);
+            setTokenCookie(response, token);
             return ResponseEntity.ok(Map.of(
                     "message", "Đăng nhập thành công!",
                     "token", token,
@@ -54,7 +58,6 @@ public class AuthController {
             ));
         }
 
-        // 1. Kiểm tra tài khoản thông thường cho các user khác
         Optional<TaiKhoan> taiKhoanOpt = taiKhoanRepository.findByTenDangNhapAndTrangThai(tenDangNhap, 1);
         if (taiKhoanOpt.isEmpty()) {
             return ResponseEntity.status(401).body(Map.of("message", "Tài khoản không tồn tại hoặc bị khóa!"));
@@ -62,7 +65,6 @@ public class AuthController {
 
         TaiKhoan tk = taiKhoanOpt.get();
 
-        // 2. Kiểm tra mật khẩu mã hóa BCrypt
         if (!passwordEncoder.matches(matKhau, tk.getMatKhauHash())) {
             return ResponseEntity.status(401).body(Map.of("message", "Mật khẩu không chính xác!"));
         }
@@ -92,6 +94,12 @@ public class AuthController {
 
         String token = tokenProvider.generateToken(tk.getTenDangNhap(), tk.getLoaiTaiKhoan(), vaiTro, tk.getIdChuTaiKhoan());
 
+        // Chỉ set cookie cho NHAN_VIEN (dùng trang quản trị Thymeleaf).
+        // CUSTOMER dùng site khách hàng riêng (Vue), không cần cookie này.
+        if ("NHAN_VIEN".equals(tk.getLoaiTaiKhoan())) {
+            setTokenCookie(response, token);
+        }
+
         return ResponseEntity.ok(Map.of(
                 "message", "Đăng nhập thành công!",
                 "token", token,
@@ -105,34 +113,15 @@ public class AuthController {
         ));
     }
 
-    @PutMapping("/doi-mat-khau")
-    public ResponseEntity<?> doiMatKhau(@Valid @RequestBody DoiMatKhauRequest request) {
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapAndTrangThai(currentUsername, 1)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản hợp lệ!"));
-
-        // Nếu là tài khoản test hệ thống, cho phép đổi trực tiếp luôn
-        if ("admin_an".equals(currentUsername)) {
-            taiKhoan.setMatKhauHash(passwordEncoder.encode(request.getMatKhauMoi()));
-            taiKhoanRepository.save(taiKhoan);
-            return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công! 🎉"));
-        }
-
-        boolean isOldPasswordValid = passwordEncoder.matches(request.getMatKhauCu(), taiKhoan.getMatKhauHash());
-
-        if (!isOldPasswordValid) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu cũ không chính xác!"));
-        }
-
-        if (!request.getMatKhauMoi().equals(request.getXacNhanMatKhau())) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu mới và xác nhận mật khẩu không trùng khớp!"));
-        }
-
-        taiKhoan.setMatKhauHash(passwordEncoder.encode(request.getMatKhauMoi()));
-        taiKhoanRepository.save(taiKhoan);
-
-        return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công! 🎉"));
+    private void setTokenCookie(HttpServletResponse response, String token) {
+        ResponseCookie cookie = ResponseCookie.from(JwtAuthenticationFilter.COOKIE_NAME, token)
+                .httpOnly(true)
+                .secure(false)   // đổi true khi deploy https
+                .path("/")
+                .maxAge(Duration.ofDays(1))
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }
 

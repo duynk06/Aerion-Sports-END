@@ -2,9 +2,9 @@ spring:
   application:
     name: BE_DATN
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=QUANLYVOTCAULONG28;encrypt=true;trustServerCertificate=true
+    url: jdbc:sqlserver://localhost:1433;databaseName=QUANLYVOTCAULONG16;encrypt=true;trustServerCertificate=true
     username: sa
-    password: 123
+    password: 25092006
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
     hibernate:

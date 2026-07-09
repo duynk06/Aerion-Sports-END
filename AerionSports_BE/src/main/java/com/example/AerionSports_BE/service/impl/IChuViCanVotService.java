@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface IChuViCanVotService {
+    List<ChuViCanVot> getAll();
     List<ChuViCanVot> getAllActive();
     Page<ChuViCanVot> search(ChuViCanVotFilter f);
     ChuViCanVot getById(Integer id);

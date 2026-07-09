@@ -32,7 +32,9 @@ public class EmailService {
     @Autowired
     private ThongKeService thongKeService;
 
-
+    // 🌟 MỚI: URL logo dùng trong email trạng thái đơn hàng.
+    // Thay bằng link ảnh logo thật của bạn (ảnh phải public, truy cập được từ internet).
+    private static final String LOGO_URL = "https://your-domain.com/logo-aerion-sports.png";
 
     // Tự động bốc email gửi của bạn (vietphan0925@gmail.com) làm email nhận báo cáo chính luôn
     @Value("${spring.mail.username}")
@@ -59,10 +61,12 @@ public class EmailService {
                     + "  <h2 style='color: #f79b66; margin: 0; font-size: 22px; letter-spacing: 1px;'>CHÀO MỪNG THÀNH VIÊN MỚI</h2>"
                     + "  <p style='color: #475569; font-size: 14px;'>Tài khoản quản trị nội bộ hệ thống Aerion Sports của bạn đã được khởi tạo!</p>"
                     + "</div>"
-                    + "<p>Xin chào <strong>" + "</strong>,</p>"
+                    // 🌟 ĐÃ SỬA: thêm biến tenNhanVien bị thiếu trước đây
+                    + "<p>Xin chào <strong>" + tenNhanVien + "</strong>,</p>"
                     + "<p>Dưới đây là thông tin đăng nhập cá nhân của bạn trên hệ thống, vui lòng bảo mật thông tin này:</p>"
                     + "<div style='background-color: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 15px 0; line-height: 1.6;'>"
-                    + "  <p style='margin: 5px 0; font-size:  tenNhanVien +14px;'>🌐 <strong>Trang quản trị:</strong> <a href='http://localhost:5173/login' style='color: #ea712b; text-decoration: none; font-weight: bold;'>Click để đến trang Đăng nhập</a></p>"
+                    // 🌟 ĐÃ SỬA: bỏ chuỗi "tenNhanVien +14px" gõ nhầm, trả về đúng "font-size: 14px;"
+                    + "  <p style='margin: 5px 0; font-size: 14px;'>🌐 <strong>Trang quản trị:</strong> <a href='http://localhost:5173/login' style='color: #ea712b; text-decoration: none; font-weight: bold;'>Click để đến trang Đăng nhập</a></p>"
                     + "  <p style='margin: 5px 0; font-size: 14px;'>📧 <strong>Tài khoản (Username):</strong> <span style='font-weight: 600; color: #1e293b;'>" + toEmail + "</span></p>"
                     + "  <p style='margin: 5px 0; font-size: 14px;'>🔑 <strong>Mật khẩu tạm thời:</strong> <span style='font-weight: 700; color: #dc2626; font-family: monospace; background: #fee2e2; padding: 2px 6px; border-radius: 4px;'>" + matKhauTamThoi + "</span></p>"
                     + "</div>"
@@ -135,7 +139,7 @@ public class EmailService {
         LocalDate homNay = LocalDate.now();
         String chuoiNgay = homNay.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-        // 🌟 ĐÃ SỬA: Lấy mốc LocalDateTime từ đầu ngày đến cuối ngày hôm nay để đồng bộ tuyệt đối với Database
+        // 🌟 ĐÃ SỬA: Lấy mốc LocalDateTime từ đầu ngày đến cuối ngày hôm nay để đồng bộ tuyệt đối với Database
         LocalDateTime batDauHomNay = homNay.atStartOfDay();
         LocalDateTime ketThucHomNay = homNay.atTime(LocalTime.MAX);
 
@@ -227,14 +231,17 @@ public class EmailService {
             helper.setSubject("📊 [AERION SPORTS] Báo cáo Excel kết quả kinh doanh ngày " + chuoiNgay);
 
             double doanhThuHienTai = dataCard.getDoanhThu() != null ? dataCard.getDoanhThu().doubleValue() : 0.0;
+            // 🌟 ĐÃ SỬA: bọc null-check để tránh in ra chữ "null" trong email khi chưa có đơn hàng
+            int tongDonHangHienTai = dataCard.getTongDonHang() != null ? dataCard.getTongDonHang() : 0;
+            int donHoanThanhHienTai = dataCard.getDonHoanThanh() != null ? dataCard.getDonHoanThanh() : 0;
 
             String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; max-width: 500px;'>"
                     + "  <h3 style='color: #f79b66;'>Kính gửi Quản trị viên,</h3>"
                     + "  <p>Hệ thống tự động xin gửi báo cáo kết quả doanh thu tổng hợp tính đến thời điểm hiện tại ngày <b>" + chuoiNgay + "</b>:</p>"
                     + "  <table style='width:100%; border-collapse: collapse; font-size:13px; margin: 15px 0;'>"
                     + "    <tr style='background:#f8fafc;'><td style='padding:8px; border:1px solid #e2e8f0;'>💰 <b>Doanh thu:</b></td><td style='padding:8px; border:1px solid #e2e8f0; font-weight:bold; color:#2563eb;'>" + String.format("%,.0f", doanhThuHienTai) + " đ</td></tr>"
-                    + "    <tr><td style='padding:8px; border:1px solid #e2e8f0;'>📦 <b>Tổng số đơn:</b></td><td style='padding:8px; border:1px solid #e2e8f0; font-weight:bold;'>" + dataCard.getTongDonHang() + " đơn</td></tr>"
-                    + "    <tr style='background:#f8fafc;'><td style='padding:8px; border:1px solid #e2e8f0;'>✅ <b>Đơn hoàn thành:</b></td><td style='padding:8px; border:1px solid #e2e8f0; font-weight:bold; color:#137333;'>" + dataCard.getDonHoanThanh() + " đơn</td></tr>"
+                    + "    <tr><td style='padding:8px; border:1px solid #e2e8f0;'>📦 <b>Tổng số đơn:</b></td><td style='padding:8px; border:1px solid #e2e8f0; font-weight:bold;'>" + tongDonHangHienTai + " đơn</td></tr>"
+                    + "    <tr style='background:#f8fafc;'><td style='padding:8px; border:1px solid #e2e8f0;'>✅ <b>Đơn hoàn thành:</b></td><td style='padding:8px; border:1px solid #e2e8f0; font-weight:bold; color:#137333;'>" + donHoanThanhHienTai + " đơn</td></tr>"
                     + "  </table>"
                     + "  <p><i>*Chi tiết bảng biểu Top mặt hàng bán chạy, danh sách khách hàng tiềm năng chi tiêu lớn và cảnh báo tồn kho đã được đóng gói đính kèm trong file Excel dưới đây.</i></p>"
                     + "  <hr style='border:none; border-top:1px solid #f1f5f9; margin:15px 0;'/>"
@@ -301,7 +308,8 @@ public class EmailService {
 
                     // Header với logo
                     + "<div style='background:#f79b66;padding:24px;text-align:center;'>"
-                    + "  <img src='"  + "' alt='Aerion Sports' style='height:55px;'/>"
+                    // 🌟 ĐÃ SỬA: thêm biến LOGO_URL bị thiếu trước đây (src='' khiến ảnh vỡ)
+                    + "  <img src='" + LOGO_URL + "' alt='Aerion Sports' style='height:55px;'/>"
                     + "  <h1 style='color:#fff;margin:8px 0 0;font-size:24px;letter-spacing:2px;font-weight:800;'>AERION SPORTS</h1>"
                     + "</div>"
 

@@ -17,6 +17,7 @@ public class SanPhamFilter {
     private Integer idDiemCanBang;
 
     private Integer trangThai;
+    private Integer soLuongMin;
     private int page = 0;
     private int size = 10;
 }

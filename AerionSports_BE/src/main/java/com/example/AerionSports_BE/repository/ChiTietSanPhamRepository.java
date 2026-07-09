@@ -1,6 +1,8 @@
 package com.example.AerionSports_BE.repository;
 
 import com.example.AerionSports_BE.entity.ChiTietSanPham;
+import com.example.AerionSports_BE.entity.MauSac;
+import com.example.AerionSports_BE.entity.TrongLuong;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -19,14 +21,19 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
     List<ChiTietSanPham> findByTrangThai(Integer trangThai);
     boolean existsByMaCtsp(String maCtsp);
 
+    // 🟢 BỔ SUNG: Lấy nhanh thực thể Màu Sắc bằng ID
+    @Query("SELECT m FROM MauSac m WHERE m.id = :id")
+    MauSac findMauSacById(@Param("id") Integer id);
 
-    // 🌟 ĐÃ SỬA: EntityGraph rút gọn, chỉ nạp mối quan hệ thực tế còn lại ở bảng CTSP con
+    // 🟢 BỔ SUNG: Lấy nhanh thực thể Trọng Lượng bằng ID
+    @Query("SELECT t FROM TrongLuong t WHERE t.id = :id")
+    TrongLuong findTrongLuongById(@Param("id") Integer id);
+
     @EntityGraph(attributePaths = {"idSanPham", "idMauSac", "idTrongLuong"})
     @Query("SELECT c FROM ChiTietSanPham c " +
             "JOIN FETCH c.idSanPham sp " +
             "LEFT JOIN FETCH c.idMauSac ms " +
             "LEFT JOIN FETCH c.idTrongLuong tl " +
-            // Bọc mối nối gián tiếp qua sản phẩm cha để lấy tên hiển thị ngoài bảng
             "LEFT JOIN FETCH sp.idChuViCanVot cvc " +
             "LEFT JOIN FETCH sp.idDoCung dc " +
             "LEFT JOIN FETCH sp.idDiemCanBang dcb " +
@@ -44,7 +51,8 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
             "AND (:dcb IS NULL OR dcb.id = :dcb) " +
             "AND (:tt IS NULL OR c.trangThai = :tt) " +
             "AND (:giaTu IS NULL OR c.giaBan >= :giaTu) " +
-            "AND (:giaDen IS NULL OR c.giaBan <= :giaDen)")
+            "AND (:giaDen IS NULL OR c.giaBan <= :giaDen) " +
+            "ORDER BY c.ngayCapNhat DESC, c.ngayTao DESC")
     Page<ChiTietSanPham> search(@Param("k") String keyword, @Param("sp") Integer idSanPham,
                                 @Param("dm") Integer idDanhMuc, @Param("ms") Integer idMauSac,
                                 @Param("tl") Integer idTrongLuong, @Param("cvc") Integer idChuViCanVot,
@@ -52,8 +60,6 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
                                 @Param("tt") Integer trangThai, @Param("giaTu") BigDecimal giaTu,
                                 @Param("giaDen") BigDecimal giaDen, Pageable p);
 
-
-    // 🌟 ĐÃ SỬA: Hàm search active (Màn bán hàng/POS) quét thông số nền bắc cầu từ sản phẩm cha
     @Query("SELECT c FROM ChiTietSanPham c " +
             "JOIN FETCH c.idSanPham sp " +
             "LEFT JOIN FETCH sp.idXuatXu xx " +
@@ -77,7 +83,6 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
             "idTrongLuong",
             "hinhAnhs"
     })
-    // ChiTietSanPhamRepository.java — sửa query locSanPhamPos
     @Query("""
     SELECT ct FROM ChiTietSanPham ct
     JOIN ct.idSanPham sp
@@ -104,16 +109,18 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
             @Param("trangThaiCtsp") Integer trangThaiCtsp,
             Pageable pageable
     );
+
     @Query("""
-SELECT MIN(ct.giaBan)
-FROM ChiTietSanPham ct
-""")
+    SELECT MIN(ct.giaBan)
+    FROM ChiTietSanPham ct
+    """)
     BigDecimal getGiaMin();
 
     @Query("""
-SELECT MAX(ct.giaBan)
-FROM ChiTietSanPham ct
-""")
+    SELECT MAX(ct.giaBan)
+    FROM ChiTietSanPham ct
+    """)
     BigDecimal getGiaMax();
+
     Optional<ChiTietSanPham> findByMaCtsp(String maCtsp);
 }
