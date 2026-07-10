@@ -33,18 +33,18 @@ public class KhachHangServiceImpl implements KhachHangService {
     }
 
     @Override
-    @Transactional // Đảm bảo an toàn dữ liệu khi lưu nhiều bảng cùng lúc
+    @Transactional
     public KhachHang add(KhachHang khachHang) {
 
         // --- LOGIC TỰ TĂNG MÃ KHÁCH HÀNG TUẦN TỰ ---
+        // 🌟 ĐÃ SỬA: dùng findFirstByOrderByIdDesc() (1 query, có sẵn trong Repository)
+        // thay vì findAll().stream().max(...) từng load toàn bộ bảng chỉ để lấy ID lớn nhất.
         if (khachHang.getMaKhachHang() == null || khachHang.getMaKhachHang().trim().isEmpty()) {
-            Optional<KhachHang> maxIdCustomer = khachHangRepository.findAll()
-                    .stream()
-                    .max((kh1, kh2) -> kh1.getId().compareTo(kh2.getId()));
+            Optional<KhachHang> lastCustomer = khachHangRepository.findFirstByOrderByIdDesc();
 
             int nextId = 1;
-            if (maxIdCustomer.isPresent()) {
-                nextId = maxIdCustomer.get().getId() + 1;
+            if (lastCustomer.isPresent()) {
+                nextId = lastCustomer.get().getId() + 1;
             }
 
             String maTuTang = String.format("KH%03d", nextId);
@@ -70,10 +70,9 @@ public class KhachHangServiceImpl implements KhachHangService {
         khachHang.setNgayTao(LocalDateTime.now());
         khachHang.setNgayCapNhat(LocalDateTime.now());
 
-        // --- ĐOẠN MỚI CẬP NHẬT: Thiết lập mối quan hệ Khóa Ngoại cho danh sách địa chỉ ---
         if (khachHang.getAddresses() != null) {
             for (DiaChiKhachHang addr : khachHang.getAddresses()) {
-                addr.setKhachHang(khachHang); // Gắn thực thể khách hàng vào từng địa chỉ con
+                addr.setKhachHang(khachHang);
                 addr.setNgayTao(LocalDateTime.now());
                 addr.setNgayCapNhat(LocalDateTime.now());
             }
@@ -83,29 +82,24 @@ public class KhachHangServiceImpl implements KhachHangService {
     }
 
     @Override
-    @Transactional // Đảm bảo dọn dẹp và cập nhật địa chỉ cũ/mới đồng bộ dưới DB
+    @Transactional
     public KhachHang update(Integer id, KhachHang khachHang) {
 
         KhachHang oldKhachHang = getById(id);
 
-        // Check trùng SĐT
         if (khachHang.getSdt() != null
                 && !khachHang.getSdt().equals(oldKhachHang.getSdt())
                 && khachHangRepository.existsBySdt(khachHang.getSdt())) {
-
             throw new RuntimeException("Số điện thoại đã tồn tại");
         }
 
-        // Check trùng Email
         if (khachHang.getEmail() != null
                 && !khachHang.getEmail().trim().isEmpty()
                 && !khachHang.getEmail().equalsIgnoreCase(oldKhachHang.getEmail())
                 && khachHangRepository.existsByEmail(khachHang.getEmail())) {
-
             throw new RuntimeException("Email đã tồn tại");
         }
 
-        // Không cho mất mã khách hàng
         if (khachHang.getMaKhachHang() != null &&
                 !khachHang.getMaKhachHang().trim().isEmpty()) {
             oldKhachHang.setMaKhachHang(khachHang.getMaKhachHang());
@@ -139,15 +133,17 @@ public class KhachHangServiceImpl implements KhachHangService {
             oldKhachHang.setTrangThai(khachHang.getTrangThai());
         }
 
-        // --- ĐOẠN MỚI CẬP NHẬT: Đồng bộ mảng danh sách địa chỉ ---
+        // --- ĐỒNG BỘ MẢNG DANH SÁCH ĐỊA CHỈ ---
+        // 🌟 ĐÃ SỬA: bỏ điều kiện kiểm tra id.startsWith("NEW_") vì id là Integer,
+        // không thể có tiền tố dạng String. Chỉ cần kiểm tra id == null để biết
+        // đây là địa chỉ mới cần INSERT; các id còn lại giữ nguyên để JPA merge/UPDATE.
         oldKhachHang.getAddresses().clear();
 
         if (khachHang.getAddresses() != null) {
             for (DiaChiKhachHang addr : khachHang.getAddresses()) {
                 addr.setKhachHang(oldKhachHang);
 
-                if (addr.getId() == null || String.valueOf(addr.getId()).startsWith("NEW_")) {
-                    addr.setId(null);
+                if (addr.getId() == null) {
                     addr.setNgayTao(LocalDateTime.now());
                 }
 
@@ -167,7 +163,6 @@ public class KhachHangServiceImpl implements KhachHangService {
         khachHangRepository.delete(khachHang);
     }
 
-    // 🌟 ĐÃ THÊM MỚI: Hàm xử lý bóc tách mảng Object thô từ SQL đưa về cấu trúc DTO
     @Override
     public List<KhachHangResponse> getAllSummary() {
         List<Object[]> rawData = khachHangRepository.findAllKhachHangWithOrderSummary();
@@ -181,15 +176,12 @@ public class KhachHangServiceImpl implements KhachHangService {
             dto.setEmail((String) row[3]);
             dto.setSdt((String) row[4]);
 
-            // Ép kiểu Date an toàn tránh crash hệ thống
             if (row[5] != null) {
                 dto.setNgaySinh(((java.sql.Date) row[5]).toLocalDate());
             }
 
-            // Đếm tổng số đơn hàng
             dto.setTongSoDonHang(row[6] != null ? ((Number) row[6]).longValue() : 0L);
 
-            // Tìm mốc thời gian đơn hàng mới nhất
             if (row[7] != null) {
                 dto.setDonHangGanNhat(((Timestamp) row[7]).toLocalDateTime());
             }

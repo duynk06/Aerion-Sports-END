@@ -43,7 +43,6 @@ public class SanPhamResponse {
     private String maSanPham;
     private String tenSanPham;
     private String moTa;
-    private String baoHanh;
     private Integer trangThai;
     private Instant ngayTao;
     private Instant ngaySua;

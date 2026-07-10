@@ -24,8 +24,9 @@ public class NhanVienServiceImpl implements NhanVienService {
     private final NhanVienRepository nhanVienRepository;
     private final VaiTroRepository vaiTroRepository;
     private final EmailService emailService;
-    private final TaiKhoanRepository taiKhoanRepository; // 🌟 TIÊM REPOSITORY TÀI KHOẢN
-    private final PasswordEncoder passwordEncoder;       // 🌟 TIÊM BỘ BĂM MẬT KHẨU BCYPT
+    private final TaiKhoanRepository taiKhoanRepository; //
+    private final PasswordEncoder passwordEncoder;   // 🔧 THÊM DÒNG NÀY
+// 🌟 TIÊM REPOSITORY TÀI KHOẢN
 
     @Override
     public List<NhanVien> findAll() {
@@ -90,8 +91,9 @@ public class NhanVienServiceImpl implements NhanVienService {
         String matKhauTamThoi = UUID.randomUUID().toString().substring(0, 8); // Sinh 8 ký tự mật khẩu
 
         TaiKhoan tkMoi = new TaiKhoan();
-        tkMoi.setTenDangNhap(savedEmployee.getEmail()); // Lấy luôn Email làm tên đăng nhập hệ thống
-        tkMoi.setMatKhauHash(passwordEncoder.encode(matKhauTamThoi)); // 🌟 BĂM MẬT KHẨU CHUẨN BCYPT GHI VÀO DB
+        tkMoi.setTenDangNhap(savedEmployee.getEmail());
+        tkMoi.setMatKhauHash(passwordEncoder.encode(matKhauTamThoi)); // 🔧 THÊM DÒNG NÀY — bắt buộc để tránh lỗi NOT NULL
+// Lấy luôn Email làm tên đăng nhập hệ thống
         tkMoi.setLoaiTaiKhoan("NHAN_VIEN");
         tkMoi.setIdChuTaiKhoan(savedEmployee.getId()); // Gắn kết ID của NhanVien vừa sinh ra
         tkMoi.setNgayTao(LocalDateTime.now());
