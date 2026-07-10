@@ -226,7 +226,6 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
             parentDto.setMaSanPham(spChaEntity.getMaSanPham());
             parentDto.setTenSanPham(spChaEntity.getTenSanPham());
             parentDto.setMoTa(spChaEntity.getMoTa());
-            parentDto.setBaoHanh(spChaEntity.getBaoHanh());
             parentDto.setTrangThai(spChaEntity.getTrangThai());
             parentDto.setNgayTao(spChaEntity.getNgayTao());
             parentDto.setNgaySua(spChaEntity.getNgaySua());

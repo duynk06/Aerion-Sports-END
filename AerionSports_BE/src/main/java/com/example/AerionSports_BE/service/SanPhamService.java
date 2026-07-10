@@ -161,7 +161,7 @@ public class SanPhamService implements ISanPhamService {
                 e.getIdChuViCanVot() != null ? e.getIdChuViCanVot().getId() : null,
                 e.getIdChuViCanVot() != null ? e.getIdChuViCanVot().getTenChuViCanVot() : null,
 
-                e.getMaSanPham(), e.getTenSanPham(), e.getMoTa(), e.getBaoHanh(),
+                e.getMaSanPham(), e.getTenSanPham(), e.getMoTa(),
                 e.getTrangThai(), e.getNgayTao(), e.getNgaySua(),
                 chiTietDTOs
         );
@@ -308,7 +308,6 @@ public class SanPhamService implements ISanPhamService {
         e.setMaSanPham(r.getMaSanPham());
         e.setTenSanPham(r.getTenSanPham());
         e.setMoTa(r.getMoTa());
-        e.setBaoHanh(r.getBaoHanh());
         e.setTrangThai(r.getTrangThai());
     }
 
