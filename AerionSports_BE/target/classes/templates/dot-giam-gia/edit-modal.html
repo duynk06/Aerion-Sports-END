@@ -25,8 +25,10 @@
 
     <section class="card create-card">
       <div class="create-grid">
+        <!-- Cột trái: form chỉnh sửa campaign hiện tại. -->
         <div class="create-form-panel">
           <div class="create-form">
+            <!-- Mã campaign được khóa readonly để tránh sửa sai key đã sinh. -->
             <div class="create-field">
               <label for="edit-code">Mã đợt giảm giá</label>
               <input id="edit-code" type="text"
@@ -34,6 +36,7 @@
                      readonly>
             </div>
 
+            <!-- Tên campaign có thể sửa bình thường nếu campaign chưa bị khóa bởi rule nghiệp vụ. -->
             <div class="create-field">
               <label for="edit-name">Tên đợt giảm giá</label>
               <input id="edit-name" name="tenDotGiamGia" type="text"
@@ -42,6 +45,7 @@
               <small class="field-error" data-error-for="name" aria-live="polite"></small>
             </div>
 
+            <!-- Giá trị giảm vẫn phải nằm trong 1..100 như màn tạo mới. -->
             <div class="create-field">
               <label for="edit-value">Giá trị (%)</label>
               <input id="edit-value" name="giaTriGiam" type="number" min="1" max="100" step="1"
@@ -50,6 +54,7 @@
               <small class="field-error" data-error-for="value" aria-live="polite"></small>
             </div>
 
+            <!-- Ngày bắt đầu chỉ được phép đổi khi campaign chưa ở trạng thái đang diễn ra. -->
             <div class="create-field">
               <label for="edit-start">Ngày bắt đầu</label>
               <input id="edit-start" name="ngayBatDau" type="datetime-local"
@@ -57,6 +62,7 @@
               <small class="field-error" data-error-for="start" aria-live="polite"></small>
             </div>
 
+            <!-- Ngày kết thúc luôn phải hợp lệ và lớn hơn ngày bắt đầu. -->
             <div class="create-field">
               <label for="edit-end">Ngày kết thúc</label>
               <input id="edit-end" name="ngayKetThuc" type="datetime-local"
@@ -64,6 +70,7 @@
               <small class="field-error" data-error-for="end" aria-live="polite"></small>
             </div>
 
+            <!-- Mô tả hỗ trợ ghi chú nội bộ, không ảnh hưởng business rule. -->
             <div class="create-field">
               <label for="edit-note">Mô tả</label>
               <textarea id="edit-note" name="moTa" rows="5" placeholder="Nhập mô tả"
@@ -79,6 +86,7 @@
           </div>
         </div>
 
+        <!-- Cột phải: quản lý lại danh sách biến thể áp dụng cho campaign đang sửa. -->
         <div class="create-product-panel">
           <div class="product-search-row">
             <div class="product-search">
@@ -95,8 +103,10 @@
           </div>
 
           <div class="group-list">
+            <!-- Không có dữ liệu thì hiện state rỗng để tránh UI trống không giải thích. -->
             <div th:if="${#lists.isEmpty(editGroups)}" class="state-cell">Không có sản phẩm phù hợp</div>
 
+            <!-- Duyệt từng sản phẩm cha và các biến thể con để người dùng tick/bỏ tick. -->
             <details th:each="group, iterStat : ${editGroups}"
                      class="product-group edit-product-group"
                      th:attr="data-search=${(group.maSanPham != null ? group.maSanPham : '') + ' ' + (group.tenSanPham != null ? group.tenSanPham : '') + ' ' + (group.tenThuongHieu != null ? group.tenThuongHieu : '') + ' ' + (group.tenXuatXu != null ? group.tenXuatXu : '')}">
@@ -182,11 +192,13 @@
         </div>
       </div>
 
+      <!-- Khu vực tổng hợp sản phẩm đã chọn giúp so lại trước khi bấm lưu thay đổi. -->
       <section class="selected-details">
         <div class="selected-details-header">
           <h4>Chi tiết sản phẩm đã chọn áp dụng (<span class="selected-count-badge">0 biến thể</span>)</h4>
         </div>
 
+        <!-- Thanh lọc chỉ hiển thị khi đã có biến thể được chọn. -->
         <div class="selected-filter-bar" style="display: none;">
           <div class="selected-search">
             <input id="edit-selected-search" type="text" placeholder="Tìm theo tên hoặc mã..."
@@ -228,6 +240,7 @@
           </div>
         </div>
 
+        <!-- Bảng các biến thể đã chọn sẽ được dựng lại động bằng JS. -->
         <div class="selected-list" style="display: none;">
           <div class="selected-group-table-wrap">
             <table class="selected-group-table" data-selected-table="edit">

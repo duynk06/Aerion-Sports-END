@@ -22,8 +22,10 @@
 
     <section class="card create-card">
       <div class="create-grid">
+        <!-- Cột trái: form nhập thông tin đợt giảm giá và nút lưu/quay lại. -->
         <div class="create-form-panel">
           <div class="create-form">
+            <!-- Tên campaign: đây là tên hiển thị ở danh sách và trang chi tiết. -->
             <div class="create-field">
               <label for="create-name">Tên đợt giảm giá</label>
               <input id="create-name" name="tenDotGiamGia" type="text"
@@ -32,6 +34,7 @@
               <small class="field-error" data-error-for="name" aria-live="polite"></small>
             </div>
 
+            <!-- Giá trị giảm theo phần trăm, service sẽ kiểm tra 0 < x <= 100. -->
             <div class="create-field">
               <label for="create-value">Giá trị (%)</label>
               <input id="create-value" name="giaTriGiam" type="number" min="1" max="100" step="1"
@@ -40,6 +43,7 @@
               <small class="field-error" data-error-for="value" aria-live="polite"></small>
             </div>
 
+            <!-- Khoảng thời gian áp dụng campaign. -->
             <div class="create-field">
               <label for="create-start">Ngày bắt đầu</label>
               <input id="create-start" name="ngayBatDau" type="datetime-local"
@@ -47,6 +51,7 @@
               <small class="field-error" data-error-for="start" aria-live="polite"></small>
             </div>
 
+            <!-- Ngày kết thúc phải lớn hơn ngày bắt đầu và không ở quá khứ. -->
             <div class="create-field">
               <label for="create-end">Ngày kết thúc</label>
               <input id="create-end" name="ngayKetThuc" type="datetime-local"
@@ -54,6 +59,7 @@
               <small class="field-error" data-error-for="end" aria-live="polite"></small>
             </div>
 
+            <!-- Mô tả là field phụ, không bắt buộc. -->
             <div class="create-field">
               <label for="create-note">Mô tả</label>
               <textarea id="create-note" name="moTa" rows="5" placeholder="Nhập mô tả"
@@ -69,6 +75,7 @@
           </div>
         </div>
 
+        <!-- Cột phải: tìm kiếm và chọn các sản phẩm/biến thể được áp dụng vào campaign. -->
         <div class="create-product-panel">
           <div class="product-search-row">
             <div class="product-search">
@@ -85,8 +92,10 @@
           </div>
 
           <div class="group-list">
+            <!-- Nếu không có sản phẩm nào phù hợp thì hiển thị state rỗng. -->
             <div th:if="${#lists.isEmpty(createGroups)}" class="state-cell">Không có sản phẩm phù hợp</div>
 
+            <!-- Mỗi thẻ details là một sản phẩm cha, bên trong là các biến thể con. -->
             <details th:each="group, iterStat : ${createGroups}"
                      class="product-group create-product-group"
                      th:attr="data-search=${(group.maSanPham != null ? group.maSanPham : '') + ' ' + (group.tenSanPham != null ? group.tenSanPham : '') + ' ' + (group.tenThuongHieu != null ? group.tenThuongHieu : '') + ' ' + (group.tenXuatXu != null ? group.tenXuatXu : '')}">
@@ -172,11 +181,13 @@
         </div>
       </div>
 
+      <!-- Phần dưới: tổng hợp các biến thể đã tick ở cột phải để người dùng kiểm tra lại. -->
       <section class="selected-details">
         <div class="selected-details-header">
           <h4>Chi tiết sản phẩm đã chọn áp dụng (<span class="selected-count-badge">0 biến thể</span>)</h4>
         </div>
 
+        <!-- Thanh lọc chỉ hiện khi đã chọn ít nhất 1 biến thể. -->
         <div class="selected-filter-bar" style="display: none;">
           <div class="selected-search">
             <input id="create-selected-search" type="text" placeholder="Tìm theo tên hoặc mã..."
@@ -218,6 +229,7 @@
           </div>
         </div>
 
+        <!-- Bảng chi tiết các biến thể đã chọn, cũng chỉ hiện khi có dữ liệu. -->
         <div class="selected-list" style="display: none;">
           <div class="selected-group-table-wrap">
             <table class="selected-group-table" data-selected-table="create">

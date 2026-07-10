@@ -22,8 +22,10 @@
     </div>
 
     <section class="card create-card">
+      <!-- Khối này chỉ là thông tin tóm tắt, không có input hay nút submit. -->
       <section class="detail-panel">
         <div class="detail-summary">
+          <!-- Mã và tên campaign giúp nhận diện nhanh đợt giảm giá đang xem. -->
           <div class="summary-item">
             <span>Mã đợt giảm giá</span>
             <strong th:text="${detailData != null && detailData.maDotGiamGia != null ? detailData.maDotGiamGia : '-'}"></strong>
@@ -59,6 +61,7 @@
         </div>
       </section>
 
+      <!-- Danh sách sản phẩm áp dụng của campaign, chỉ hiển thị dạng xem. -->
       <section class="detail-products-panel">
         <div class="list-header">
           <div class="list-title">
@@ -72,6 +75,7 @@
           </div>
         </div>
 
+        <!-- Có dữ liệu thì render bảng, không có thì show state rỗng. -->
         <div class="selected-list" th:if="${!#lists.isEmpty(detailList)}">
           <div class="selected-group-table-wrap">
             <table class="detail-table">

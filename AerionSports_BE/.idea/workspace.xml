@@ -6,10 +6,18 @@
   <component name="ChangeListManager">
     <list default="true" id="6ed6c808-4310-4e17-93ca-174aff479799" name="Changes" comment="phan 30/06/2026">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/dot-giam-gia/dot-giam-gia.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/dot-giam-gia/dot-giam-gia.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/create-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/create-modal.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/edit-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/edit-modal.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/detail-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/detail-modal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/DotGiamGiaController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/DotGiamGiaController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/DotGiamGiaViewController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/DotGiamGiaViewController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/ChiTietDotGiamGiaDTO.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/ChiTietDotGiamGiaDTO.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/DotGiamGiaDTO.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/DotGiamGiaDTO.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/ChiTietDotGiamGiaRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/ChiTietDotGiamGiaRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/DotGiamGiaRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/DotGiamGiaRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/DotGiamGiaService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/DotGiamGiaService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/dot-giam-gia/dot-giam-gia.css" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/dot-giam-gia/dot-giam-gia.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/create-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/create-modal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/detail-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/detail-modal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/edit-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/edit-modal.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
