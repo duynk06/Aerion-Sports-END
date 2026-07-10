@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="6ed6c808-4310-4e17-93ca-174aff479799" name="Changes" comment="phan 30/06/2026">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/config/CorsFilterConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/config/WebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/config/WebConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/LichLamViecController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/LichLamViecController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/NhanVienController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/NhanVienController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/LichLamViecRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/LichLamViecRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/security/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/security/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/security/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/ChiTietSanPhamService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/ChiTietSanPhamService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/SanPhamService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/SanPhamService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/impl/LichLamViecImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/impl/LichLamViecImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/config/CorsFilterConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/AuthController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/AuthController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/LichLamViecController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/LichLamViecController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/LoginRequest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/LoginRequest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/LichLamViecRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/LichLamViecRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/security/JwtAuthenticationFilter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/security/JwtAuthenticationFilter.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/security/SecurityConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/security/SecurityConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/impl/LichLamViecImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/impl/LichLamViecImpl.class" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/.." value="AerionSports_BE" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;vietphan2006&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/duynk06/Aerion-Sports.git&quot;,
+    &quot;accountId&quot;: &quot;b9d26234-f6b4-4a21-9936-5718a3ac00dd&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="3Ex3pHYbEzpxmwWTLI5ezo3fthU" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.BeDatnApplication.executor&quot;: &quot;Run&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;BanHangLan2-BE&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/OneDrive/Desktop/30/Aerion-Sports/AerionSports_BE&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ADMIN\OneDrive\Desktop\30\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\dto\response" />
+      <recent name="C:\Users\ADMIN\OneDrive\Desktop\30\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\service" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ADMIN\OneDrive\Desktop\tong_hop_be\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\service" />
+      <recent name="C:\Users\ADMIN\OneDrive\Desktop\tong_hop_be\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\service\impl" />
+      <recent name="C:\Users\ADMIN\OneDrive\Desktop\tong_hop_be\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\repository" />
+      <recent name="C:\Users\ADMIN\OneDrive\Desktop\tong_hop_be\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\entity" />
+      <recent name="C:\Users\ADMIN\OneDrive\Desktop\tong_hop_be\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\controller" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="BeDatnApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="17" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <module name="AerionSports_BE" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.AerionSports_BE.BeDatnApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6ed6c808-4310-4e17-93ca-174aff479799" name="Changes" comment="" />
+      <created>1781106574462</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1781106574462</updated>
+      <workItem from="1781106575622" duration="967000" />
+      <workItem from="1781183032594" duration="3051000" />
+      <workItem from="1781186455605" duration="14561000" />
+      <workItem from="1781220348680" duration="412000" />
+      <workItem from="1781253503061" duration="1597000" />
+      <workItem from="1781261244928" duration="2933000" />
+      <workItem from="1781273151028" duration="3252000" />
+      <workItem from="1781337414006" duration="14299000" />
+      <workItem from="1781387880054" duration="3207000" />
+      <workItem from="1781432168906" duration="2811000" />
+      <workItem from="1781442793647" duration="10861000" />
+      <workItem from="1781456939230" duration="55000" />
+      <workItem from="1781481806757" duration="2554000" />
+      <workItem from="1781525349581" duration="7893000" />
+      <workItem from="1781538257502" duration="2245000" />
+      <workItem from="1781696569921" duration="3269000" />
+      <workItem from="1781758174057" duration="4121000" />
+      <workItem from="1781801797671" duration="622000" />
+      <workItem from="1781844013204" duration="14091000" />
+      <workItem from="1781945375134" duration="4775000" />
+      <workItem from="1781963325725" duration="2000" />
+      <workItem from="1782714402084" duration="1815000" />
+      <workItem from="1782720494367" duration="1831000" />
+      <workItem from="1782730352179" duration="9074000" />
+      <workItem from="1782813430053" duration="9897000" />
+      <workItem from="1782834429819" duration="2037000" />
+      <workItem from="1782837314320" duration="193000" />
+      <workItem from="1782877331160" duration="2054000" />
+      <workItem from="1782879552915" duration="1601000" />
+      <workItem from="1782882255222" duration="523000" />
+      <workItem from="1782890078505" duration="902000" />
+      <workItem from="1782918743310" duration="11000" />
+      <workItem from="1782967003495" duration="1423000" />
+      <workItem from="1782973052136" duration="7953000" />
+    </task>
+    <task id="LOCAL-00001" summary="update chitietdotgiamgia">
+      <option name="closed" value="true" />
+      <created>1781107428664</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1781107428664</updated>
+    </task>
+    <task id="LOCAL-00002" summary="updateHoaDon">
+      <option name="closed" value="true" />
+      <created>1781184447304</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1781184447304</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Update san pham hoa don">
+      <option name="closed" value="true" />
+      <created>1781201307072</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1781201307072</updated>
+    </task>
+    <task id="LOCAL-00004" summary="update gd2">
+      <option name="closed" value="true" />
+      <created>1781272895800</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1781272895800</updated>
+    </task>
+    <task id="LOCAL-00005" summary="phan">
+      <option name="closed" value="true" />
+      <created>1781527814081</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1781527814081</updated>
+    </task>
+    <task id="LOCAL-00006" summary="phan">
+      <option name="closed" value="true" />
+      <created>1781696583116</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1781696583116</updated>
+    </task>
+    <task id="LOCAL-00007" summary="phan">
+      <option name="closed" value="true" />
+      <created>1781696652395</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1781696652395</updated>
+    </task>
+    <task id="LOCAL-00008" summary="phan 18/06/2026">
+      <option name="closed" value="true" />
+      <created>1781766456077</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1781766456077</updated>
+    </task>
+    <task id="LOCAL-00009" summary="phan 18/06/2026">
+      <option name="closed" value="true" />
+      <created>1781766473179</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1781766473179</updated>
+    </task>
+    <task id="LOCAL-00010" summary="phan 20/06/2026">
+      <option name="closed" value="true" />
+      <created>1781945399806</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1781945399806</updated>
+    </task>
+    <task id="LOCAL-00011" summary="phan 30/06/2026">
+      <option name="closed" value="true" />
+      <created>1782754304776</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1782754304776</updated>
+    </task>
+    <task id="LOCAL-00012" summary="phan 30/06/2026">
+      <option name="closed" value="true" />
+      <created>1782754344584</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1782754344584</updated>
+    </task>
+    <task id="LOCAL-00013" summary="phan 30/06/2026">
+      <option name="closed" value="true" />
+      <created>1782837334780</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1782837334780</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="update chitietdotgiamgia" />
+    <MESSAGE value="updateHoaDon" />
+    <MESSAGE value="Update san pham hoa don" />
+    <MESSAGE value="update gd2" />
+    <MESSAGE value="phan" />
+    <MESSAGE value="phan 18/06/2026" />
+    <MESSAGE value="phan 20/06/2026" />
+    <MESSAGE value="phan 30/06/2026" />
+    <option name="LAST_COMMIT_MESSAGE" value="phan 30/06/2026" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>
