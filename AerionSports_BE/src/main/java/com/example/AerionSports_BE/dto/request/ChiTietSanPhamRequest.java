@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 
@@ -13,10 +14,9 @@ import java.math.BigDecimal;
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ChiTietSanPhamRequest {
-    // Để trống hoặc không cần bắt buộc khi thêm dạng Cascade lồng từ sản phẩm cha
+
     private Integer idSanPham;
 
-    // 🌟 CHỈ GIỮ LẠI MÀU SẮC VÀ TRỌNG LƯỢNG LÀM BIẾN THỂ PHẲNG
     private Integer idMauSac;
     private Integer idTrongLuong;
 
@@ -38,6 +38,5 @@ public class ChiTietSanPhamRequest {
     @NotNull(message = "Trạng thái không được trống")
     private Integer trangThai;
 
-    @NotBlank(message = "Hình ảnh không được trống") // Sửa thành @NotBlank cho chuỗi String
-    private String hinhAnh;
+    private MultipartFile fileAnh;
 }

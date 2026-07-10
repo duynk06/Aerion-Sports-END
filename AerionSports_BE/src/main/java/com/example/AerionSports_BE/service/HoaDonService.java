@@ -36,4 +36,8 @@ public interface HoaDonService {
     List<LichSuThanhToanResponse> getLichSuThanhToan(Integer idHoaDon);
 
     List<LichSuHoaDonResponse> getLichSuHoaDon(Integer idHoaDon);
+    List<HoaDonResponse> filterHoaDonKhongPhanTrang(
+            String keyword, Integer loaiHoaDon, Integer trangThai,
+            LocalDate tuNgay, LocalDate denNgay
+    );
 }

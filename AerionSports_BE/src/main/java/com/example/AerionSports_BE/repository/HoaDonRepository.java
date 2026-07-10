@@ -70,6 +70,34 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
             Pageable pageable
     );
 
+    // ✅ THÊM: giống hệt filterHoaDon ở trên nhưng KHÔNG phân trang — dùng riêng cho xuất Excel
+    // (xuất toàn bộ dữ liệu khớp bộ lọc hiện tại, không giới hạn theo trang đang xem)
+    @Query("""
+    SELECT hd
+    FROM HoaDon hd
+    LEFT JOIN hd.khachHang kh
+    LEFT JOIN hd.nhanVien nv
+    WHERE
+        (:keyword IS NULL OR :keyword = '' OR
+            LOWER(hd.maHoaDon) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(nv.tenNv) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(hd.tenNguoiNhan) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR hd.sdtNguoiNhan LIKE CONCAT('%', :keyword, '%')
+        )
+        AND (:loaiHoaDon IS NULL OR hd.loaiHoaDon = :loaiHoaDon)
+        AND (:trangThai IS NULL OR hd.trangThai = :trangThai)
+        AND (:tuNgay IS NULL OR CAST(hd.ngayTao AS date) >= :tuNgay)
+        AND (:denNgay IS NULL OR CAST(hd.ngayTao AS date) <= :denNgay)
+    ORDER BY hd.id DESC
+""")
+    List<HoaDon> filterHoaDonKhongPhanTrang(
+            @Param("keyword") String keyword,
+            @Param("loaiHoaDon") Integer loaiHoaDon,
+            @Param("trangThai") Integer trangThai,
+            @Param("tuNgay") LocalDate tuNgay,
+            @Param("denNgay") LocalDate denNgay
+    );
+
     // HoaDonRepository.java
 
     @Query("""
@@ -84,11 +112,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 """)
     HoaDon findByIdWithChiTiet(@Param("id") Integer id);
 
-
-    // HoaDonRepository.java — thêm method
-    List<HoaDon> findByTrangThaiAndLoaiHoaDon(Integer trangThai, Integer loaiHoaDon);
-    // HoaDonRepository.java — thêm method đếm
-    long countByTrangThaiAndLoaiHoaDon(Integer trangThai, Integer loaiHoaDon);
 
     // ================= TRUY VẤN JPQL PHỤC VỤ 4 Ô THÈ THỐNG KÊ TỔNG QUAN HÀNG TRÊN =================
     @Query("SELECT COALESCE(SUM(h.tongTienThanhToan), 0) FROM HoaDon h WHERE h.trangThai = 5 AND h.ngayTao BETWEEN :start AND :end")
@@ -169,4 +192,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
             "  AND YEAR(CONVERT(DATE, hd.ngay_tao)) = :nam " +
             "GROUP BY DATEPART(QUARTER, CONVERT(DATE, hd.ngay_tao))", nativeQuery = true)
     List<Object[]> queryDoanhThu4QuyTheoNam(@Param("nam") Integer nam);
+    List<HoaDon> findByTrangThai(Integer trangThai);
+    long countByTrangThai(Integer trangThai);
 }

@@ -19,4 +19,5 @@ public class SanPhamPosDTO {
     private BigDecimal gia;      // giaBan
     private Integer soLuongTon;  // số lượng tồn
     private String anh;          // đường dẫn ảnh chính
+    private BigDecimal giaGoc;
 }

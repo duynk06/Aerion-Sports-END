@@ -32,4 +32,8 @@ public class ChiTietHoaDonResponse {
     private BigDecimal donGia;
 
     private BigDecimal thanhTien;
+
+    private String anh;
+
+    private BigDecimal giaGoc;
 }

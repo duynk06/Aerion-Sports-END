@@ -95,7 +95,6 @@
                 <div class="section payment-section">
                     <div class="section-header">
                         <h3>Thanh toán</h3>
-                        <span class="text-muted text-sm">Chỉ tại cửa hàng</span>
                     </div>
 
                     <div class="payment-body">
@@ -110,7 +109,6 @@
                         <div class="form-group">
                             <div class="flex-between mb-2">
                                 <label class="font-bold">Mã giảm giá</label>
-                                <button id="btnKhongDungMa" class="btn-outline text-sm" style="display:none;" onclick="khongDungMa()">Không dùng mã</button>
                             </div>
                             <div id="couponArea">
                                 <div style="color:#888;font-size:13px;padding:8px 0;">Chưa có mã giảm giá phù hợp</div>
@@ -142,7 +140,7 @@
                         </div>
 
                         <div class="form-group mt-3">
-                            <label class="font-bold text-sm">Ghi chú</label>
+                            <label class="font-bold">Ghi chú</label>
                             <textarea id="ghiChuInput" class="input-full" placeholder="Nhập ghi chú cho đơn hàng..."
                                       rows="2" style="resize:none;margin-top:4px;font-size:13px;"
                                       oninput="onGhiChuInput(this.value)"></textarea>
@@ -159,7 +157,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: CHỌN SẢN PHẨM ===================== -->
     <div class="modal-overlay" id="productModal" style="display:none;" onclick="if(event.target===this) closeModal('productModal')">
         <div class="modal-content">
             <div class="modal-header">
@@ -240,7 +237,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: CHỌN KHÁCH HÀNG ===================== -->
     <div class="modal-overlay" id="customerModal" style="display:none;" onclick="if(event.target===this) closeModal('customerModal')">
         <div class="modal-content" style="max-width:900px;">
             <div class="modal-header">
@@ -286,7 +282,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: CHỌN ĐỊA CHỈ GIAO HÀNG ===================== -->
     <div class="modal-overlay" id="addressModal" style="display:none;" onclick="if(event.target===this) closeModal('addressModal')">
         <div class="modal-content" style="max-width:650px;">
             <div class="modal-header">
@@ -301,7 +296,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: THANH TOÁN QR ===================== -->
     <div class="modal-overlay" id="qrPaymentModal" style="display:none;" onclick="if(event.target===this) closeModal('qrPaymentModal')">
         <div class="modal-content" style="max-width:480px;">
             <div class="modal-header">
@@ -346,7 +340,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: QUÉT QR SẢN PHẨM ===================== -->
     <div class="modal-overlay" id="qrScanModal" style="display:none;" onclick="if(event.target===this) dongModalQuetQR()">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
@@ -357,7 +350,7 @@
             </div>
             <div class="modal-body" style="text-align:center;padding:24px;">
                 <div id="qr-reader" style="width:100%;border-radius:8px;overflow:hidden;border:2px solid #f79b66;"></div>
-                <p style="margin-top:12px;color:#888;font-size:13px;">Hướng camera vào mã QR trên sản phẩm</p>
+                <p style="margin-top:12px;color:#888;font-size:13px;">Hướng mã QR vào camera</p>
                 <div id="qrScanKetQua" style="display:none;margin-top:12px;padding:10px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;font-size:13px;"></div>
                 <div id="qrScanLoi" style="display:none;margin-top:12px;padding:10px;background:#fff2f0;border:1px solid #ffccc7;border-radius:6px;font-size:13px;color:#cf1322;"></div>
             </div>
@@ -365,15 +358,9 @@
     </div>
     <link rel="stylesheet" th:href="@{/ban-hang/tai-quay.css}">
 
-    <!-- Thư viện quét QR (thay cho import "html5-qrcode") -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-    <!-- Toàn bộ logic trang (thay cho <script setup>) -->
     <script th:src="@{/ban-hang/tai-quay.js}"></script>
 </div>
-
-<!-- CSS riêng cho trang bán hàng -->
-
-
 </body>
 </html>

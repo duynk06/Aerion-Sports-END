@@ -22,7 +22,6 @@
     };
     const PHI_HN = 20000;
     const PHI_TINH_KHAC = 45000;
-
     /* ============================ STATE (thay cho ref/reactive) =========== */
     const state = {
         hoaDonCho: [],
@@ -130,6 +129,14 @@
         return thua > 0 ? thua : 0;
     }
 
+    /* ============================ POLLING: TỰ ĐỘNG KIỂM TRA SẢN PHẨM NGỪNG HOẠT ĐỘNG ==== */
+    function batDauPollingSanPhamNgungHoatDong() {
+        setInterval(async () => {
+            if (state.activeHoaDon) {
+                await kiemTraSanPhamNgungHoatDong();
+            }
+        }, 2000); // kiểm tra mỗi 5 giây, không cần đổi tab
+    }
     /* ============================ GỌI API (từ BanHangService.js) =========== */
     async function taoHoaDonCho() {
         const res = await fetch(`${baseUrl}/tao-hoa-don`, { method: "POST" });
@@ -745,7 +752,7 @@
             );
         } catch (err) {
             const loiEl = document.getElementById("qrScanLoi");
-            loiEl.textContent = "Không thể truy cập Camera!";
+            loiEl.textContent = "❌ Không thể truy cập Camera!";
             loiEl.style.display = "block";
         }
     };
@@ -766,12 +773,12 @@
         try {
             const sanPham = await timSanPhamTheoMa(maCtsp);
             if (!sanPham) {
-                loiEl.textContent = `Không tìm thấy sản phẩm với mã: ${maCtsp}`;
+                loiEl.textContent = `❌ Không tìm thấy sản phẩm với mã: ${maCtsp}`;
                 loiEl.style.display = "block";
                 return;
             }
             if (sanPham.soLuongTon <= 0) {
-                loiEl.textContent = `Sản phẩm ${maCtsp} đã hết hàng!`;
+                loiEl.textContent = `❌ Sản phẩm ${maCtsp} đã hết hàng!`;
                 loiEl.style.display = "block";
                 return;
             }
@@ -780,7 +787,7 @@
             document.getElementById("qrScanKetQua").style.display = "none";
             loiEl.style.display = "none";
         } catch (e) {
-            loiEl.textContent = "Lỗi xử lý mã QR hoặc kết nối API.";
+            loiEl.textContent = "❌ Lỗi xử lý mã QR hoặc kết nối API.";
             loiEl.style.display = "block";
             console.error(e);
         }
@@ -857,13 +864,25 @@
             if (dsNgung.length > 0) {
                 for (const sp of dsNgung) {
                     await xoaChiTietHoaDon(sp.idChiTiet);
+
+                    // ✅ Cập nhật ngay trong state, không cần F5
+                    state.chiTietHoaDonHienTai = state.chiTietHoaDonHienTai.filter(
+                        (ct) => ct.id !== sp.idChiTiet
+                    );
+                    const index = state.hoaDonCho.findIndex((hd) => hd.id === state.activeHoaDon);
+                    if (index !== -1) {
+                        state.hoaDonCho[index].chiTietHoaDon = state.hoaDonCho[index].chiTietHoaDon.filter(
+                            (ct) => ct.id !== sp.idChiTiet
+                        );
+                    }
                 }
                 showThongBao(
                     "Hệ thống đã loại bỏ sản phẩm ngừng kinh doanh khỏi đơn hàng.",
                     "error"
                 );
-                dongBoChiTietHienTai();
                 renderProductTable();
+                renderTabs();          // ✅ cập nhật số lượng badge trên tab
+                await lamMoiPhieuGiamGia();  // ✅ tính lại phiếu giảm giá vì tổng tiền đổi
             }
         } catch (e) {
             console.error(e);
@@ -887,7 +906,6 @@
               Hóa Đơn - ${hd.maHoaDon} <br>
               <small style="font-weight:normal;">(${ten})</small>
             </span>
-            <span class="tab-badge">${hd.soLuong ?? (hd.chiTietHoaDon || []).length}</span>
             <button class="tab-close" onclick="event.stopPropagation(); dongHoaDon(${hd.id})">×</button>
           </div>`;
             })
@@ -908,6 +926,7 @@
         body.innerHTML = state.chiTietHoaDonHienTai
             .map((sp) => {
                 const gtd = state.sanPhamGiaThayDoi[sp.id];
+                const coGiam = sp.giaGoc && Number(sp.giaGoc) > Number(sp.donGia);   // ✅ thêm dòng này
                 const giaChangedHtml = gtd
                     ? `<p style="color:#cf1322;font-size:12px;margin-top:4px;">
                Giá sản phẩm đã thay đổi
@@ -915,7 +934,7 @@
                → <strong>${formatVND(gtd.giaMoi)} đ</strong>
              </p>`
                     : "";
-                const donGiaStyle = gtd ? "color:#cf1322;" : "";
+                const donGiaStyle = (gtd || coGiam) ? "color:#cf1322;" : "";
                 const disabledPlus = gtd ? "disabled style=\"opacity:0.4;cursor:not-allowed;\"" : "";
                 const disabledInput = gtd ? "disabled" : "";
                 return `
@@ -928,7 +947,10 @@
                 ${giaChangedHtml}
               </div>
             </td>
-            <td class="text-right font-bold" style="${donGiaStyle}">${formatVND(sp.donGia)} đ</td>
+            <td class="text-right font-bold" style="${donGiaStyle}">
+  ${coGiam ? `<div style="text-decoration:line-through;color:#999;font-size:11px;">${formatVND(sp.giaGoc)} đ</div>` : ""}
+  ${formatVND(sp.donGia)} đ
+</td>
             <td class="text-center">
               <div class="qty-control">
                 <button onclick="giamSoLuong(${sp.id})">-</button>
@@ -1004,7 +1026,7 @@
             const label = tinhThanh.includes("hà nội") || tinhThanh.includes("ha noi") ? "Hà Nội" : "Tỉnh khác";
             html += `
       <div style="margin-top:12px;padding:8px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;">
-        <span class="text-muted text-sm" style="display:block;">Phí vận chuyển</span>
+        <span class="text-muted text-sm" style="display:block;">Phí vận chuyển </span>
         <div class="mt-1 font-bold" style="color:#52c41a;">
           ${formatVND(getPhiVanChuyen())} đ
           <small class="text-muted" style="font-weight:normal;">(${label})</small>
@@ -1023,13 +1045,27 @@
         if (toggleEl) toggleEl.classList.toggle("active", loaiHd === 1);
         if (labelEl) labelEl.textContent = loaiHd === 1 ? "Giao hàng" : "Bán tại quầy";
 
-        // Mã giảm giá
-        const btnKhongDung = document.getElementById("btnKhongDungMa");
-        if (btnKhongDung) btnKhongDung.style.display = getTienGiamHienTai() > 0 ? "inline-block" : "none";
 
         const couponArea = document.getElementById("couponArea");
         if (couponArea) {
             const phieu = state.phieuGiamGiaHienTai;
+
+            // Tính sẵn khối HTML gợi ý (nếu có) — dùng chung cho cả 2 trường hợp bên dưới
+            const buildGoiYHtml = (p) => {
+                if (!p || !p.phieuGoiY) return "";
+                const gy = p.phieuGoiY;
+                return `
+            <div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px 12px;margin-top:10px;">
+              <div style="font-weight:600;color:#d48806;font-size:13px;margin-bottom:6px;">💡 Có mã tốt hơn — mua thêm để được ưu đãi hơn</div>
+              <div style="font-size:13px;color:#333;margin-bottom:4px;"><strong>${gy.tenPhieuGiamGia}</strong> (${gy.maPhieuGiamGia})</div>
+              <div style="font-size:13px;color:#555;margin-bottom:4px;">
+                Mua thêm <span style="color:#cf1322;font-weight:600;">${formatVND(gy.soTienCanMuaThem)} đ</span>
+                để được giảm <span style="color:#389e0d;font-weight:600;">${formatVND(gy.soTienGiamNeuDat)} đ</span>
+              </div>
+              <div style="font-size:12px;color:#888;">Đơn tối thiểu: ${formatVND(gy.giaTriDonToiThieu)} đ</div>
+            </div>`;
+            };
+
             if (phieu && phieu.coTheApDung) {
                 const isPercent =
                     phieu.loaiPhieuGiamGia === "PHAN_TRAM" ||
@@ -1041,20 +1077,6 @@
                     dongGiam = `Miễn phí vận chuyển tối đa ${formatVND(phieu.giaTriGiam)} đ`;
                 } else {
                     dongGiam = `Giảm ${formatVND(phieu.giaTriGiam)} đ`;
-                }
-                let goiYHtml = "";
-                if (phieu.phieuGoiY) {
-                    const gy = phieu.phieuGoiY;
-                    goiYHtml = `
-            <div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px 12px;margin-top:10px;">
-              <div style="font-weight:600;color:#d48806;font-size:13px;margin-bottom:6px;">💡 Có mã tốt hơn — mua thêm để được ưu đãi hơn</div>
-              <div style="font-size:13px;color:#333;margin-bottom:4px;"><strong>${gy.tenPhieuGiamGia}</strong> (${gy.maPhieuGiamGia})</div>
-              <div style="font-size:13px;color:#555;margin-bottom:4px;">
-                Mua thêm <span style="color:#cf1322;font-weight:600;">${formatVND(gy.soTienCanMuaThem)} đ</span>
-                để được giảm <span style="color:#389e0d;font-weight:600;">${formatVND(gy.soTienGiamNeuDat)} đ</span>
-              </div>
-              <div style="font-size:12px;color:#888;">Đơn tối thiểu: ${formatVND(gy.giaTriDonToiThieu)} đ</div>
-            </div>`;
                 }
                 couponArea.innerHTML = `
           <div class="coupon-card">
@@ -1077,7 +1099,12 @@
                 }
             <p class="text-muted text-sm mt-2">Hết hạn: ${new Date(phieu.ngayKetThuc).toLocaleDateString("vi-VN")}</p>
           </div>
-          ${goiYHtml}`;
+          ${buildGoiYHtml(phieu)}`;
+            } else if (phieu && phieu.phieuGoiY) {
+                // ✅ Chưa có phiếu nào áp dụng được, nhưng có phiếu gợi ý mua thêm để đạt điều kiện
+                couponArea.innerHTML = `
+          <div style="color:#888;font-size:13px;padding:8px 0;">Chưa có mã giảm giá phù hợp</div>
+          ${buildGoiYHtml(phieu)}`;
             } else if (!phieu || getTongTienHienTai() === 0) {
                 couponArea.innerHTML = `<div style="color:#888;font-size:13px;padding:8px 0;">Chưa có mã giảm giá phù hợp</div>`;
             } else {
@@ -1091,61 +1118,60 @@
             const tienGiam = getTienGiamHienTai();
             const phiVC = getPhiVanChuyen();
             summary.innerHTML = `
-        <div class="summary-row">
-          <span class="text-muted">Tiền hàng</span>
-          <span class="font-bold">${formatVND(getTongTienHienTai())} đ</span>
-        </div>
-        ${
+    <div class="summary-row">
+      <span class="font-bold">Tiền hàng</span>
+      <span class="font-bold">${formatVND(getTongTienHienTai())} đ</span>
+    </div>
+    ${
                 tienGiam > 0
-                    ? `<div class="summary-row mt-1">
-                 <span class="text-muted">Giảm giá</span>
+                    ? `<div class="summary-row">
+                 <span class="font-bold">Giảm giá</span>
                  <span class="text-danger font-bold">- ${formatVND(tienGiam)} đ</span>
                </div>`
                     : ""
             }
-        ${
+    ${
                 loaiHd === 1
-                    ? `<div class="summary-row mt-1">
-                 <span class="text-muted">Phí vận chuyển</span>
+                    ? `<div class="summary-row">
+                 <span class="font-bold">Phí vận chuyển <img class="imageVanChuyen" src="/images/image.png" alt=""></span>
                  <span class="font-bold" style="color:#52c41a;">+ ${formatVND(phiVC)} đ</span>
                </div>`
                     : ""
             }
-        <div class="summary-row total-row mt-2">
-          <span class="font-bold">Tổng phải trả</span>
-          <span class="text-danger font-bold text-lg">${formatVND(getTongThanhToan())} đ</span>
-        </div>
-        <div class="summary-row align-center mt-3">
-          <span class="text-muted">Khách thanh toán</span>
-          <span class="input-wrapper-pay">
-            <input type="text" id="soTienKhachDuaInput" class="input-right"
-                   value="${state.soTienKhachDua ? formatVND(state.soTienKhachDua) : ""}"
-                   placeholder="0 đ" style="width:150px;text-align:right;"
-                   oninput="onSoTienKhachDuaInput(this)" />
-          </span>
-        </div>
-        <div class="summary-row mt-3">
-          <span class="text-muted">Tiền thừa trả khách</span>
-          <span class="font-bold" style="color:${getTienThua() > 0 ? "#16a34a" : "#333"};">
-            ${formatVND(getTienThua())} đ
-          </span>
-        </div>`;
+    <div class="summary-row total-row">
+      <span class="font-bold">Tổng phải trả</span>
+      <span class="text-danger font-bold text-lg">${formatVND(getTongThanhToan())} đ</span>
+    </div>
+    <div class="summary-row align-center">
+      <span class="font-bold">Khách thanh toán</span>
+      <span class="input-wrapper-pay">
+        <input type="text" id="soTienKhachDuaInput" class="input-right"
+               value="${state.soTienKhachDua ? formatVND(state.soTienKhachDua) : ""}"
+               placeholder="0 đ" style="width:150px;text-align:right;"
+               oninput="onSoTienKhachDuaInput(this)" />
+      </span>
+    </div>
+    <div class="summary-row">
+  <span class="font-bold">Tiền thừa trả khách</span>
+  <span class="font-bold" id="tienThuaValue" style="color:${getTienThua() > 0 ? "#16a34a" : "#333"};">
+    ${formatVND(getTienThua())} đ
+  </span>
+</div>`;
         }
     }
 
     window.onSoTienKhachDuaInput = function (input) {
-        const raw = input.value.replace(/\./g, "").replace(/,/g, "");
+        const raw = input.value.replace(/\D/g, "");
         const num = parseInt(raw, 10);
         state.soTienKhachDua = isNaN(num) ? 0 : num;
-        // Chỉ cập nhật lại dòng "tiền thừa" để không làm mất vị trí con trỏ đang gõ
-        const rows = document.querySelectorAll("#summaryList .summary-row");
-        const lastRow = rows[rows.length - 1];
-        if (lastRow) {
-            const valueSpan = lastRow.querySelector("span.font-bold");
-            if (valueSpan) {
-                valueSpan.style.color = getTienThua() > 0 ? "#16a34a" : "#333";
-                valueSpan.textContent = formatVND(getTienThua()) + " đ";
-            }
+
+        input.value = state.soTienKhachDua ? formatVND(state.soTienKhachDua) : "";
+        input.setSelectionRange(input.value.length, input.value.length);
+
+        const tienThuaEl = document.getElementById("tienThuaValue");
+        if (tienThuaEl) {
+            tienThuaEl.style.color = getTienThua() > 0 ? "#16a34a" : "#333";
+            tienThuaEl.textContent = formatVND(getTienThua()) + " đ";
         }
     };
 
@@ -1189,8 +1215,9 @@
         const body = document.getElementById("productModalTableBody");
         if (body) {
             body.innerHTML = state.danhSach
-                .map(
-                    (item, index) => `
+                .map((item, index) => {
+                    const coGiam = item.giaGoc && Number(item.giaGoc) > Number(item.gia);
+                    return `
         <tr>
           <td class="text-center">${index + 1 + state.page * state.size}</td>
           <td>${item.ma}</td>
@@ -1199,10 +1226,13 @@
           <td>${item.mauSac}</td>
           <td>${item.trongLuong}</td>
           <td class="text-right">${item.soLuongTon}</td>
-          <td class="text-right font-bold">${formatVND(item.gia)} đ</td>
+          <td class="text-right font-bold">
+            ${coGiam ? `<div style="text-decoration:line-through;color:#999;font-size:11px;">${formatVND(item.giaGoc)} đ</div>` : ""}
+            ${formatVND(item.gia)} đ
+          </td>
           <td class="text-center"><button class="btn-select-product" onclick='themSanPhamVaoHoaDon(${JSON.stringify(item)})'>Chọn</button></td>
-        </tr>`
-                )
+        </tr>`;
+                })
                 .join("");
         }
         const pageInfo = document.getElementById("productPageInfo");
@@ -1427,6 +1457,7 @@
         renderCustomerCard();
         renderPaymentBody();
         document.addEventListener("visibilitychange", handleVisibilityChange);
+        batDauPollingSanPhamNgungHoatDong();   // ✅ thêm dòng này
     }
 
     document.addEventListener("DOMContentLoaded", init);

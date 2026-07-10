@@ -37,11 +37,13 @@ public class BanHangServiceImpl implements BanHangService {
     private final NhanVienRepository nhanVienRepository;
     private final LichSuHoaDonRepository lichSuHoaDonRepository;
     private final EmailService emailService;
-    // BanHangServiceImpl.java — sửa hàm taoHoaDonCho
-    // BanHangServiceImpl.java
+    private final ChiTietDotGiamGiaRepository chiTietDotGiamGiaRepository;
+
+    @org.springframework.beans.factory.annotation.Value("${app.base-url}")
+    private String baseUrl;
     @Override
     public BanHangResponse taoHoaDonCho(String username) {
-        long soHoaDonCho = hoaDonRepository.countByTrangThaiAndLoaiHoaDon(0, 0);
+        long soHoaDonCho = hoaDonRepository.countByTrangThai(0);
         if (soHoaDonCho >= 5) {
             throw new RuntimeException("Đã đạt tối đa 5 hóa đơn chờ!");
         }
@@ -125,7 +127,7 @@ public class BanHangServiceImpl implements BanHangService {
             throw new RuntimeException("Sản phẩm đã hết hàng!");
         }
 
-        BigDecimal giaMoi = chiTietSanPham.getGiaBan(); // Giá hiện tại của SP
+        BigDecimal giaMoi = tinhGiaSauGiam(chiTietSanPham); // thay cho chiTietSanPham.getGiaBan() // Giá hiện tại của SP
 
         // ✅ Tìm dòng CTHD trùng idSanPham VÀ cùng giá → mới được gộp
         Optional<ChiTietHoaDon> existingOpt = hoaDon.getChiTietHoaDons().stream()
@@ -233,8 +235,9 @@ public class BanHangServiceImpl implements BanHangService {
     // BanHangServiceImpl.java — implement
     // BanHangServiceImpl.java
     @Override
+    @Transactional(readOnly = true)   // ✅ thêm dòng này
     public List<BanHangResponse> getHoaDonCho() {
-        return hoaDonRepository.findByTrangThaiAndLoaiHoaDon(0, 0)
+        return hoaDonRepository.findByTrangThai(0)
                 .stream()
                 .map(hd -> {
                     HoaDon hdFull = hoaDonRepository.findByIdWithChiTiet(hd.getId());
@@ -333,7 +336,16 @@ public class BanHangServiceImpl implements BanHangService {
                         });
             }
         }
-
+        if (hoaDon.getPhieuGiamGia() != null) {
+            PhieuGiamGia phieu = phieuGiamGiaRepository.findById(hoaDon.getPhieuGiamGia().getId())
+                    .orElse(null);
+            if (phieu != null) {
+                int daSuDung = phieu.getSoLuongDaSuDung() != null ? phieu.getSoLuongDaSuDung() : 0;
+                phieu.setSoLuongDaSuDung(daSuDung + 1);
+                phieu.setNgayCapNhat(LocalDateTime.now());
+                phieuGiamGiaRepository.save(phieu);
+            }
+        }
         hoaDonRepository.save(hoaDon);
 
         // Lưu thanh toán
@@ -478,21 +490,23 @@ public class BanHangServiceImpl implements BanHangService {
 
         if (danhSachPhieu.isEmpty()) return null;
 
-        // Tìm phiếu tốt nhất áp dụng được
+        // ✅ Bỏ qua phiếu đã hết lượt sử dụng
+        danhSachPhieu = danhSachPhieu.stream()
+                .filter(p -> p.getSoLuong() == null || p.getSoLuongDaSuDung() == null
+                        || p.getSoLuongDaSuDung() < p.getSoLuong())
+                .collect(Collectors.toList());
+
+        if (danhSachPhieu.isEmpty()) return null;
+
+        // ===== VÒNG 1: tìm phiếu tốt nhất trong số ĐÃ đủ điều kiện =====
         PhieuGiamGia phieuTotNhat = null;
         BigDecimal soTienGiamMax = BigDecimal.ZERO;
-
-        // Tìm phiếu gợi ý tốt hơn (chưa đủ điều kiện nhưng giảm nhiều hơn phiếu hiện tại)
-        PhieuGiamGia phieuGoiY = null;
-        BigDecimal canMuaThemMin = null;
-        BigDecimal giamGoiYMax = BigDecimal.ZERO;
 
         for (PhieuGiamGia p : danhSachPhieu) {
             BigDecimal toiThieu = p.getGiaTriDonToiThieu() != null
                     ? p.getGiaTriDonToiThieu() : BigDecimal.ZERO;
 
             if (tongTienHang.compareTo(toiThieu) >= 0) {
-                // Đủ điều kiện → tính tiền giảm
                 BigDecimal soTienGiam;
                 if ("VAN_CHUYEN".equalsIgnoreCase(p.getLoaiPhieuGiamGia())) {
                     if (tienVanChuyen.compareTo(BigDecimal.ZERO) > 0) {
@@ -506,15 +520,22 @@ public class BanHangServiceImpl implements BanHangService {
                     soTienGiamMax = soTienGiam;
                     phieuTotNhat = p;
                 }
+            }
+        }
 
-            } else {
-                // Chưa đủ điều kiện → xem xét làm phiếu gợi ý
+        // ===== VÒNG 2: tìm phiếu gợi ý, dựa trên soTienGiamMax đã CHỐT ở vòng 1 =====
+        PhieuGiamGia phieuGoiY = null;
+        BigDecimal canMuaThemMin = null;
+        BigDecimal giamGoiYMax = BigDecimal.ZERO;
+
+        for (PhieuGiamGia p : danhSachPhieu) {
+            BigDecimal toiThieu = p.getGiaTriDonToiThieu() != null
+                    ? p.getGiaTriDonToiThieu() : BigDecimal.ZERO;
+
+            if (tongTienHang.compareTo(toiThieu) < 0) {
                 BigDecimal canThem = toiThieu.subtract(tongTienHang);
-                // Tính xem nếu đạt thì giảm được bao nhiêu
                 BigDecimal giamNeuDat = tinhTienGiam(p, toiThieu);
 
-                // Ưu tiên gợi ý phiếu giảm nhiều hơn phiếu đang áp dụng
-                // và gần đạt nhất (canThem nhỏ nhất trong số các phiếu tốt hơn)
                 boolean totHonPhieuHienTai = giamNeuDat.compareTo(soTienGiamMax) > 0;
                 boolean ganDatHon = canMuaThemMin == null
                         || canThem.compareTo(canMuaThemMin) < 0;
@@ -527,7 +548,7 @@ public class BanHangServiceImpl implements BanHangService {
             }
         }
 
-        // Xây dựng response
+        // Xây dựng response (giữ nguyên phần dưới, không đổi)
         PhieuGiamGiaPosResponse response = null;
 
         if (phieuTotNhat != null) {
@@ -544,12 +565,10 @@ public class BanHangServiceImpl implements BanHangService {
             response.setCoTheApDung(true);
 
         } else if (phieuGoiY != null) {
-            // Không có phiếu nào áp dụng được → trả về phiếu gợi ý
             response = new PhieuGiamGiaPosResponse();
             response.setCoTheApDung(false);
         }
 
-        // ✅ Luôn kèm phiếu gợi ý nếu có (dù đang áp dụng phiếu hay không)
         if (phieuGoiY != null && response != null) {
             PhieuGiamGiaPosResponse.PhieuGoiYResponse goiY =
                     new PhieuGiamGiaPosResponse.PhieuGoiYResponse();
@@ -634,7 +653,10 @@ public class BanHangServiceImpl implements BanHangService {
 
         PhieuGiamGia phieu = phieuGiamGiaRepository.findById(idPhieuGiamGia)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá!"));
-
+        if (phieu.getSoLuong() != null && phieu.getSoLuongDaSuDung() != null
+                && phieu.getSoLuongDaSuDung() >= phieu.getSoLuong()) {
+            throw new RuntimeException("Phiếu giảm giá đã hết lượt sử dụng!");
+        }
         // Kiểm tra điều kiện đơn tối thiểu
         BigDecimal toiThieu = phieu.getGiaTriDonToiThieu() != null
                 ? phieu.getGiaTriDonToiThieu() : BigDecimal.ZERO;
@@ -697,7 +719,7 @@ public class BanHangServiceImpl implements BanHangService {
         return hoaDon.getChiTietHoaDons().stream()
                 .map(cthd -> {
                     ChiTietSanPham spct = cthd.getChiTietSanPham();
-                    BigDecimal giaMoi = spct.getGiaBan();
+                    BigDecimal giaMoi = tinhGiaSauGiam(spct);   // ✅ thay cho spct.getGiaBan()
                     BigDecimal giaCu = cthd.getDonGia();
                     boolean daThayDoi = giaMoi.compareTo(giaCu) != 0;
 
@@ -714,9 +736,23 @@ public class BanHangServiceImpl implements BanHangService {
                 .collect(Collectors.toList());
     }
 
-    // BanHangServiceImpl.java
+    private BigDecimal tinhGiaSauGiam(ChiTietSanPham ctsp) {
+        BigDecimal giaGoc = ctsp.getGiaBan();
+        LocalDateTime gioHienTaiVietNam = LocalDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
+        List<com.example.AerionSports_BE.entity.ChiTietDotGiamGia> discountLinks =
+                chiTietDotGiamGiaRepository.findBestActiveByChiTietSanPhamId(ctsp.getId(), gioHienTaiVietNam);
+
+        if (discountLinks != null && !discountLinks.isEmpty()) {
+            com.example.AerionSports_BE.entity.DotGiamGia dgg = discountLinks.get(0).getDotGiamGia();
+            if (dgg != null && dgg.getGiaTriGiam() != null) {
+                BigDecimal heSo = BigDecimal.valueOf(100).subtract(dgg.getGiaTriGiam());
+                return giaGoc.multiply(heSo).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            }
+        }
+        return giaGoc;
+    }
     @Override
-    @Transactional(readOnly = true)   // ✅ Giữ session để load lazy entities
+    @Transactional(readOnly = true)
     public SanPhamPosDTO timSanPhamTheoMa(String maCtsp) {
         ChiTietSanPham ctsp = chiTietSanPhamRepository.findByMaCtsp(maCtsp)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm: " + maCtsp));
@@ -728,20 +764,22 @@ public class BanHangServiceImpl implements BanHangService {
         SanPhamPosDTO dto = new SanPhamPosDTO();
         dto.setId(ctsp.getId());
         dto.setMa(ctsp.getMaCtsp());
-        dto.setTen(ctsp.getIdSanPham().getTenSanPham());    // ✅ lazy load an toàn trong @Transactional
-        dto.setMauSac(ctsp.getIdMauSac() != null
-                ? ctsp.getIdMauSac().getTenMauSac() : "");
-        dto.setTrongLuong(ctsp.getIdTrongLuong() != null
-                ? ctsp.getIdTrongLuong().getTenTrongLuong() : "");
-        dto.setGia(ctsp.getGiaBan());
+        dto.setTen(ctsp.getIdSanPham().getTenSanPham());
+        dto.setMauSac(ctsp.getIdMauSac() != null ? ctsp.getIdMauSac().getTenMauSac() : "");
+        dto.setTrongLuong(ctsp.getIdTrongLuong() != null ? ctsp.getIdTrongLuong().getTenTrongLuong() : "");
+
+        BigDecimal giaGoc = ctsp.getGiaBan();
+        BigDecimal giaSauGiam = tinhGiaSauGiam(ctsp);
+        dto.setGia(giaSauGiam);       // ✅ giá thực tế dùng để thêm vào hóa đơn
+        dto.setGiaGoc(giaGoc);        // ✅ giá gốc, để frontend hiện gạch ngang khi khác nhau
+
         dto.setSoLuongTon(ctsp.getSoLuong());
 
-        // Lấy ảnh chính
         if (ctsp.getHinhAnhs() != null) {
             ctsp.getHinhAnhs().stream()
                     .filter(h -> Boolean.TRUE.equals(h.getLaAnhChinh()))
                     .findFirst()
-                    .ifPresent(h -> dto.setAnh("http://localhost:8080" + h.getDuongDanAnh()));
+                    .ifPresent(h -> dto.setAnh(baseUrl + h.getDuongDanAnh()));
         }
 
         return dto;

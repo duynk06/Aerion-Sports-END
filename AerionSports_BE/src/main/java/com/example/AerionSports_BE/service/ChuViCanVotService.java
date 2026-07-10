@@ -18,6 +18,12 @@ public class ChuViCanVotService implements IChuViCanVotService {
     @Autowired
     private ChuViCanVotRepository repo;
 
+
+    @Override
+    public List<ChuViCanVot> getAll() {
+        return repo.findAll();
+    }
+
     @Override
     public List<ChuViCanVot> getAllActive() {
         return repo.findByTrangThai(1);

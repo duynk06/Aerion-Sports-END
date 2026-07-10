@@ -301,7 +301,7 @@ public class EmailService {
 
                     // Header với logo
                     + "<div style='background:#f79b66;padding:24px;text-align:center;'>"
-                    + "  <img src='"  + "' alt='Aerion Sports' style='height:55px;'/>"
+                    + "  <img src='/images/Logo_Da.jpg' style='height:55px;'/>"
                     + "  <h1 style='color:#fff;margin:8px 0 0;font-size:24px;letter-spacing:2px;font-weight:800;'>AERION SPORTS</h1>"
                     + "</div>"
 

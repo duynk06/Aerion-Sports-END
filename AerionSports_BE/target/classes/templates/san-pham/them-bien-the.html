@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main-layout(~{::content})}">
+<head>
+</head>
+<body>
+
+<div th:fragment="content">
+    <link class="stat-style" rel="stylesheet" th:href="@{/san-pham/san-pham.css}">
+
+    <style>
+        .form-section { background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #edf2f7; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .section-title { font-size: 15px; font-weight: 700; color: #f79b66; border-left: 4px solid #f79b66; padding-left: 10px; margin-bottom: 20px; text-align: left; text-transform: uppercase; }
+        .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #4a5568; }
+        .form-group label .required { color: red; }
+        .form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; outline: none; font-family: Arial, sans-serif; height: 40px; box-sizing: border-box; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #f79b66; }
+
+        .custom-multiselect-container { position: relative; width: 100%; margin-bottom: 20px; }
+        .multiselect-input-box { min-height: 40px; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; cursor: pointer; box-sizing: border-box; position: relative; }
+        .multiselect-input-box:focus-within { border-color: #f79b66; }
+        .multiselect-placeholder { color: #94a3b8; font-size: 13.5px; user-select: none; }
+        .multiselect-search-field { border: none !important; outline: none !important; padding: 0 !important; height: 28px !important; min-width: 80px; flex: 1; background: transparent; }
+
+        .selected-tags-wrapper { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .selected-tag-item { background: #fff3ec; color: #f79b66; border: 1px solid #ffedd5; padding: 2px 8px; border-radius: 4px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .btn-remove-tag { border: none; background: none; color: #f79b66; cursor: pointer; font-size: 12px; padding: 0; font-weight: bold; }
+        .btn-remove-tag:hover { color: #ef4444; }
+
+        .multiselect-dropdown-menu { position: absolute; top: 102%; left: 0; width: 100%; max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); z-index: 999; display: none; padding: 6px 0; }
+        .dropdown-option-item { padding: 10px 14px; font-size: 13.5px; color: #334155; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.15s; text-align: left; }
+        .dropdown-option-item:hover { background: #f8fafc; color: #f79b66; }
+        .dropdown-option-item.selected-active { background: #fff8f5; color: #f79b66; font-weight: 600; }
+        .no-options-found { padding: 12px; font-size: 13px; color: #94a3b8; font-style: italic; display: none; }
+
+        .bulk-fill-wrapper { background: #fff7ed; border: 1px dashed #f79b66; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+        .bulk-title { font-size: 13px; font-weight: 700; color: #c2410c; min-width: 100px; text-align: left; }
+
+        .image-upload-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; display: flex; align-items: center; gap: 20px; background: #f8fafc; margin-bottom: 10px; }
+        .color-tag { font-weight: bold; font-size: 13.5px; min-width: 100px; text-align: left; color: #1e293b; }
+        .img-preview-square { width: 60px; height: 60px; border-radius: 6px; border: 1px dashed #cbd5e1; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .img-preview-square img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-upload-trigger { background: #fff; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+        .btn-upload-trigger:hover { border-color: #f79b66; color: #f79b66; }
+
+        .btn-trigger-matrix-build { background-color: #f79b66; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13.5px; font-weight: 700; cursor: pointer; height: 40px; display: inline-flex; align-items: center; gap: 8px; width: fit-content; transition: background 0.2s; }
+        .btn-trigger-matrix-build:hover { background-color: #e08553; }
+    </style>
+
+    <div class="breadcrumb-container">
+        <span class="breadcrumb-text">Quản lý sản phẩm / <strong style="color: #f97316;">Thêm sản phẩm mới</strong></span>
+        <a class="btn-filter-clear" th:href="@{/san-pham}" style="text-decoration: none; line-height: 38px;">Quay lại danh sách</a>
+    </div>
+
+    <form id="formGrandProduct" th:action="@{/san-pham/luu}" method="post" enctype="multipart/form-data" onsubmit="return validateAndSubmitForm(event)">
+        <input type="hidden" name="trangThai" value="1">
+        <input type="hidden" id="bienTheJson" name="bienTheJson">
+
+        <div class="form-section">
+            <div class="section-title">1. Thông tin cơ bản sản phẩm</div>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label>Mã sản phẩm <span class="required">*</span></label>
+                    <input type="text" name="maSanPham" th:value="${maTuSinh}" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #475569;">
+                </div>
+                <div class="form-group">
+                    <label>Tên sản phẩm <span class="required">*</span></label>
+                    <input type="text" id="tenSanPham" name="tenSanPham" placeholder="Nhập tên vợt (Ví dụ: Yonex Astrox 99...)" required>
+                </div>
+                <div class="form-group">
+                    <label>Thời gian bảo hành</label>
+                    <input type="text" name="baoHanh" placeholder="Ví dụ: 3 tháng, 12 tháng...">
+                </div>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label>Thương hiệu <span class="required">*</span></label>
+                    <select name="idThuongHieu" required th:attr="data-label='Thương hiệu'">
+                        <option value="">-- Chọn thương hiệu --</option>
+                        <option th:each="th : ${danhSachThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Xuất xứ <span class="required">*</span></label>
+                    <select name="idXuatXu" required th:attr="data-label='Xuất xứ'">
+                        <option value="">-- Chọn xuất xứ --</option>
+                        <option th:each="xx : ${danhSachXuatXu}" th:value="${xx.id}" th:text="${xx.tenXuatXu}"></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">2. Cấu hình thông số kỹ thuật chung</div>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label>Danh mục sản phẩm <span class="required">*</span></label>
+                    <select id="idDanhMuc" name="idDanhMuc" required th:attr="data-label='Danh mục'">
+                        <option value="">-- Chọn danh mục --</option>
+                        <option th:each="dm : ${danhSachDanhMuc}" th:value="${dm.id}" th:text="${dm.tenDanhMuc}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Độ cứng thân vợt <span class="required">*</span></label>
+                    <select id="idDoCung" name="idDoCung" required th:attr="data-label='Độ cứng thân vợt'">
+                        <option value="">-- Chọn độ cứng --</option>
+                        <option th:each="dc : ${danhSachDoCung}" th:value="${dc.id}" th:text="${dc.tenDoCung}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Điểm cân bằng <span class="required">*</span></label>
+                    <select id="idDiemCanBang" name="idDiemCanBang" required th:attr="data-label='Điểm cân bằng'">
+                        <option value="">-- Chọn điểm cân bằng --</option>
+                        <option th:each="cb : ${danhSachDiemCanBang}" th:value="${cb.id}" th:text="${cb.tenDiemCanBang}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label>Chu vi cán vợt <span class="required">*</span></label>
+                    <select id="idChuViCanVot" name="idChuViCanVot" required th:attr="data-label='Chu vi cán vợt'">
+                        <option value="">-- Chọn chu vi cán --</option>
+                        <option th:each="cv : ${danhSachChuViCan}" th:value="${cv.id}" th:text="${cv.tenChuViCanVot}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Chất liệu thân vợt <span class="required">*</span></label>
+                    <select id="idChatLieuThanVot" name="idChatLieuThanVot" required th:attr="data-label='Chất liệu thân vợt'">
+                        <option value="">-- Chọn chất liệu thân --</option>
+                        <option th:each="clt : ${danhSachChatLieuThan}" th:value="${clt.id}" th:text="${clt.tenChatLieuThanVot}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Chất liệu khung vợt <span class="required">*</span></label>
+                    <select id="idChatLieuKhungVot" name="idChatLieuKhungVot" required th:attr="data-label='Chất liệu khung vợt'">
+                        <option value="">-- Chọn chất liệu khung --</option>
+                        <option th:each="clk : ${danhSachChatLieuKhung}" th:value="${clk.id}" th:text="${clk.tenChatLieuKhungVot}"></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">3. Thuộc tính biến thể sản phẩm</div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label>Màu sắc kinh doanh <span style="color:red;">*</span></label>
+                    <div class="custom-multiselect-container" id="containerMau">
+                        <div class="multiselect-input-box" onclick="toggleDropdownMenu('menuMau', event)">
+                            <span class="multiselect-placeholder" id="placeholderMau">-- Tìm kiếm và chọn màu sắc --</span>
+                            <div id="selectedTagsMau" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"></div>
+                            <input type="text" class="multiselect-search-field" id="searchMau" placeholder="" oninput="filterDropdownOptions('searchMau', 'menuMau')" onclick="event.stopPropagation()">
+                        </div>
+                        <div class="multiselect-dropdown-menu" id="menuMau">
+                            <div th:each="m : ${danhSachMauSac}" class="dropdown-option-item"
+                                 th:attr="data-id=${m.id}, data-name=${m.tenMauSac}" onclick="handleSelectOption(this, 'Mau', event)">
+                                <span th:text="${m.tenMauSac}"></span>
+                            </div>
+                            <div class="no-options-found">Không tìm thấy kết quả nào...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Trọng lượng kinh doanh (U) <span style="color:red;">*</span></label>
+                    <div class="custom-multiselect-container" id="containerTrong">
+                        <div class="multiselect-input-box" onclick="toggleDropdownMenu('menuTrong', event)">
+                            <span class="multiselect-placeholder" id="placeholderTrong">-- Tìm kiếm và chọn trọng lượng --</span>
+                            <div id="selectedTagsTrong" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"></div>
+                            <input type="text" class="multiselect-search-field" id="searchTrong" placeholder="" oninput="filterDropdownOptions('searchTrong', 'menuTrong')" onclick="event.stopPropagation()">
+                        </div>
+                        <div class="multiselect-dropdown-menu" id="menuTrong">
+                            <div th:each="tl : ${danhSachTrongLuong}" class="dropdown-option-item"
+                                 th:attr="data-id=${tl.id}, data-name=${tl.tenTrongLuong}" onclick="handleSelectOption(this, 'Trong', event)">
+                                <span th:text="${tl.tenTrongLuong}"></span>
+                            </div>
+                            <div class="no-options-found">Không tìm thấy kết quả nào...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; padding-bottom: 15px; text-align: left;">
+                <button type="button" class="btn-trigger-matrix-build" onclick="generateVariantMatrix()">
+                    Tạo danh sách biến thể
+                </button>
+            </div>
+
+            <div id="bulkFillPanel" class="bulk-fill-wrapper" style="display: none;">
+                <div class="bulk-title"><i class="fa-solid fa-bolt"></i> Điền nhanh:</div>
+                <input type="number" id="bulkGiaNhap" placeholder="Giá nhập chung..." style="padding:8px; border:1px solid #cbd5e1; border-radius:6px; width:150px; height:34px;">
+                <input type="number" id="bulkGiaBan" placeholder="Giá bán chung..." style="padding:8px; border:1px solid #cbd5e1; border-radius:6px; width:150px; height:34px;">
+                <input type="number" id="bulkSoLuong" placeholder="Số lượng chung..." style="padding:8px; border:1px solid #cbd5e1; border-radius:6px; width:120px; height:34px;">
+                <button type="button" class="btn-action-excel" onclick="applyBulkFill()" style="padding:0 15px; height:34px; font-size:12.5px;">Áp dụng cho các dòng được chọn</button>
+            </div>
+
+            <div class="table-responsive" id="matrixTableWrapper" style="display: none; margin-top: 15px;">
+                <table class="custom-data-table" id="tblVariantMatrix">
+                    <thead>
+                    <tr>
+                        <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllMatrix" checked onchange="toggleSelectAllMatrix(this)"></th>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th>Màu sắc</th>
+                        <th>Trọng lượng</th>
+                        <th>Mã SKU biến thể <span class="required">*</span></th>
+                        <th>Giá nhập (đ) <span class="required">*</span></th>
+                        <th>Giá bán (đ) <span class="required">*</span></th>
+                        <th>Số lượng tồn <span class="required">*</span></th>
+                    </tr>
+                    </thead>
+                    <tbody id="matrixTbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="form-section" id="imageUploadSection" style="display: none;">
+            <div class="section-title">4. Hình ảnh đại diện theo màu sắc</div>
+            <div id="imageUploadContainer">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">5. Thông tin bổ sung</div>
+            <div class="form-group">
+                <label>Mô tả chi tiết sản phẩm</label>
+                <textarea name="moTaChiTiet" rows="4" placeholder="Nhập mô tả chi tiết, đặc điểm nổi bật hoặc thông tin quà tặng kèm theo khi mua sản phẩm..."></textarea>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; margin-bottom: 40px;">
+            <a th:href="@{/san-pham}" class="btn-filter-clear" style="line-height:38px; text-decoration: none;">Hủy bỏ</a>
+            <button type="submit" class="btn-action-solid" style="height: 38px; padding: 0 30px;">Xác nhận tạo sản phẩm</button>
+        </div>
+    </form>
+
+    <script th:inline="javascript">
+        let globalProductListToCheck = [];
+        let selectedMausGlobal = [];
+        let selectedTrongsGlobal = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch('/api/chi-tiet-san-pham/all-products-variants');
+                if (response.ok) {
+                    globalProductListToCheck = await response.json();
+                }
+            } catch (e) {
+                console.error("Không thể tải bộ nhớ cache kiểm tra trùng thông số nền.");
+            }
+        });
+
+        function toggleDropdownMenu(menuId, event) {
+            if (event) event.stopPropagation();
+            document.querySelectorAll('.multiselect-dropdown-menu').forEach(menu => {
+                if (menu.id !== menuId) menu.style.display = 'none';
+            });
+
+            const currentMenu = document.getElementById(menuId);
+            currentMenu.style.display = (currentMenu.style.display === 'block') ? 'none' : 'block';
+
+            const searchId = menuId === 'menuMau' ? 'searchMau' : 'searchTrong';
+            const searchEl = document.getElementById(searchId);
+            if (searchEl) searchEl.focus();
+        }
+
+        function filterDropdownOptions(searchInpId, menuId) {
+            const textSearch = document.getElementById(searchInpId).value.trim().toLowerCase();
+            const menu = document.getElementById(menuId);
+            const options = menu.querySelectorAll('.dropdown-option-item');
+            const noResultNode = menu.querySelector('.no-options-found');
+            let foundAny = false;
+
+            options.forEach(opt => {
+                const optionText = opt.getAttribute('data-name').toLowerCase();
+                if (optionText.includes(textSearch)) {
+                    opt.style.display = 'flex';
+                    foundAny = true;
+                } else {
+                    opt.style.display = 'none';
+                }
+            });
+
+            noResultNode.style.display = foundAny ? 'none' : 'block';
+        }
+
+        function handleSelectOption(element, suffixType, event) {
+            if (event) event.stopPropagation();
+            const id = element.getAttribute('data-id');
+            const name = element.getAttribute('data-name');
+            const list = suffixType === 'Mau' ? selectedMausGlobal : selectedTrongsGlobal;
+
+            const idx = list.findIndex(x => x.id === id);
+            if (idx === -1) {
+                list.push({ id, name });
+                element.classList.add('selected-active');
+            } else {
+                list.splice(idx, 1);
+                element.classList.remove('selected-active');
+            }
+
+            renderTags(suffixType);
+        }
+
+        function renderTags(type) {
+            const container = document.getElementById(type === 'Mau' ? 'selectedTagsMau' : 'selectedTagsTrong');
+            const placeholder = document.getElementById(type === 'Mau' ? 'placeholderMau' : 'placeholderTrong');
+            const list = type === 'Mau' ? selectedMausGlobal : selectedTrongsGlobal;
+
+            container.innerHTML = '';
+            if (list.length > 0) {
+                placeholder.style.display = 'none';
+                list.forEach(item => {
+                    const tag = document.createElement('span');
+                    tag.className = 'selected-tag-item';
+                    tag.innerHTML = `
+                        ${item.name}
+                        <button type="button" class="btn-remove-tag" onclick="event.stopPropagation(); removeTagDirectly('${item.id}', '${type}')">&times;</button>
+                    `;
+                    container.appendChild(tag);
+                });
+            } else {
+                placeholder.style.display = 'block';
+            }
+
+            if (selectedMausGlobal.length === 0 || selectedTrongsGlobal.length === 0) {
+                document.getElementById('matrixTableWrapper').style.display = 'none';
+                document.getElementById('bulkFillPanel').style.display = 'none';
+                document.getElementById('imageUploadSection').style.display = 'none';
+            }
+        }
+
+        function removeTagDirectly(id, type) {
+            const menu = document.getElementById(type === 'Mau' ? 'menuMau' : 'menuTrong');
+            const opt = menu.querySelector(`.dropdown-option-item[data-id="${id}"]`);
+            if (opt) opt.classList.remove('selected-active');
+
+            if (type === 'Mau') {
+                selectedMausGlobal = selectedMausGlobal.filter(x => x.id !== id);
+            } else {
+                selectedTrongsGlobal = selectedTrongsGlobal.filter(x => x.id !== id);
+            }
+            renderTags(type);
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.custom-multiselect-container')) {
+                document.querySelectorAll('.multiselect-dropdown-menu').forEach(menu => {
+                    menu.style.display = 'none';
+                });
+
+                const searchMauEl = document.getElementById('searchMau');
+                const searchTrongEl = document.getElementById('searchTrong');
+                if (searchMauEl) searchMauEl.value = '';
+                if (searchTrongEl) searchTrongEl.value = '';
+
+                document.querySelectorAll('.dropdown-option-item').forEach(opt => opt.style.display = 'flex');
+                document.querySelectorAll('.no-options-found').forEach(n => n.style.display = 'none');
+            }
+        });
+
+        function generateVariantMatrix() {
+            const tbody = document.getElementById('matrixTbody');
+            const wrapper = document.getElementById('matrixTableWrapper');
+            const bulkPanel = document.getElementById('bulkFillPanel');
+            const imgSection = document.getElementById('imageUploadSection');
+
+            if (selectedMausGlobal.length === 0 || selectedTrongsGlobal.length === 0) {
+                alert('Vui lòng chọn ít nhất một Màu sắc và một Trọng lượng trước khi tạo danh sách biến thể!');
+                wrapper.style.display = 'none';
+                bulkPanel.style.display = 'none';
+                imgSection.style.display = 'none';
+                return;
+            }
+
+            const oldValues = {};
+            document.querySelectorAll('.matrix-row').forEach(row => {
+                const key = row.getAttribute('data-mau-id') + '-' + row.getAttribute('data-trong-id');
+                oldValues[key] = {
+                    sku: row.querySelector('.input-sku').value,
+                    nhap: row.querySelector('.input-nhap').value,
+                    ban: row.querySelector('.input-ban').value,
+                    sl: row.querySelector('.input-sl').value,
+                    checked: row.querySelector('.cb-row-select').checked
+                };
+            });
+
+            tbody.innerHTML = '';
+            wrapper.style.display = 'block';
+            bulkPanel.style.display = 'flex';
+            imgSection.style.display = 'block';
+
+            let stt = 1;
+            const prefixMaSP = document.querySelector('input[name="maSanPham"]').value;
+
+            selectedMausGlobal.forEach(mau => {
+                selectedTrongsGlobal.forEach(trong => {
+                    const key = `${mau.id}-${trong.id}`;
+                    const defaultValues = oldValues[key] || {
+                        sku: `${prefixMaSP}-SKU-${mau.name.toUpperCase()}-${trong.name.toUpperCase()}`,
+                        nhap: '', ban: '', sl: '10', checked: true
+                    };
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'matrix-row';
+                    tr.setAttribute('data-mau-id', mau.id);
+                    tr.setAttribute('data-trong-id', trong.id);
+
+                    tr.innerHTML = `
+                        <td style="text-align:center;"><input type="checkbox" class="cb-row-select" ${defaultValues.checked ? 'checked' : ''}></td>
+                        <td style="text-align:center;">${stt++}</td>
+                        <td style="font-weight:600; color:#475569;">${mau.name}</td>
+                        <td><span class="badge-prop cyan">${trong.name}</span></td>
+                        <td><input type="text" class="form-group input-sku" value="${defaultValues.sku}" style="height:32px; padding:4px 8px; width:100%;" required></td>
+                        <td><input type="number" class="form-group input-nhap" value="${defaultValues.nhap}" min="0" placeholder="0" style="height:32px; padding:4px 8px; width:100%;" required></td>
+                        <td><input type="number" class="form-group input-ban" value="${defaultValues.ban}" min="0" placeholder="0" style="height:32px; padding:4px 8px; width:100%;" required></td>
+                        <td><input type="number" class="form-group input-sl" value="${defaultValues.sl}" min="0" step="1" placeholder="0" style="height:32px; padding:4px 8px; width:90px;" required></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+
+            renderImageUploadCards();
+        }
+
+        function toggleSelectAllMatrix(master) {
+            document.querySelectorAll('.cb-row-select').forEach(cb => cb.checked = master.checked);
+        }
+
+        function applyBulkFill() {
+            const gNhap = document.getElementById('bulkGiaNhap').value;
+            const gBan = document.getElementById('bulkGiaBan').value;
+            const sLuong = document.getElementById('bulkSoLuong').value;
+
+            let updatedCount = 0;
+            document.querySelectorAll('.matrix-row').forEach(row => {
+                if (row.querySelector('.cb-row-select').checked) {
+                    if (gNhap) row.querySelector('.input-nhap').value = gNhap;
+                    if (gBan) row.querySelector('.input-ban').value = gBan;
+                    if (sLuong) row.querySelector('.input-sl').value = sLuong;
+                    updatedCount++;
+                }
+            });
+            if (updatedCount === 0) alert('Vui lòng tích chọn ít nhất 1 dòng ma trận biến thể bên dưới để áp dụng điền nhanh!');
+        }
+
+        function renderImageUploadCards() {
+            const container = document.getElementById('imageUploadContainer');
+
+            const savedFiles = {};
+            container.querySelectorAll('.image-upload-card').forEach(card => {
+                const colorId = card.getAttribute('data-mau-id');
+                const fileInput = card.querySelector('input[type="file"]');
+                if (fileInput && fileInput.files.length > 0) {
+                    savedFiles[colorId] = {
+                        file: fileInput.files[0],
+                        src: card.querySelector('.preview-img-tag').src
+                    };
+                }
+            });
+
+            container.innerHTML = '';
+
+            selectedMausGlobal.forEach(mau => {
+                const card = document.createElement('div');
+                card.className = 'image-upload-card';
+                card.setAttribute('data-mau-id', mau.id);
+
+                card.innerHTML = `
+                    <div class="color-tag">Màu ${mau.name} <span style="color:red;">*</span></div>
+                    <div class="img-preview-square">
+                        <img class="preview-img-tag" src="${savedFiles[mau.id] ? savedFiles[mau.id].src : 'https://placehold.co/60x60?text=No+Image'}" style="${savedFiles[mau.id] ? '' : 'opacity:0.3'}">
+                    </div>
+                    <button type="button" class="btn-upload-trigger" onclick="this.nextElementSibling.click()">Chọn ảnh đại diện màu</button>
+                    <input type="file" name="fileAnhs" class="file-input-control" accept="image/*" style="display:none;" onchange="previewColorImage(this, ${mau.id})">
+                    <input type="hidden" name="fileAnhMauIds" value="${mau.id}">
+                `;
+                container.appendChild(card);
+
+                if (savedFiles[mau.id]) {
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(savedFiles[mau.id].file);
+                    card.querySelector('.file-input-control').files = dataTransfer.files;
+                    card.querySelector('.preview-img-tag').style.opacity = '1';
+                }
+            });
+        }
+
+        function previewColorImage(input, colorId) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                // Validate định dạng ảnh
+                const validExtensions = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                if (!validExtensions.includes(file.type)) {
+                    alert('Lỗi: File tải lên bắt buộc phải là định dạng hình ảnh hợp lệ (jpg, jpeg, png, webp)!');
+                    input.value = '';
+                    return;
+                }
+
+                // Validate dung lượng ảnh dưới 2MB
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Lỗi: Dung lượng ảnh đại diện màu không được phép vượt quá 2MB!');
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const card = document.querySelector(`.image-upload-card[data-mau-id="${colorId}"]`);
+                    const img = card.querySelector('.preview-img-tag');
+                    img.src = e.target.result;
+                    img.style.opacity = '1';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function validateAndSubmitForm(event) {
+            // Ngăn chặn form submit mặc định để chạy validate tự tạo
+            event.preventDefault();
+
+            // 1. Chuẩn hóa tên sản phẩm
+            const tenSpInput = document.getElementById('tenSanPham');
+            tenSpInput.value = tenSpInput.value.trim().replace(/\s+/g, ' ');
+            if (tenSpInput.value === '') {
+                alert('Lỗi: Tên sản phẩm không được phép để trống hoặc chỉ chứa ký tự cách!');
+                return false;
+            }
+
+            // 2. Kiểm tra danh sách ma trận biến thể
+            const matrixRows = document.querySelectorAll('.matrix-row');
+            if (matrixRows.length === 0) {
+                alert('Lỗi: Bạn chưa bấm nút "Tạo danh sách biến thể" để phát sinh ma trận sản phẩm!');
+                return false;
+            }
+
+            // 3. Kiểm tra chi tiết giá trị và chống trùng SKU nội bộ
+            let validMatrix = true;
+            const skuSet = new Set();
+
+            for (let row of matrixRows) {
+                const sku = row.querySelector('.input-sku').value.trim();
+                const nhap = parseFloat(row.querySelector('.input-nhap').value) || 0;
+                const ban = parseFloat(row.querySelector('.input-ban').value) || 0;
+                const slText = row.querySelector('.input-sl').value;
+                const sl = parseInt(slText) || 0;
+
+                if (!sku) { alert('Lỗi: Mã SKU biến thể không được để trống!'); validMatrix = false; break; }
+
+                // Check trùng mã SKU lẫn nhau trên giao diện
+                if (skuSet.has(sku.toLowerCase())) {
+                    alert(`Lỗi: Phát hiện mã SKU [${sku}] đang bị trùng lặp trong danh sách biến thể!`);
+                    validMatrix = false;
+                    break;
+                }
+                skuSet.add(sku.toLowerCase());
+
+                if (nhap <= 0 || ban <= 0) { alert(`Mã SKU [${sku}]: Giá nhập và Giá bán phải lớn hơn 0 đ!`); validMatrix = false; break; }
+                if (ban < nhap) { alert(`Mã SKU [${sku}]: Lỗi thiết lập, giá bán lẻ không được nhỏ hơn giá nhập kho!`); validMatrix = false; break; }
+                if (slText === "" || sl < 0 || !Number.isInteger(parseFloat(slText))) {
+                    alert(`Mã SKU [${sku}]: Số lượng tồn kho phải là số nguyên lớn hơn hoặc bằng 0!`);
+                    validMatrix = false;
+                    break;
+                }
+            }
+            if (!validMatrix) return false;
+
+            // 4. Kiểm tra thiếu hình ảnh đại diện của từng màu
+            let missingImage = false;
+            const fileInputs = document.querySelectorAll('.file-input-control');
+            for (let input of fileInputs) {
+                if (input.files.length === 0) {
+                    missingImage = true;
+                    break;
+                }
+            }
+            if (missingImage) {
+                alert('Lỗi validate: Mọi màu sắc được chọn kinh doanh đều bắt buộc phải chọn một tệp tin hình ảnh đại diện hiển thị!');
+                return false;
+            }
+
+            // 5. Kiểm tra trùng thông số kỹ thuật nền sản phẩm cha trên hệ thống
+            const currentSpecs = {
+                idDanhMuc: document.getElementById('idDanhMuc').value,
+                idDoCung: document.getElementById('idDoCung').value,
+                idDiemCanBang: document.getElementById('idDiemCanBang').value,
+                idChuViCanVot: document.getElementById('idChuViCanVot').value,
+                idChatLieuThanVot: document.getElementById('idChatLieuThanVot').value,
+                idChatLieuKhungVot: document.getElementById('idChatLieuKhungVot').value
+            };
+
+            let duplicatedProduct = null;
+            for (let sp of globalProductListToCheck) {
+                if (String(sp.idDanhMuc) === currentSpecs.idDanhMuc &&
+                    String(sp.idDoCung) === currentSpecs.idDoCung &&
+                    String(sp.idDiemCanBang) === currentSpecs.idDiemCanBang &&
+                    String(sp.idChuViCanVot) === currentSpecs.idChuViCanVot &&
+                    String(sp.idChatLieuThanVot) === currentSpecs.idChatLieuThanVot &&
+                    String(sp.idChatLieuKhungVot) === currentSpecs.idChatLieuKhungVot) {
+                    duplicatedProduct = sp;
+                    break;
+                }
+            }
+
+            if (duplicatedProduct) {
+                const confirmRedirect = confirm(`CẢNH BÁO HỆ THỐNG:\n\nThông số kỹ thuật nền của sản phẩm này trùng khít hoàn toàn với sản phẩm đã có: [${duplicatedProduct.maSanPham}] - ${duplicatedProduct.tenSanPham}.\n\nBạn có muốn chuyển hướng ngay sang trang xem và thêm biến thể của sản phẩm cũ không?`);
+                if (confirmRedirect) {
+                    window.location.href = `/san-pham/bien-the?idSP=${duplicatedProduct.id}&maSP=${duplicatedProduct.maSanPham}&tenSP=${duplicatedProduct.tenSanPham}`;
+                }
+                return false;
+            }
+
+            // 6. Đóng gói JSON gửi dữ liệu đi khi tất cả đều hợp lệ
+            const listVariantsData = [];
+            matrixRows.forEach(row => {
+                listVariantsData.push({
+                    idMauSac: parseInt(row.getAttribute('data-mau-id')),
+                    idTrongLuong: parseInt(row.getAttribute('data-trong-id')),
+                    maCtsp: row.querySelector('.input-sku').value.trim(),
+                    giaNhap: parseFloat(row.querySelector('.input-nhap').value),
+                    giaBan: parseFloat(row.querySelector('.input-ban').value),
+                    soLuong: parseInt(row.querySelector('.input-sl').value),
+                    trangThai: 1
+                });
+            });
+
+            const coXacNhan = confirm('Hệ thống Aerion Sports xác nhận:\n\nBạn có chắc chắn muốn khởi tạo sản phẩm mới cùng danh sách các biến thể này không?');
+            if (coXacNhan) {
+                document.getElementById('bienTheJson').value = JSON.stringify(listVariantsData);
+                // Thực hiện submit thông qua DOM API gốc (bỏ qua onsubmit để tránh lặp vô hạn)
+                document.getElementById('formGrandProduct').submit();
+            }
+            return false;
+        }
+    </script>
+</div>
+</body>
+</html>

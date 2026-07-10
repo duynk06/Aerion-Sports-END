@@ -26,6 +26,8 @@ public class SanPhamPosResponse {
     private Integer soLuongTon;
 
     private BigDecimal gia;
+
+    private BigDecimal giaGoc;
     public SanPhamPosResponse(ChiTietSanPham ct){
 
         this.id = ct.getId();
@@ -52,5 +54,6 @@ public class SanPhamPosResponse {
         this.soLuongTon = ct.getSoLuong();
 
         this.gia = ct.getGiaBan();
+
     }
 }

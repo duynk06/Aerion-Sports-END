@@ -10,6 +10,7 @@ import com.example.AerionSports_BE.entity.HinhAnhSp;
 import com.example.AerionSports_BE.entity.SanPham;
 import com.example.AerionSports_BE.repository.*;
 import com.example.AerionSports_BE.service.impl.ISanPhamService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,10 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class SanPhamService implements ISanPhamService {
@@ -48,58 +46,35 @@ public class SanPhamService implements ISanPhamService {
     @Autowired private DiemCanBangRepository diemCanBangRepo;
     @Autowired private ChuViCanVotRepository chuViCanVotRepo;
     @Autowired private ChiTietDotGiamGiaRepository chiTietDotGiamGiaRepository;
+    @Autowired private SanPhamRepository sanPhamRepo;
+
     @Value("${app.upload.dir}")
     private String uploadDir;
 
-    @Transactional
-    public SanPhamResponse createProductWithVariants(String dataJson, List<MultipartFile> files) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        SanPhamRequest request = mapper.readValue(dataJson, SanPhamRequest.class);
-
-        if (repo.existsByMaSanPham(request.getMaSanPham())) {
-            throw new RuntimeException("Mã sản phẩm cha đã tồn tại trên hệ thống!");
-        }
-
-        SanPham sanPhamEntity = new SanPham();
-        mapFields(sanPhamEntity, request);
-        sanPhamEntity.setNgayTao(Instant.now());
-        sanPhamEntity.setNgaySua(Instant.now());
-        SanPham savedSanPham = repo.save(sanPhamEntity);
-
-        int fileIndex = 0;
-        for (ChiTietSanPhamRequest ctRequest : request.getChiTietSanPhams()) {
-            ChiTietSanPham ctspEntity = new ChiTietSanPham();
-            ctspEntity.setIdSanPham(savedSanPham);
-            ctspEntity.setMaCtsp(ctRequest.getMaCtsp());
-
-            if (ctRequest.getIdMauSac() != null) ctspEntity.setIdMauSac(mauSacRepo.findById(ctRequest.getIdMauSac()).orElse(null));
-            if (ctRequest.getIdTrongLuong() != null) ctspEntity.setIdTrongLuong(trongLuongRepo.findById(ctRequest.getIdTrongLuong()).orElse(null));
-
-            ctspEntity.setGiaNhap(ctRequest.getGiaNhap());
-            ctspEntity.setGiaBan(ctRequest.getGiaBan());
-            ctspEntity.setSoLuong(ctRequest.getSoLuong());
-            ctspEntity.setTrangThai(1);
-            ctspEntity.setNgayTao(Instant.now());
-            ctspEntity.setNgayCapNhat(Instant.now());
-
-            ChiTietSanPham savedCtsp = chiTietRepo.save(ctspEntity);
-
-            if (files != null && fileIndex < files.size()) {
-                MultipartFile currentFile = files.get(fileIndex);
-                if (currentFile != null && !currentFile.isEmpty()) {
-                    String savedFileName = saveFileToDisk(currentFile);
-                    HinhAnhSp hinhAnhEntity = new HinhAnhSp();
-                    hinhAnhEntity.setIdSanPhamChiTiet(savedCtsp);
-                    hinhAnhEntity.setLaAnhChinh(true);
-                    hinhAnhEntity.setDuongDanAnh("/uploads/" + savedFileName);
-                    hinhAnhEntity.setTrangThai(1);
-                    hinhAnhRepo.save(hinhAnhEntity);
-                }
-                fileIndex++;
-            }
-        }
-        return toRes(repo.findById(savedSanPham.getId()).orElse(savedSanPham));
+    // 🌟 BỔ SUNG: Tính tổng số sản phẩm hiện tại phục vụ sinh mã tự động tăng dần ngoài Controller
+    @Override
+    @Transactional(readOnly = true)
+    public long countTotal() {
+        return repo.count();
     }
+
+    // 🌟 BỔ SUNG: Lấy toàn bộ sản phẩm (không phân trang) để Controller tính toán độ dài danh sách
+    @Override
+    @Transactional(readOnly = true)
+    public List<SanPhamResponse> getAll() {
+        return repo.findAll().stream().map(this::toRes).toList();
+    }
+
+    // 🌟 BỔ SUNG: Tìm kiếm thông tin sản phẩm cha theo ID phục vụ tính năng điều hướng Sửa (Edit)
+    @Override
+    @Transactional(readOnly = true)
+    public SanPhamResponse findById(Integer id) {
+        SanPham sanPham = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm cha có ID: " + id));
+        return toRes(sanPham);
+    }
+
+    // Xóa hàm createProductWithVariants cũ (luồng Vue 3) vì đã chuyển hẳn sang hàm save nhận cấu trúc dữ liệu Thymeleaf phẳng bên dưới
 
     private ChiTietSanPhamResponse toChiTietRes(ChiTietSanPham ct) {
         if (ct == null) return null;
@@ -116,8 +91,8 @@ public class SanPhamService implements ISanPhamService {
         SanPham spCha = ct.getIdSanPham();
         Integer idSanPhamCha = spCha != null ? spCha.getId() : null;
         String maSanPhamCha = spCha != null ? spCha.getMaSanPham() : null;
+        String tenSanPhamCha = spCha != null ? spCha.getTenSanPham() : null;
 
-        // Logic tính toán đợt giảm giá (Giữ nguyên)
         java.math.BigDecimal phanTramGiam = java.math.BigDecimal.ZERO;
         java.math.BigDecimal giaDaGiam = ct.getGiaBan();
         java.time.LocalDateTime gioHienTaiVietNam = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -138,8 +113,8 @@ public class SanPhamService implements ISanPhamService {
         res.setIdSanPham(idSanPhamCha);
         res.setMaSanPham(maSanPhamCha);
         res.setMaCtsp(ct.getMaCtsp());
+        res.setTenSanPham(tenSanPhamCha);
 
-        // Chỉ giữ lại gán Màu sắc & Trọng lượng
         res.setIdMauSac(ct.getIdMauSac() != null ? ct.getIdMauSac().getId() : null);
         res.setTenMauSac(ct.getIdMauSac() != null ? ct.getIdMauSac().getTenMauSac() : null);
         res.setIdTrongLuong(ct.getIdTrongLuong() != null ? ct.getIdTrongLuong().getId() : null);
@@ -166,7 +141,6 @@ public class SanPhamService implements ISanPhamService {
             }
         }
 
-        // Gán đầy đủ thông số nền chuẩn xác tại đây (Đầu ra sẽ nằm hoàn toàn ở Sản phẩm cha)
         return new SanPhamResponse(
                 e.getId(),
                 e.getIdThuongHieu() != null ? e.getIdThuongHieu().getId() : null,
@@ -174,7 +148,6 @@ public class SanPhamService implements ISanPhamService {
                 e.getIdXuatXu() != null ? e.getIdXuatXu().getId() : null,
                 e.getIdXuatXu() != null ? e.getIdXuatXu().getTenXuatXu() : null,
 
-                // 🌟 ĐÃ THÊM: Gán 6 thông số nền cố định sang object cha tương ứng với file SanPhamResponse mới gửi
                 e.getIdDoCung() != null ? e.getIdDoCung().getId() : null,
                 e.getIdDoCung() != null ? e.getIdDoCung().getTenDoCung() : null,
                 e.getIdDiemCanBang() != null ? e.getIdDiemCanBang().getId() : null,
@@ -197,62 +170,99 @@ public class SanPhamService implements ISanPhamService {
     @Override
     @Transactional(readOnly = true)
     public Page<SanPhamResponse> search(SanPhamFilter f) {
-        return repo.search(f.getKeyword(), f.getIdThuongHieu(), f.getIdXuatXu(), f.getTrangThai(),
-                PageRequest.of(f.getPage(), f.getSize(), Sort.by("ngayTao").descending())).map(this::toRes);
+        return repo.search(
+                f.getKeyword(),
+                f.getIdThuongHieu(),
+                f.getIdXuatXu(),
+                f.getIdDanhMuc(),
+                f.getIdChuViCanVot(),
+                f.getIdDoCung(),
+                f.getIdDiemCanBang(),
+                f.getTrangThai(),
+                f.getSoLuongMin(),
+                PageRequest.of(f.getPage(), f.getSize(), Sort.by("ngayTao").descending())
+        ).map(this::toRes);
     }
 
     @Override
+    @Transactional
     public void updateTrangThai(Integer id, Integer trangThai) {
-        SanPham sanPham = repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm!"));
-        sanPham.setTrangThai(trangThai);
-        repo.save(sanPham);
+        // 1. Cập nhật trạng thái cho sản phẩm cha
+        SanPham sp = sanPhamRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm yêu cầu"));
+        sp.setTrangThai(trangThai);
+        sanPhamRepo.save(sp);
+
+        // 2. 🟢 Gọi hàm Repository vừa bổ sung để ép toàn bộ biến thể con đổi trạng thái theo cha
+        sanPhamRepo.updateTrangThaiBienTheTheoSanPhamCha(id, trangThai);
     }
 
+    // 🌟 ĐÃ TỐI ƯU TOÀN DIỆN: Hàm save bóc tách chuỗi JSON ma trận biến thể và liên kết chính xác file ảnh theo từng màu sắc
     @Transactional
     @Override
-    public SanPhamResponse save(SanPhamRequest r, List<MultipartFile> files) {
-        if (repo.existsByMaSanPham(r.getMaSanPham())) throw new RuntimeException("Mã sản phẩm đã tồn tại!");
+    public SanPhamResponse save(SanPhamRequest r) {
+        if (repo.existsByMaSanPham(r.getMaSanPham())) throw new RuntimeException("Mã sản phẩm cha đã tồn tại!");
 
+        // 1. Lưu sản phẩm cha trước
         SanPham e = new SanPham();
         mapFields(e, r);
         e.setNgayTao(Instant.now());
         e.setNgaySua(Instant.now());
         SanPham sanPhamDaLuu = repo.save(e);
 
-        if (r.getChiTietSanPhams() != null && !r.getChiTietSanPhams().isEmpty()) {
-            int fileIndex = 0;
-            for (ChiTietSanPhamRequest ctReq : r.getChiTietSanPhams()) {
-                if (files != null && fileIndex < files.size()) {
-                    MultipartFile file = files.get(fileIndex);
-                    try {
-                        String fileName = saveFileToDisk(file);
-                        ctReq.setHinhAnh("/uploads/" + fileName);
-                    } catch (IOException ex) { throw new RuntimeException("Lỗi lưu file ảnh"); }
-                    fileIndex++;
+        // 2. Phân tích cú pháp chuỗi JSON ma trận biến thể thành List DTO từ biểu mẫu Thymeleaf
+        if (r.getBienTheJson() != null && !r.getBienTheJson().isBlank()) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                List<ChiTietSanPhamRequest> chiTietRequests = mapper.readValue(
+                        r.getBienTheJson(),
+                        new TypeReference<List<ChiTietSanPhamRequest>>() {}
+                );
+
+                // 3. Xử lý lưu trước danh sách các file ảnh vật lý lên đĩa cứng và map vào Map[idMauSac -> đường dẫn web]
+                Map<Integer, String> mauPathMap = new HashMap<>();
+                if (r.getFileAnhs() != null && r.getFileAnhMauIds() != null) {
+                    for (int i = 0; i < r.getFileAnhs().size(); i++) {
+                        MultipartFile file = r.getFileAnhs().get(i);
+                        if (file != null && !file.isEmpty() && i < r.getFileAnhMauIds().size()) {
+                            Integer mauId = r.getFileAnhMauIds().get(i);
+                            String fileName = saveFileToDisk(file);
+                            mauPathMap.put(mauId, "/uploads/" + fileName);
+                        }
+                    }
                 }
 
-                ChiTietSanPham ctEntity = new ChiTietSanPham();
-                ctEntity.setIdSanPham(sanPhamDaLuu);
-                ctEntity.setMaCtsp(ctReq.getMaCtsp());
-                if (ctReq.getIdMauSac() != null) ctEntity.setIdMauSac(mauSacRepo.findById(ctReq.getIdMauSac()).orElseThrow());
-                if (ctReq.getIdTrongLuong() != null) ctEntity.setIdTrongLuong(trongLuongRepo.findById(ctReq.getIdTrongLuong()).orElseThrow());
-                ctEntity.setGiaNhap(ctReq.getGiaNhap());
-                ctEntity.setGiaBan(ctReq.getGiaBan());
-                ctEntity.setSoLuong(ctReq.getSoLuong());
-                ctEntity.setTrangThai(1);
-                ctEntity.setNgayTao(Instant.now());
-                ctEntity.setNgayCapNhat(Instant.now());
+                // 4. Lặp và lưu tuần tự từng biến thể chi tiết con trong ma trận
+                for (ChiTietSanPhamRequest ctReq : chiTietRequests) {
+                    ChiTietSanPham ctEntity = new ChiTietSanPham();
+                    ctEntity.setIdSanPham(sanPhamDaLuu);
+                    ctEntity.setMaCtsp(ctReq.getMaCtsp());
 
-                ChiTietSanPham chiTietDaLuu = chiTietRepo.save(ctEntity);
+                    if (ctReq.getIdMauSac() != null) ctEntity.setIdMauSac(mauSacRepo.findById(ctReq.getIdMauSac()).orElseThrow());
+                    if (ctReq.getIdTrongLuong() != null) ctEntity.setIdTrongLuong(trongLuongRepo.findById(ctReq.getIdTrongLuong()).orElseThrow());
 
-                if (ctReq.getHinhAnh() != null && !ctReq.getHinhAnh().isEmpty()) {
-                    HinhAnhSp anhEntity = new HinhAnhSp();
-                    anhEntity.setIdSanPhamChiTiet(chiTietDaLuu);
-                    anhEntity.setDuongDanAnh(ctReq.getHinhAnh());
-                    anhEntity.setLaAnhChinh(true);
-                    anhEntity.setTrangThai(1);
-                    hinhAnhRepo.save(anhEntity);
+                    ctEntity.setGiaNhap(ctReq.getGiaNhap());
+                    ctEntity.setGiaBan(ctReq.getGiaBan());
+                    ctEntity.setSoLuong(ctReq.getSoLuong());
+                    ctEntity.setTrangThai(1);
+                    ctEntity.setNgayTao(Instant.now());
+                    ctEntity.setNgayCapNhat(Instant.now());
+
+                    ChiTietSanPham chiTietDaLuu = chiTietRepo.save(ctEntity);
+
+                    // 5. Trích xuất đường dẫn ảnh chính xác của nhóm màu này để ghi nhận vào bảng hinh_anh_sp
+                    String pathAnhCuaMau = mauPathMap.get(ctReq.getIdMauSac());
+                    if (pathAnhCuaMau != null && !pathAnhCuaMau.isEmpty()) {
+                        HinhAnhSp anhEntity = new HinhAnhSp();
+                        anhEntity.setIdSanPhamChiTiet(chiTietDaLuu);
+                        anhEntity.setDuongDanAnh(pathAnhCuaMau);
+                        anhEntity.setLaAnhChinh(true);
+                        anhEntity.setTrangThai(1);
+                        hinhAnhRepo.save(anhEntity);
+                    }
                 }
+            } catch (IOException ex) {
+                throw new RuntimeException("Lỗi hệ thống khi bóc tách ma trận biến thể hoặc lưu ảnh: " + ex.getMessage());
             }
         }
         return toRes(repo.findById(sanPhamDaLuu.getId()).orElse(sanPhamDaLuu));
@@ -288,7 +298,6 @@ public class SanPhamService implements ISanPhamService {
         e.setIdXuatXu(r.getIdXuatXu() != null ? xuatXuRepo.findById(r.getIdXuatXu()).orElse(null) : null);
         e.setIdThuongHieu(r.getIdThuongHieu() != null ? thuongHieuRepo.findById(r.getIdThuongHieu()).orElse(null) : null);
 
-        // 🌟 ĐÃ SỬA: Lưu trọn vẹn 6 thuộc tính nền cố định vào thực thể sản phẩm cha
         e.setIdDoCung(r.getIdDoCung() != null ? doCungRepo.findById(r.getIdDoCung()).orElse(null) : null);
         e.setIdDiemCanBang(r.getIdDiemCanBang() != null ? diemCanBangRepo.findById(r.getIdDiemCanBang()).orElse(null) : null);
         e.setIdChatLieuThanVot(r.getIdChatLieuThanVot() != null ? chatLieuThanRepo.findById(r.getIdChatLieuThanVot()).orElse(null) : null);
@@ -312,7 +321,7 @@ public class SanPhamService implements ISanPhamService {
     private String saveFileToDisk(MultipartFile file) throws IOException {
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath); // ⚡ Tự động tạo thư mục nếu chưa có, kể cả tạo mới toàn bộ cây thư mục
+            Files.createDirectories(uploadPath);
         }
 
         String tenGoc = file.getOriginalFilename() != null ? file.getOriginalFilename() : "anh.jpg";

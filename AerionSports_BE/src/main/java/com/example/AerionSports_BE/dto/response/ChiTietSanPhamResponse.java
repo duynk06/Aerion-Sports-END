@@ -16,9 +16,9 @@ public class ChiTietSanPhamResponse {
     private Integer id;
     private Integer idSanPham;
     private String maSanPham;
+    private String tenSanPham;
     private String maCtsp;
 
-    // 🌟 RÚT GỌN: Chỉ giữ lại đặc tính riêng biệt của từng biến thể
     private Integer idMauSac;
     private String tenMauSac;
 
@@ -33,9 +33,6 @@ public class ChiTietSanPhamResponse {
     private Instant ngayCapNhat;
     private String hinhAnh;
 
-    // Các trường phục vụ quét chương trình khuyến mại
     private BigDecimal giaDaGiam;
     private BigDecimal phanTramGiam;
-
-
 }

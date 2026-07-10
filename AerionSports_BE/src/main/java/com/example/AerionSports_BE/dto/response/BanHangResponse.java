@@ -1,6 +1,7 @@
 package com.example.AerionSports_BE.dto.response;
 
 import com.example.AerionSports_BE.entity.ChiTietSanPham;
+import com.example.AerionSports_BE.entity.HinhAnhSp;
 import com.example.AerionSports_BE.entity.HoaDon;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -83,15 +84,27 @@ public class BanHangResponse {
             this.sanPham = hoaDon.getChiTietHoaDons().stream()
                     .map(cthd -> {
                         ChiTietSanPham ctsp = cthd.getChiTietSanPham();
+
+                        String anh = null;
+                        if (ctsp.getHinhAnhs() != null) {
+                            anh = ctsp.getHinhAnhs().stream()
+                                    .filter(h -> Boolean.TRUE.equals(h.getLaAnhChinh()))
+                                    .findFirst()
+                                    .map(HinhAnhSp::getDuongDanAnh)
+                                    .orElse(null);
+                        }
+
                         return new ChiTietHoaDonResponse(
                                 cthd.getId(),
-                                ctsp.getIdSanPham().getMaSanPham(),   // ✅ Sửa từ getMaCtsp() → getMaSanPham()
+                                ctsp.getIdSanPham().getMaSanPham(),
                                 ctsp.getIdSanPham().getTenSanPham(),
                                 ctsp.getIdMauSac() != null ? ctsp.getIdMauSac().getTenMauSac() : "",
                                 ctsp.getIdTrongLuong() != null ? ctsp.getIdTrongLuong().getTenTrongLuong() : "",
                                 cthd.getSoLuong(),
                                 cthd.getDonGia(),
-                                cthd.getThanhTien()
+                                cthd.getThanhTien(),
+                                anh,
+                                ctsp.getGiaBan()
                         );
                     })
                     .collect(Collectors.toList());

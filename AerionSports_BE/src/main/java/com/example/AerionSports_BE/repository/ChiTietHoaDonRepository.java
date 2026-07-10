@@ -22,16 +22,20 @@ SELECT new com.example.AerionSports_BE.dto.response.ChiTietHoaDonResponse(
     tl.tenTrongLuong,
     cthd.soLuong,
     cthd.donGia,
-    cthd.thanhTien
+    cthd.thanhTien,
+    ha.duongDanAnh,
+    ctsp.giaBan
 )
 FROM ChiTietHoaDon cthd
 JOIN cthd.chiTietSanPham ctsp
 JOIN ctsp.idSanPham sp
 LEFT JOIN ctsp.idMauSac ms
 LEFT JOIN ctsp.idTrongLuong tl
+LEFT JOIN ctsp.hinhAnhs ha
 WHERE cthd.hoaDon.id = :idHoaDon
+AND (ha.laAnhChinh = true OR ha.id IS NULL)
 """)
-    List<ChiTietHoaDonResponse> getChiTietHoaDon(Integer idHoaDon);
+    List<ChiTietHoaDonResponse> getChiTietHoaDon(@Param("idHoaDon") Integer idHoaDon);
 
     @Query("SELECT SUM(ct.thanhTien) FROM ChiTietHoaDon ct WHERE ct.hoaDon.id = :idHoaDon")
     BigDecimal tinhTongTienHang(@Param("idHoaDon") Integer idHoaDon);

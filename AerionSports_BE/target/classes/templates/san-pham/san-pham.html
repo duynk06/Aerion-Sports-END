@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main-layout(~{::content})}">
+<head>
+</head>
+<body>
+
+<div th:fragment="content">
+    <link rel="stylesheet" th:href="@{/san-pham/san-pham.css}">
+
+    <div class="breadcrumb-container">
+        <div class="breadcrumb-text">
+            <strong>Quản lý sản phẩm</strong> / Danh sách sản phẩm hệ thống
+        </div>
+        <button type="button" class="btn-toggle-filter" onclick="toggleFilterPanel()">Ẩn/Hiện bộ lọc</button>
+    </div>
+
+    <div class="filter-container-orange" id="filterPanel">
+        <div class="filter-header-title"><i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm</div>
+        <div class="filter-body-content">
+            <form method="get" th:action="@{/san-pham}" class="filter-grid">
+                <input type="hidden" name="page" value="0"/>
+                <input type="hidden" name="size" th:value="${pageSize}"/>
+
+                <div class="filter-item">
+                    <label>Tìm kiếm</label>
+                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Mã hoặc tên sản phẩm..."/>
+                </div>
+
+                <div class="filter-item slider-item">
+                    <label>Khoảng giá : 0đ - <span id="giaMaxLabel" th:text="${#numbers.formatInteger(giaCaoNhatHeThong, 1, 'POINT')}">50.000.000</span>đ</label>
+                    <div class="price-slider-wrapper">
+                        <input type="range" id="giaMaxSlider" min="0" th:max="${giaCaoNhatHeThong}" step="1" th:value="${giaCaoNhatHeThong}"
+                               class="custom-slider" oninput="onGiaMaxChange(this.value)"/>
+                    </div>
+                </div>
+
+                <div class="filter-item" style="max-width: 140px;">
+                    <label>Số lượng tồn tối thiểu</label>
+                    <input type="number" name="soLuongMin" th:value="${soLuongMin}" min="0" placeholder="Ví dụ: 0, 10..."/>
+                </div>
+
+                <div class="filter-item">
+                    <label>Thương hiệu</label>
+                    <select name="idThuongHieu" onchange="this.form.submit()">
+                        <option value="">-- Tất cả --</option>
+                        <option th:each="th : ${danhSachThuongHieu}"
+                                th:value="${th.id}"
+                                th:selected="${idThuongHieu != null and idThuongHieu == th.id}"
+                                th:text="${th.tenThuongHieu}"></option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Xuất xứ</label>
+                    <select name="idXuatXu" onchange="this.form.submit()">
+                        <option value="">-- Tất cả --</option>
+                        <option th:each="xx : ${danhSachXuatXu}"
+                                th:value="${xx.id}"
+                                th:selected="${idXuatXu != null and idXuatXu == xx.id}"
+                                th:text="${xx.tenXuatXu}"></option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Trạng thái</label>
+                    <select name="trangThai" onchange="this.form.submit()">
+                        <option value="">-- Tất cả --</option>
+                        <option value="1" th:selected="${trangThai != null and trangThai == 1}">Đang kinh doanh</option>
+                        <option value="0" th:selected="${trangThai != null and trangThai == 0}">Ngừng kinh doanh</option>
+                    </select>
+                </div>
+
+                <div class="filter-item filter-actions">
+                    <button type="submit" class="btn-trigger-filter">Tìm kiếm</button>
+                    <a th:href="@{/san-pham}" class="btn-filter-clear">Đặt lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="data-table-container">
+        <div class="table-header-row">
+            <div class="table-summary-title">Danh sách sản phẩm hệ thống</div>
+            <div class="header-actions">
+                <button type="button" class="btn-action-excel" onclick="exportToExcel()">Xuất Excel</button>
+                <a th:href="@{/san-pham/them-moi}" class="btn-action-solid">Thêm sản phẩm mới</a>
+            </div>
+        </div>
+
+        <table class="custom-data-table" id="tblSanPham">
+            <thead>
+            <tr>
+                <th style="width: 50px; text-align: center;">STT</th>
+                <th>Mã sản phẩm</th>
+                <th>Tên sản phẩm</th>
+                <th>Thương hiệu</th>
+                <th>Xuất xứ</th>
+                <th>Khoảng giá biến thể</th>
+                <th style="text-align: center; width: 130px;">Tổng lượng tồn</th>
+                <th style="text-align: center; width: 160px;">Trạng thái</th>
+                <th style="text-align: center; width: 180px;">Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(danhSachSanPham)}">
+                <td colspan="9" class="empty-table-row">Không tìm thấy sản phẩm nào khớp với bộ lọc dữ liệu!</td>
+            </tr>
+            <tr th:each="sp, iter : ${danhSachSanPham}"
+                th:data-gia-min="${thongKeBienThe[sp.id] != null ? thongKeBienThe[sp.id].giaMin : 0}"
+                th:data-ton="${thongKeBienThe[sp.id] != null ? thongKeBienThe[sp.id].tongTon : 0}">
+                <td style="text-align: center;" th:text="${currentPage * pageSize + iter.count}"></td>
+                <td><span class="product-code-text" th:text="${sp.maSanPham}"></span></td>
+                <td th:text="${sp.tenSanPham}"></td>
+                <td th:text="${sp.tenThuongHieu}"></td>
+                <td th:text="${sp.tenXuatXu}"></td>
+                <td>
+                    <span style="font-weight: 600; color: #2563eb;"
+                          th:if="${thongKeBienThe[sp.id] != null and thongKeBienThe[sp.id].giaMin != null}">
+                        <span th:if="${thongKeBienThe[sp.id].giaMin == thongKeBienThe[sp.id].giaMax}"
+                              th:text="${#numbers.formatInteger(thongKeBienThe[sp.id].giaMin, 1, 'POINT')} + ' đ'"></span>
+                        <span th:unless="${thongKeBienThe[sp.id].giaMin == thongKeBienThe[sp.id].giaMax}"
+                              th:text="${#numbers.formatInteger(thongKeBienThe[sp.id].giaMin, 1, 'POINT')} + ' đ - ' + ${#numbers.formatInteger(thongKeBienThe[sp.id].giaMax, 1, 'POINT')} + ' đ'"></span>
+                    </span>
+                    <span th:if="${thongKeBienThe[sp.id] == null || thongKeBienThe[sp.id].giaMin == null}" style="color:#94a3b8;">Chưa có giá</span>
+                </td>
+                <td style="text-align: center; font-weight: bold; color: #475569;"
+                    th:text="${thongKeBienThe[sp.id] != null ? thongKeBienThe[sp.id].tongTon : 0}"></td>
+                <td style="text-align: center;">
+                    <span th:classappend="${sp.trangThai == 1} ? 'status-active' : 'status-stopped'"
+                          class="badge-status-text"
+                          th:text="${sp.trangThai == 1} ? 'Đang kinh doanh' : 'Ngừng kinh doanh'"></span>
+                </td>
+                <td style="text-align: center;">
+                    <div class="action-buttons-flex-group">
+                        <a class="icon-btn-circle view-eye"
+                           th:href="@{/san-pham/bien-the(idSP=${sp.id}, maSP=${sp.maSanPham}, tenSP=${sp.tenSanPham})}"
+                           title="Xem danh sách biến thể con">
+                            <i class="fa-regular fa-eye"></i>
+                        </a>
+                        <div class="status-toggle-container"
+                             th:attr="onclick='toggleTrangThai(' + ${sp.id} + ',' + ${sp.trangThai} + ', event)'"
+                             title="Thay đổi trạng thái kinh doanh nhanh">
+                            <span class="toggle-track" th:classappend="${sp.trangThai == 1} ? 'track-active' : 'track-inactive'">
+                                <span class="toggle-handle"></span>
+                            </span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="custom-pagination-container">
+            <div class="pagination-left-summary">
+                Tổng số: <strong th:text="${totalElements}"></strong> sản phẩm hệ thống
+            </div>
+            <div class="pagination-right-controls">
+
+                <!-- Nút Trang trước -->
+                <a class="page-arrow-btn"
+                   th:if="${currentPage > 0}"
+                   th:href="@{/san-pham(
+            keyword=${keyword},
+            idThuongHieu=${idThuongHieu},
+            idXuatXu=${idXuatXu},
+            trangThai=${trangThai},
+            page=${currentPage - 1},
+            size=${pageSize})}">
+                    &lt;
+                </a>
+
+                <span class="page-arrow-btn disabled"
+                      th:if="${currentPage == 0}">
+        &lt;
+    </span>
+
+                <!-- Hiển thị số trang -->
+                <span class="page-text-indicator"
+                      th:text="'Trang ' + (${currentPage} + 1) + ' / ' + (${totalPages > 0 ? totalPages : 1})">
+    </span>
+
+                <!-- Nút Trang sau -->
+                <a class="page-arrow-btn"
+                   th:if="${currentPage < totalPages - 1}"
+                   th:href="@{/san-pham(
+            keyword=${keyword},
+            idThuongHieu=${idThuongHieu},
+            idXuatXu=${idXuatXu},
+            trangThai=${trangThai},
+            page=${currentPage + 1},
+            size=${pageSize})}">
+                    &gt;
+                </a>
+
+                <span class="page-arrow-btn disabled"
+                      th:if="${currentPage >= totalPages - 1}">
+        &gt;
+    </span>
+
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script th:src="@{/san-pham/san-pham.js}"></script>
+</div>
+
+</body>
+</html>

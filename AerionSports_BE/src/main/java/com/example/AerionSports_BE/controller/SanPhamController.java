@@ -1,112 +1,208 @@
 package com.example.AerionSports_BE.controller;
 
-import com.example.AerionSports_BE.dto.request.ChiTietSanPhamRequest;
 import com.example.AerionSports_BE.dto.request.SanPhamFilter;
 import com.example.AerionSports_BE.dto.request.SanPhamRequest;
 import com.example.AerionSports_BE.dto.response.SanPhamResponse;
-import com.example.AerionSports_BE.service.SanPhamService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.Valid;
+import com.example.AerionSports_BE.service.*;
+import com.example.AerionSports_BE.repository.ChiTietSanPhamRepository; // 🟢 Bổ sung import
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@RestController
-@RequestMapping("/api/san-pham")
-@CrossOrigin("*") // Mở cổng cho Vue thoải mái gọi API
+@Controller
+@RequestMapping("/san-pham")
 public class SanPhamController {
 
-    @Autowired
-    private SanPhamService svc;
+    @Autowired private SanPhamService sanPhamService;
+    @Autowired private ThuongHieuService thuongHieuService;
+    @Autowired private XuatXuService xuatXuService;
+    @Autowired private DanhMucService danhMucService;
+    @Autowired private ChuViCanVotService chuViCanVotService;
+    @Autowired private DoCungService doCungService;
+    @Autowired private DiemCanBangService diemCanBangService;
+    @Autowired private ChatLieuThanVotService chatLieuThanVotService;
+    @Autowired private ChatLieuKhungVotService chatLieuKhungVotService;
+    @Autowired private MauSacService mauSacService;
+    @Autowired private TrongLuongService trongLuongService;
+    @Autowired private ChiTietSanPhamRepository chiTietSanPhamRepository;
+    @Autowired private ChiTietSanPhamService chiTietSanPhamService;
 
-    // 1. API Tìm kiếm phân trang
-    @GetMapping("/search")
-    public ResponseEntity<?> search(
+    // 1. Xem danh sách sản phẩm cha
+    @GetMapping
+    public String danhSach(
             @RequestParam(value = "keyword", required = false) String keyword,
-            @RequestParam(value = "thuongHieuId", required = false) Integer thuongHieuId,
+            @RequestParam(value = "idThuongHieu", required = false) Integer idThuongHieu,
             @RequestParam(value = "idXuatXu", required = false) Integer idXuatXu,
             @RequestParam(value = "trangThai", required = false) Integer trangThai,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "5") int size
+            @RequestParam(value = "size", defaultValue = "5") int size,
+            Model model
     ) {
         SanPhamFilter filter = new SanPhamFilter();
         filter.setKeyword(keyword);
-        filter.setIdThuongHieu(thuongHieuId);
+        filter.setIdThuongHieu(idThuongHieu);
         filter.setIdXuatXu(idXuatXu);
         filter.setTrangThai(trangThai);
         filter.setPage(page);
         filter.setSize(size);
 
-        Page<SanPhamResponse> result = svc.search(filter);
-        return ResponseEntity.ok(result);
+        Page<SanPhamResponse> result = sanPhamService.search(filter);
+        List<SanPhamResponse> danhSach = result.getContent();
+
+        Map<Integer, Map<String, Object>> thongKeBienThe = new HashMap<>();
+        for (SanPhamResponse sp : danhSach) {
+            int tongTon = 0;
+            Long giaMin = null;
+            Long giaMax = null;
+            try {
+                var chiTietSanPhams = sp.getChiTietSanPhams();
+                if (chiTietSanPhams != null) {
+                    for (var bt : chiTietSanPhams) {
+                        int soLuong = bt.getSoLuong() == null ? 0 : bt.getSoLuong();
+                        long giaBan = bt.getGiaBan() == null ? 0L : bt.getGiaBan().longValue();
+                        tongTon += soLuong;
+                        if (giaMin == null || giaBan < giaMin) giaMin = giaBan;
+                        if (giaMax == null || giaBan > giaMax) giaMax = giaBan;
+                    }
+                }
+            } catch (Exception ignored) {}
+            Map<String, Object> tk = new HashMap<>();
+            tk.put("tongTon", tongTon);
+            tk.put("giaMin", giaMin);
+            tk.put("giaMax", giaMax);
+            thongKeBienThe.put(sp.getId(), tk);
+        }
+
+        // 🟢 Lấy mức giá bán cao nhất động từ cơ sở dữ liệu để làm mốc slider tối đa
+        java.math.BigDecimal maxPriceDb = chiTietSanPhamRepository.getGiaMax();
+        long giaCaoNhatHeThong = (maxPriceDb != null) ? maxPriceDb.longValue() : 50000000L;
+        model.addAttribute("danhSachSanPham", danhSach);
+        model.addAttribute("thongKeBienThe", thongKeBienThe);
+        model.addAttribute("totalPages", result.getTotalPages());
+        model.addAttribute("totalElements", result.getTotalElements());
+        model.addAttribute("currentPage", result.getNumber());
+        model.addAttribute("pageSize", result.getSize());
+        model.addAttribute("keyword", keyword == null ? "" : keyword);
+        model.addAttribute("idThuongHieu", idThuongHieu);
+        model.addAttribute("idXuatXu", idXuatXu);
+        model.addAttribute("trangThai", trangThai);
+        model.addAttribute("giaCaoNhatHeThong", giaCaoNhatHeThong); // 🟢 Đẩy mốc giá max sang HTML
+        model.addAttribute("danhSachThuongHieu", thuongHieuService.getAll());
+        model.addAttribute("danhSachXuatXu", xuatXuService.getAll());
+
+        return "san-pham/san-pham";
     }
 
-    // 2. ⚡ TỰ ĐỘNG HÓA 1: API Thêm sản phẩm đơn giản (Có kèm file ảnh)
-    @PostMapping(value = "/save-simple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> create(
-            @RequestParam("data") String data,
-            @RequestParam(value = "files", required = false) List<MultipartFile> files
-    ) throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        SanPhamRequest request = objectMapper.readValue(data, SanPhamRequest.class);
-        return ResponseEntity.ok(svc.save(request, files));
+    // 2. Tải trang Thêm mới sản phẩm cha
+    @GetMapping("/them-moi")
+    public String trangThemMoi(Model model) {
+        String maTuSinh = "SP" + String.format("%03d", sanPhamService.getAll().size() + 1);
+        model.addAttribute("maTuSinh", maTuSinh);
+
+        model.addAttribute("danhSachThuongHieu", thuongHieuService.getAll());
+        model.addAttribute("danhSachXuatXu", xuatXuService.getAll());
+        model.addAttribute("danhSachDanhMuc", danhMucService.getAll());
+        model.addAttribute("danhSachChuViCan", chuViCanVotService.getAll());
+        model.addAttribute("danhSachDoCung", doCungService.getAll());
+        model.addAttribute("danhSachDiemCanBang", diemCanBangService.getAll());
+        model.addAttribute("danhSachChatLieuThan", chatLieuThanVotService.getAll());
+        model.addAttribute("danhSachChatLieuKhung", chatLieuKhungVotService.getAll());
+
+        model.addAttribute("danhSachMauSac", mauSacService.getAll());
+        model.addAttribute("danhSachTrongLuong", trongLuongService.getAll());
+
+        return "san-pham/them-san-pham";
     }
 
-    // 3. ⚡ TỰ ĐỘNG HÓA 2: API Thêm sản phẩm tổ hợp Ma trận biến thể (Tự lưu file tĩnh chuẩn)
-    @PostMapping(value = "/create-variants", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createProductWithVariants(
-            @RequestParam("data") String dataJson, // Đồng bộ đổi từ @RequestPart sang @RequestParam cho mượt
-            @RequestParam(value = "files", required = false) List<MultipartFile> files
+    @PostMapping("/luu")
+    public String luuSanPham(
+            @ModelAttribute SanPhamRequest request,
+            @RequestParam(value = "idSanPhamGop", required = false) Integer idSanPhamGop,
+            @RequestParam(value = "bienTheJson", required = false) String bienTheJson
     ) {
         try {
-            return ResponseEntity.ok(svc.createProductWithVariants(dataJson, files));
+            // 🛑 CASE TRÙNG LẶP: Nếu người dùng chọn phương án "Gộp biến thể"
+            if (idSanPhamGop != null && bienTheJson != null && !bienTheJson.isBlank()) {
+                // Gọi sang tầng Service xử lý bóc tách JSON và lưu nối tiếp danh sách CTSP vào ID sản phẩm cũ
+                chiTietSanPhamService.saveVariantsToExistingProduct(idSanPhamGop, bienTheJson);
+                return "redirect:/san-pham/bien-the?idSP=" + idSanPhamGop;
+            }
+
+            // CASE MẶC ĐỊNH: Khởi tạo sản phẩm cha mới cùng danh sách ma trận biến thể ban đầu
+            sanPhamService.save(request);
+            return "redirect:/san-pham";
+
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("Lỗi xử lý lưu hệ thống sản phẩm tổ hợp: " + e.getMessage());
+            String encodedError = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+            return "redirect:/san-pham/them-moi?error=" + encodedError;
         }
     }
 
-    // 4. API Cập nhật trạng thái nhanh
-    @PutMapping("/{id}/trang-thai")
-    public ResponseEntity<?> updateTrangThai(
-            @PathVariable Integer id,
+    // 4. API REST đổi trạng thái kinh doanh nhanh
+    @PutMapping("/api/san-pham/{id}/trang-thai")
+    @ResponseBody
+    public ResponseEntity<?> thayDoiTrangThai(
+            @PathVariable("id") Integer id,
             @RequestParam("trangThai") Integer trangThai
     ) {
-        svc.updateTrangThai(id, trangThai);
-        return ResponseEntity.ok("Cập nhật trạng thái thành công!");
-    }
-    @PutMapping(value = "/bien-the/update/{idCtsp}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateSingleVariant(
-            @PathVariable Integer idCtsp,
-            @RequestParam("data") String dataJson,
-            @RequestParam(value = "file", required = false) MultipartFile file
-    ) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            ChiTietSanPhamRequest req = mapper.readValue(dataJson, ChiTietSanPhamRequest.class);
-
-            svc.updateSingleVariantWithImage(idCtsp, req, file);
-            return ResponseEntity.ok("Cập nhật thông tin và ảnh biến thể thành công!");
+            sanPhamService.updateTrangThai(id, trangThai);
+            return ResponseEntity.ok().body(Map.of("success", true, "message", "Cập nhật thành công"));
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body("Lỗi cập nhật biến thể lẻ: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
-    // 5. API Cập nhật thông tin sản phẩm
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody SanPhamRequest r) {
-        return ResponseEntity.ok(svc.update(id, r));
-    }
 
-    // 6. API Xóa sản phẩm
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id) {
-        svc.delete(id);
-        return ResponseEntity.ok("Xóa hoàn toàn sản phẩm khỏi hệ thống thành công!");
+    @PostMapping("/api/them-nhanh-thuoc-tinh/{loai}")
+    @ResponseBody
+    public ResponseEntity<?> themNhanhThuocTinh(
+            @PathVariable String loai,
+            @RequestParam("ten") String ten) {
+        try {
+            String value = ten.trim();
+            Map<String, Object> responseData = new HashMap<>();
+
+            switch (loai) {
+                case "danh-muc":
+                    String maDm = "DM" + String.format("%03d", danhMucService.getAll().size() + 1);
+                    var dmr = new com.example.AerionSports_BE.dto.request.DanhMucRequest();
+                    dmr.setTenDanhMuc(value); dmr.setMaDanhMuc(maDm); dmr.setTrangThai(1);
+                    var savedDm = danhMucService.save(dmr);
+                    responseData.put("id", savedDm.getId()); responseData.put("ten", savedDm.getTenDanhMuc()); responseData.put("ma", savedDm.getMaDanhMuc());
+                    break;
+
+                case "thuong-hieu":
+                    String maTh = "TH" + String.format("%03d", thuongHieuService.getAll().size() + 1);
+                    var thr = new com.example.AerionSports_BE.dto.request.ThuongHieuRequest();
+                    thr.setTenThuongHieu(value); thr.setMaThuongHieu(maTh); thr.setTrangThai(1);
+                    var savedTh = thuongHieuService.save(thr);
+                    responseData.put("id", savedTh.getId()); responseData.put("ten", savedTh.getTenThuongHieu()); responseData.put("ma", savedTh.getMaThuongHieu());
+                    break;
+
+                case "xuat-xu":
+                    String maXx = "XX" + String.format("%03d", xuatXuService.getAll().size() + 1);
+                    var xxr = new com.example.AerionSports_BE.dto.request.XuatXuRequest();
+                    xxr.setTenXuatXu(value); xxr.setMaXuatXu(maXx); xxr.setTrangThai(1);
+                    var savedXx = xuatXuService.save(xxr);
+                    responseData.put("id", savedXx.getId()); responseData.put("ten", savedXx.getTenXuatXu()); responseData.put("ma", savedXx.getMaXuatXu());
+                    break;
+
+                default:
+                    return ResponseEntity.badRequest().body(Map.of("message", "Loại thuộc tính không hỗ trợ thêm nhanh"));
+            }
+            return ResponseEntity.ok(responseData);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 }

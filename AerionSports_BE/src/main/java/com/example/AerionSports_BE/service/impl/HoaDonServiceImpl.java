@@ -86,6 +86,23 @@ public class HoaDonServiceImpl implements HoaDonService {
                 .map(HoaDonResponse::new);
     }
 
+    // ✅ THÊM: lấy toàn bộ hóa đơn khớp bộ lọc, không phân trang — phục vụ xuất Excel
+    @Override
+    @Transactional(readOnly = true)
+    public List<HoaDonResponse> filterHoaDonKhongPhanTrang(
+            String keyword,
+            Integer loaiHoaDon,
+            Integer trangThai,
+            LocalDate tuNgay,
+            LocalDate denNgay
+    ) {
+        return hoaDonRepository
+                .filterHoaDonKhongPhanTrang(keyword, loaiHoaDon, trangThai, tuNgay, denNgay)
+                .stream()
+                .map(HoaDonResponse::new)
+                .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional(readOnly = true) // 🌟 BỔ SUNG QUAN TRỌNG NHẤT CHO LỖI 500 HIỆN TẠI
     public HoaDonResponse detail(Integer id) {
@@ -204,22 +221,43 @@ public class HoaDonServiceImpl implements HoaDonService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ChiTietHoaDonResponse> getChiTietHoaDon(Integer idHoaDon) {
+
         return chiTietHoaDonRepository.findByHoaDonIdWithDetail(idHoaDon)
                 .stream()
-                .map(ct -> new ChiTietHoaDonResponse(
-                        ct.getId(),
-                        ct.getChiTietSanPham().getMaCtsp(),
-                        ct.getChiTietSanPham().getIdSanPham().getTenSanPham(),
-                        ct.getChiTietSanPham().getIdTrongLuong().getTenTrongLuong(),
-                        ct.getChiTietSanPham().getIdMauSac().getTenMauSac(),
-                        ct.getSoLuong(),
-                        ct.getDonGia(),
-                        ct.getThanhTien()
-                ))
+                .map(ct -> {
+
+                    String anh = null;
+
+                    if (ct.getChiTietSanPham().getHinhAnhs() != null
+                            && !ct.getChiTietSanPham().getHinhAnhs().isEmpty()) {
+
+                        // Ưu tiên ảnh chính
+                        anh = ct.getChiTietSanPham()
+                                .getHinhAnhs()
+                                .stream()
+                                .filter(h -> Boolean.TRUE.equals(h.getLaAnhChinh()))
+                                .findFirst()
+                                .orElse(ct.getChiTietSanPham().getHinhAnhs().get(0))
+                                .getDuongDanAnh();
+                    }
+
+                    return new ChiTietHoaDonResponse(
+                            ct.getId(),
+                            ct.getChiTietSanPham().getMaCtsp(),
+                            ct.getChiTietSanPham().getIdSanPham().getTenSanPham(),
+                            ct.getChiTietSanPham().getIdMauSac().getTenMauSac(),
+                            ct.getChiTietSanPham().getIdTrongLuong().getTenTrongLuong(),
+                            ct.getSoLuong(),
+                            ct.getDonGia(),
+                            ct.getThanhTien(),
+                            anh,
+                            ct.getChiTietSanPham().getGiaBan()   // ✅ giá gốc hiện tại
+                    );
+                })
                 .collect(Collectors.toList());
     }
-
     @Override
     public List<LichSuThanhToanResponse> getLichSuThanhToan(Integer idHoaDon) {
         return lichSuThanhToanRepository.findByHoaDonId(idHoaDon)

@@ -7,15 +7,16 @@ import com.example.AerionSports_BE.service.ThongKeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 
+// 🌟 ĐÃ SỬA: Không còn @RestController -> dùng @Controller để có thể vừa trả JSON (qua @ResponseBody)
+// vừa trả về tên view Thymeleaf (trang /thong-ke) trong cùng 1 class.
 @CrossOrigin("*")
-@RestController
-@RequestMapping("/api/thong-ke")
+@Controller
 public class ThongKeController {
 
     @Autowired
@@ -24,7 +25,22 @@ public class ThongKeController {
     @Autowired
     private EmailService emailService;
 
-    @GetMapping("/dashboard-cards")
+    // 🌟 ĐÃ SỬA: Controller trỏ THẲNG vào file thong-ke.html, không cần file trung gian nữa.
+    // File thong-ke.html tự chứa th:replace ở thẻ <html> để gọi layout + tự chọn
+    // fragment "content" của chính nó qua ~{::content} — đây là đúng pattern chuẩn
+    // của Thymeleaf (Template Layout), tránh được lỗi FragmentExpression khi trước.
+    @GetMapping("/thong-ke")
+    public String trangThongKe() {
+        return "thong-ke/thong-ke";
+    }
+
+    // ============================================================
+    // CÁC API BÊN DƯỚI GIỮ NGUYÊN LOGIC CŨ, CHỈ THÊM @ResponseBody
+    // VÌ CLASS KHÔNG CÒN LÀ @RestController NỮA
+    // ============================================================
+
+    @GetMapping("/api/thong-ke/dashboard-cards")
+    @ResponseBody
     public ResponseEntity<Map<String, ThongKeCardResponse>> getAllDashboardCards() {
         Map<String, ThongKeCardResponse> responseMap = new java.util.HashMap<>();
         responseMap.put("today", thongKeService.getSingleCardData("today"));
@@ -34,14 +50,16 @@ public class ThongKeController {
         return ResponseEntity.ok(responseMap);
     }
 
-    @GetMapping("/chi-tiet-tables")
+    @GetMapping("/api/thong-ke/chi-tiet-tables")
+    @ResponseBody
     public ResponseEntity<ThongKeChiTietResponse> getChiTietTables(
             @RequestParam(value = "tuNgay", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate tuNgay,
             @RequestParam(value = "denNgay", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate denNgay) {
         return ResponseEntity.ok(thongKeService.getThongKeChiTietDuLieuDong(tuNgay, denNgay));
     }
 
-    @PostMapping("/gui-email-thu-cong")
+    @PostMapping("/api/thong-ke/gui-email-thu-cong")
+    @ResponseBody
     public ResponseEntity<Map<String, String>> triggerSendEmailManual() {
         emailService.executeExportExcelAndSendEmail();
         Map<String, String> response = new java.util.HashMap<>();
@@ -51,7 +69,8 @@ public class ThongKeController {
     }
 
     // 🌟 ĐÃ SỬA ĐỒNG BỘ: Hỗ trợ linh hoạt cả 2 cấu trúc hiển thị Thường và So Sánh
-    @GetMapping("/bieu-do-line")
+    @GetMapping("/api/thong-ke/bieu-do-line")
+    @ResponseBody
     public ResponseEntity<?> getChartLineData(
             @RequestParam("loai") String loai,
             @RequestParam(value = "isCompare", required = false, defaultValue = "false") boolean isCompare,

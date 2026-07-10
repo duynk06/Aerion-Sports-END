@@ -45,6 +45,11 @@
       background:#f79b66;
       color:#fff;
     }
+    .imageVanChuyen{
+      width: 45px;
+      height: 20px;
+      object-fit: contain;
+    }
     .status-banner.wait{background:#fef3c7;color:#92400e;}
     .status-banner.cancel-req{background:#ffedd5;color:#9a3412;}
     .status-banner.cancelled{background:#fee2e2;color:#b91c1c;}
@@ -59,8 +64,8 @@
     .step-label.active{color:#f79b66;font-weight:600;}
 
     .action-group{display:flex;gap:10px;}
-    .change-status-btn,.history-btn{border:1px solid #ddd;background:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;}
-    .change-status-btn:hover,.history-btn:hover{background:#f5f5f5;}
+    .change-status-btn,.history-btn, .action-btn{border:1px solid #ddd;background:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;}
+    .change-status-btn:hover,.history-btn:hover, .action-btn:hover{background:#f5f5f5;}
 
     .middle-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
     .summary-item{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;color:#444;}
@@ -111,9 +116,9 @@
         <span class="invoice-code" th:text="${hoaDon.maHoaDon}"></span>
       </div>
     </div>
-    <a class="btn-print-invoice" th:href="@{/hoa-don/in/{id}(id=${hoaDon.id})}">
+    <button class="action-btn" onclick="inHoaDonHienTai()">
       <i class="fa-solid fa-print"></i> In hóa đơn
-    </a>
+    </button>
   </div>
 
   <!-- HÀNG 1: Trạng thái đơn hàng -->
@@ -184,7 +189,7 @@
         <span th:text="${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ'"></span>
       </div>
       <div class="summary-item">
-        <span class="shipping-label">Phí vận chuyển</span>
+        <span class="shipping-label">Phí vận chuyển <img class="imageVanChuyen" src="/images/image.png" alt=""> </span>
         <span th:text="${#numbers.formatDecimal(hoaDon.tienVanChuyen,0,'COMMA',0,'POINT')} + ' đ'"></span>
       </div>
       <hr>
@@ -246,13 +251,28 @@
 
     <table id="productTable">
       <thead>
-      <tr><th>STT</th><th>Mã sản phẩm</th><th>Tên sản phẩm</th><th>Trọng lượng</th><th>Màu sắc</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr>
+      <tr>
+        <th>STT</th>
+        <th>Mã sản phẩm</th>
+        <th>Hình ảnh</th>
+        <th>Tên sản phẩm</th>
+        <th>Trọng lượng</th>
+        <th>Màu sắc</th>
+        <th>Số lượng</th>
+        <th>Đơn giá</th>
+        <th>Thành tiền</th>
+      </tr>
       </thead>
       <tbody>
       <tr th:each="item, st : ${chiTietSanPham}"
           th:attr="data-ma=${item.maSanPham},data-ten=${item.tenSanPham},data-mau=${item.mauSac},data-trongluong=${item.trongLuong}">
         <td th:text="${st.count}"></td>
         <td th:text="${item.maSanPham}"></td>
+        <td>
+          <img th:if="${item.anh}" th:src="${item.anh}" alt="Ảnh sản phẩm"
+               style="width:50px;height:50px;object-fit:cover;border-radius:6px;" />
+          <span th:unless="${item.anh}" style="color:#bbb;">—</span>
+        </td>
         <td th:text="${item.tenSanPham}"></td>
         <td th:text="${item.trongLuong}"></td>
         <td th:text="${item.mauSac}"></td>
@@ -383,7 +403,7 @@
         </div>
 
         <p th:unless="${hoaDon.trangThai == 5 or hoaDon.trangThai == 6}" style="font-size:12px;color:#f59e0b;">
-          ⚠️ Hành động này sẽ cập nhật trạng thái và ghi nhận lịch sử thay đổi.
+          Hành động này sẽ cập nhật trạng thái và ghi nhận lịch sử thay đổi.
         </p>
 
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px;">
@@ -453,6 +473,25 @@
     });
     /*]]>*/
   </script>
+  <script th:inline="javascript">
+    const hoaDonData = /*[[${hoaDon}]]*/ {};
+
+    // Map field cho khớp tên mà printInvoice() yêu cầu:
+    // (trongLuong/mauSac thay vì tenTrongLuong/tenMauSac nếu DTO của bạn đặt tên khác)
+    const danhSachSanPhamData = /*[[${danhSachSanPham}]]*/ [];
+    const lichSuThanhToanData = /*[[${lichSuThanhToan}]]*/ [];
+
+    function inHoaDonHienTai() {
+      printInvoice(hoaDonData, danhSachSanPhamData, lichSuThanhToanData);
+    }
+  </script>
+  <!-- Thư viện tạo mã QR (thay cho import "qrcode") -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+  <!-- Logic in hóa đơn -->
+  <script th:src="@{/hoa-don/in-hoa-don.js}"></script>
 </div>
+
+
 </body>
 </html>

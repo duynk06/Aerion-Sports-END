@@ -8,16 +8,21 @@ import com.example.AerionSports_BE.entity.*;
 import com.example.AerionSports_BE.repository.ChiTietSanPhamRepository;
 import com.example.AerionSports_BE.repository.ChiTietDotGiamGiaRepository;
 import com.example.AerionSports_BE.service.impl.IChiTietSanPhamService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -28,6 +33,10 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
 
     @Autowired
     private ChiTietDotGiamGiaRepository chiTietDotGiamGiaRepository;
+
+    // 🌟 ĐÃ THÊM: Đọc cấu hình thư mục lưu ảnh từ file application.properties
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     private ChiTietSanPhamResponse toRes(ChiTietSanPham e) {
         if (e == null) return null;
@@ -43,18 +52,20 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
 
         Integer idSanPhamCha = null;
         String maSanPhamCha = null;
+        String tenSanPhamCha = null;
         if (e.getIdSanPham() != null) {
             idSanPhamCha = e.getIdSanPham().getId();
             maSanPhamCha = e.getIdSanPham().getMaSanPham();
+            tenSanPhamCha = e.getIdSanPham().getTenSanPham();
         }
 
         ChiTietSanPhamResponse dto = new ChiTietSanPhamResponse();
         dto.setId(e.getId());
         dto.setIdSanPham(idSanPhamCha);
         dto.setMaSanPham(maSanPhamCha);
+        dto.setTenSanPham(tenSanPhamCha);
         dto.setMaCtsp(e.getMaCtsp());
 
-        // Chỉ gán các trường đặc tính riêng thực tế của biến thể con
         dto.setIdMauSac(e.getIdMauSac() != null ? e.getIdMauSac().getId() : null);
         dto.setTenMauSac(e.getIdMauSac() != null ? e.getIdMauSac().getTenMauSac() : null);
         dto.setIdTrongLuong(e.getIdTrongLuong() != null ? e.getIdTrongLuong().getId() : null);
@@ -68,7 +79,6 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
         dto.setNgayCapNhat(e.getNgayCapNhat());
         dto.setHinhAnh(duongDanAnhThucTe);
 
-        // Logic tính toán đợt giảm giá (Giữ nguyên)
         java.math.BigDecimal phanTramGiam = java.math.BigDecimal.ZERO;
         java.math.BigDecimal giaDaGiam = e.getGiaBan();
         java.time.LocalDateTime gioHienTaiVN = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -79,7 +89,9 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
             if (dgg != null && dgg.getGiaTriGiam() != null) {
                 phanTramGiam = dgg.getGiaTriGiam();
                 java.math.BigDecimal heSo = java.math.BigDecimal.valueOf(100).subtract(phanTramGiam);
-                giaDaGiam = e.getGiaBan().multiply(heSo).divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+                if (e.getGiaBan() != null) {
+                    giaDaGiam = e.getGiaBan().multiply(heSo).divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+                }
             }
         }
         dto.setGiaDaGiam(giaDaGiam);
@@ -94,10 +106,18 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
     }
 
     @Override
+    public ChiTietSanPhamResponse findById(Integer id) {
+        ChiTietSanPham e = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể sản phẩm có ID: " + id));
+        return toRes(e);
+    }
+
+    @Override
     public Page<ChiTietSanPhamResponse> search(ChiTietSanPhamFilter f) {
         return repo.search(f.getKeyword(), f.getIdSanPham(), f.getIdDanhMuc(), f.getIdMauSac(),
                 f.getIdTrongLuong(), f.getIdChuViCanVot(), f.getIdDoCung(), f.getIdDiemCanBang(), f.getTrangThai(),
                 f.getGiaTu(), f.getGiaDen(), PageRequest.of(f.getPage(), f.getSize())).map(this::toRes);
+
     }
 
     @Override
@@ -107,7 +127,13 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
         mapFields(e, r);
         e.setNgayTao(Instant.now());
         e.setNgayCapNhat(Instant.now());
-        return toRes(repo.save(e));
+
+        ChiTietSanPham savedEntity = repo.save(e);
+
+        // 🌟 XỬ LÝ LƯU FILE ẢNH VẬT LÝ KHI THÊM MỚI
+        handleFileUpload(savedEntity, r);
+
+        return toRes(savedEntity);
     }
 
     @Override
@@ -115,6 +141,10 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
         ChiTietSanPham e = repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể sản phẩm!"));
         mapFields(e, r);
         e.setNgayCapNhat(Instant.now());
+
+        // 🌟 XỬ LÝ LƯU FILE ẢNH VẬT LÝ KHI CẬP NHẬT
+        handleFileUpload(e, r);
+
         return toRes(repo.save(e));
     }
 
@@ -127,6 +157,42 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
         e.setGiaBan(r.getGiaBan());
         e.setSoLuong(r.getSoLuong());
         e.setTrangThai(r.getTrangThai());
+    }
+
+    // 🌟 ĐÃ BỔ SUNG: Hàm xử lý đọc file từ Request, lưu vào thư mục và ghi nhận bảng liên kết hinh_anh_sp
+    private void handleFileUpload(ChiTietSanPham e, ChiTietSanPhamRequest r) {
+        if (r.getFileAnh() != null && !r.getFileAnh().isEmpty()) {
+            try {
+                File folder = new File(uploadDir);
+                if (!folder.exists()) {
+                    folder.mkdirs();
+                }
+
+                String originalFilename = r.getFileAnh().getOriginalFilename();
+                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                String newFilename = UUID.randomUUID().toString() + extension;
+
+                File destFile = new File(folder.getAbsolutePath() + File.separator + newFilename);
+                r.getFileAnh().transferTo(destFile);
+
+                String duongDanWeb = "/uploads/" + newFilename;
+
+                // Tạo đối tượng thực thể hình ảnh mới đồng bộ liên kết bảng hinh_anh_sp
+                HinhAnhSp anhEntity = new HinhAnhSp();
+                anhEntity.setIdSanPhamChiTiet(e);
+                anhEntity.setLaAnhChinh(true);
+                anhEntity.setDuongDanAnh(duongDanWeb);
+                anhEntity.setTrangThai(1);
+
+                if (e.getHinhAnhs() != null) {
+                    // Nếu đã có ảnh cũ, hạ cấp làm ảnh phụ để ảnh mới tải lên làm ảnh chính
+                    e.getHinhAnhs().forEach(anh -> anh.setLaAnhChinh(false));
+                    e.getHinhAnhs().add(anhEntity);
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException("Lỗi trong quá trình lưu tệp tin ảnh hệ thống: " + ex.getMessage());
+            }
+        }
     }
 
     @Override
@@ -174,7 +240,6 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
                 parentDto.setTenXuatXu(spChaEntity.getIdXuatXu().getTenXuatXu());
             }
 
-            // 🌟 ĐỒNG BỘ: Đổ dữ liệu 6 thông số nền ra API phẳng phục vụ check trùng ngoài UI Vue 3
             parentDto.setIdDoCung(spChaEntity.getIdDoCung() != null ? spChaEntity.getIdDoCung().getId() : null);
             parentDto.setTenDoCung(spChaEntity.getIdDoCung() != null ? spChaEntity.getIdDoCung().getTenDoCung() : null);
             parentDto.setIdDiemCanBang(spChaEntity.getIdDiemCanBang() != null ? spChaEntity.getIdDiemCanBang().getId() : null);
@@ -192,4 +257,47 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
             return parentDto;
         }).toList();
     }
+
+    @Override
+    public ChiTietSanPhamResponse updateFullDetailsFromModal(Integer id, ChiTietSanPhamRequest r, MultipartFile fileAnh) throws Exception {
+        ChiTietSanPham e = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể sản phẩm có ID: " + id));
+
+        // 2. Đồng bộ các trường dữ liệu chữ và số từ Request vào Entity
+        e.setIdMauSac(r.getIdMauSac() != null ? repo.findMauSacById(r.getIdMauSac()) : e.getIdMauSac());
+        e.setIdTrongLuong(r.getIdTrongLuong() != null ? repo.findTrongLuongById(r.getIdTrongLuong()) : e.getIdTrongLuong());
+        e.setGiaBan(r.getGiaBan());
+        e.setSoLuong(r.getSoLuong());
+        e.setNgayCapNhat(Instant.now());
+
+        // 3. Gán file ảnh nhận về vào Request để hàm `handleFileUpload` của bạn tự động xử lý ghi đè tệp vật lý
+        if (fileAnh != null && !fileAnh.isEmpty()) {
+            r.setFileAnh(fileAnh);
+            handleFileUpload(e, r);
+        }
+
+        // 4. Lưu lại vào DB và trả về DTO Response chuẩn hóa dữ liệu hiển thị realtime
+        return toRes(repo.save(e));
+    }
+
+    @Transactional
+    public void saveVariantsToExistingProduct(Integer idSanPhamChaCu, String bienTheJson) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            // Đọc và chuyển đổi chuỗi JSON gửi từ Client thành danh sách Object Request
+            List<ChiTietSanPhamRequest> listRequests = mapper.readValue(bienTheJson, new TypeReference<List<ChiTietSanPhamRequest>>() {});
+
+            for (ChiTietSanPhamRequest req : listRequests) {
+                // Thiết lập ID sản phẩm cha là sản phẩm cũ được chọn gộp
+                req.setIdSanPham(idSanPhamChaCu);
+
+                // Tận dụng lại hàm save() lẻ của chính bạn để tự động map fields, ghi nhận ngày tạo và xử lý upload ảnh
+                this.save(req);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi xử lý gộp danh sách biến thể vào sản phẩm cũ: " + e.getMessage());
+        }
+    }
+
+
 }
