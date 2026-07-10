@@ -124,6 +124,8 @@ public class SecurityConfig {
                                 "/api/xuat-xu/**",
                                 "/api/giao-ca/**", "/api/lich-lam-viec/**",
                                 "/api/dot-giam-gia/**"
+
+
                         ).permitAll()
 
                         .anyRequest().authenticated()

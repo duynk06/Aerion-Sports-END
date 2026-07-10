@@ -1,6 +1,5 @@
 package com.example.AerionSports_BE.service;
 
-import com.example.AerionSports_BE.dto.VoucherRequestDTO;
 import com.example.AerionSports_BE.entity.PhieuGiamGia;
 
 import java.util.List;
@@ -11,7 +10,7 @@ public interface PhieuGiamGiaService {
 
     PhieuGiamGia getById(Integer id);
 
-    PhieuGiamGia add(VoucherRequestDTO dto);
+    PhieuGiamGia add(PhieuGiamGia phieuGiamGia);
 
     PhieuGiamGia update(Integer id, PhieuGiamGia phieuGiamGia);
 

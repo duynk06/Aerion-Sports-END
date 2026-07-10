@@ -59,9 +59,6 @@ public class PhieuGiamGia {
     @Column(name = "ngay_ket_thuc")
     private LocalDateTime ngayKetThuc;
 
-    @Column(name = "trang_thai_phieu_giam_gia")
-    private Integer trangThaiPhieuGiamGia;
-
     @Column(name = "mo_ta", length = 500)
     private String moTa;
 
