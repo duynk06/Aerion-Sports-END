@@ -38,6 +38,7 @@ public class BanHangServiceImpl implements BanHangService {
     private final LichSuHoaDonRepository lichSuHoaDonRepository;
     private final EmailService emailService;
     private final ChiTietDotGiamGiaRepository chiTietDotGiamGiaRepository;
+    private final PhieuGiamGiaKhachHangRepository phieuGiamGiaKhachHangRepository;
 
     @org.springframework.beans.factory.annotation.Value("${app.base-url}")
     private String baseUrl;
@@ -344,6 +345,18 @@ public class BanHangServiceImpl implements BanHangService {
                 phieu.setSoLuongDaSuDung(daSuDung + 1);
                 phieu.setNgayCapNhat(LocalDateTime.now());
                 phieuGiamGiaRepository.save(phieu);
+
+                // ✅ Nếu phiếu này có gán riêng cho khách hàng hiện tại, đánh dấu đã dùng
+                if (hoaDon.getKhachHang() != null) {
+                    phieuGiamGiaKhachHangRepository
+                            .findChuaSuDung(phieu.getId(), hoaDon.getKhachHang().getId())
+                            .ifPresent(pgk -> {
+                                pgk.setDaSuDung(true);
+                                pgk.setDaSuDungNgay(LocalDateTime.from(java.time.Instant.now()));
+                                pgk.setNgaySuDung(LocalDateTime.from(java.time.Instant.now()));
+                                phieuGiamGiaKhachHangRepository.save(pgk);
+                            });
+                }
             }
         }
         hoaDonRepository.save(hoaDon);
@@ -481,14 +494,19 @@ public class BanHangServiceImpl implements BanHangService {
         HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
 
+        Integer idKhachHang = hoaDon.getKhachHang() != null ? hoaDon.getKhachHang().getId() : null;
+
         BigDecimal tongTienHang = hoaDon.getTongTienHang();
         BigDecimal tienVanChuyen = hoaDon.getTienVanChuyen() != null
                 ? hoaDon.getTienVanChuyen() : BigDecimal.ZERO;
 
+        // ✅ Thay findPhieuConHieuLuc(now) bằng bản có xét khách hàng
         List<PhieuGiamGia> danhSachPhieu = phieuGiamGiaRepository
-                .findPhieuConHieuLuc(LocalDateTime.now());
+                .findPhieuConHieuLucChoKhachHang(LocalDateTime.now(), idKhachHang);
 
         if (danhSachPhieu.isEmpty()) return null;
+
+        // ... toàn bộ phần còn lại của hàm giữ nguyên, không đổi gì
 
         // ✅ Bỏ qua phiếu đã hết lượt sử dụng
         danhSachPhieu = danhSachPhieu.stream()

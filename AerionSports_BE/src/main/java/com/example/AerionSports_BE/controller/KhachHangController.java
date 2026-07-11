@@ -5,6 +5,7 @@ import com.example.AerionSports_BE.entity.KhachHang;
 import com.example.AerionSports_BE.service.KhachHangService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,9 @@ public class KhachHangController {
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     // Thư mục vật lý lưu ảnh đại diện khách hàng (đổi lại theo cấu hình server thật của bạn)
-    private static final String UPLOAD_DIR = "uploads/avatar/khach-hang";
+    @Value("${app.upload.dir:${user.dir}/uploads}")
+    private String uploadDir;
+
 
     @GetMapping("/hien-thi")
     public ResponseEntity<List<KhachHang>> getAll() {
@@ -150,8 +153,9 @@ public class KhachHangController {
         ));
     }
 
+
     private String luuFileAvatar(MultipartFile file) throws IOException {
-        Path uploadPath = Paths.get(UPLOAD_DIR);
+        Path uploadPath = Paths.get(uploadDir, "avatar", "khach-hang");
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
@@ -163,7 +167,6 @@ public class KhachHangController {
         Path target = uploadPath.resolve(fileName);
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-        // Trả về đường dẫn public để FE hiển thị được (cần cấu hình static resource handler trỏ tới UPLOAD_DIR)
-        return "/uploads/avatar/khach-hang/" + fileName;
+        return "http://localhost:8080/uploads/avatar/khach-hang/" + fileName;
     }
 }

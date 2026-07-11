@@ -190,7 +190,6 @@ public class HoaDonServiceImpl implements HoaDonService {
         return new HoaDonResponse(hoaDonRepository.findById(id).orElse(hoaDon));
     }
     private void validateChuyenTrangThai(Integer cu, Integer moi, Integer loaiHoaDon) {
-        // Đã hủy hoặc hoàn thành không cho đổi
         if (cu == 6 || cu == 5) {
             throw new RuntimeException("Không thể chuyển trạng thái từ trạng thái này!");
         }
@@ -199,8 +198,7 @@ public class HoaDonServiceImpl implements HoaDonService {
             if (cu == 0 && (moi == 5 || moi == 6)) return;
             throw new RuntimeException("Đơn tại quầy chỉ được chuyển sang Hoàn thành hoặc Hủy!");
         }
-        // Online: chỉ tiến 1 bước hoặc hủy
-        if (moi == 6) return; // Luôn cho phép hủy
+        if (moi == 6) return;
         if (moi != cu + 1) {
             throw new RuntimeException("Chỉ được chuyển sang trạng thái tiếp theo!");
         }

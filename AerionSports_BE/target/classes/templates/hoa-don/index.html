@@ -207,8 +207,6 @@
                 <script>
                     document.addEventListener("DOMContentLoaded", function() {
                         const filterForm = document.getElementById('filterForm');
-
-                        // 1. Tự động submit khi thay đổi Loại hóa đơn, Từ ngày, Đến ngày
                         const selectsAndDates = ['loaiHoaDonFilter', 'tuNgay', 'denNgay'];
                         selectsAndDates.forEach(id => {
                             const element = document.getElementById(id);
@@ -218,11 +216,9 @@
                                 });
                             }
                         });
-
-                        // 2. Tìm kiếm đến đâu lọc đến đó (Kỹ thuật Debounce chống spam server)
                         const keywordInput = document.getElementById('keyword');
                         let typingTimer;
-                        const doneTypingInterval = 800; // Đợi 0.8 giây sau khi ngừng gõ mới submit
+                        const doneTypingInterval = 800;
 
                         if(keywordInput) {
                             keywordInput.addEventListener('input', function() {

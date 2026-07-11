@@ -1226,10 +1226,10 @@
           <td>${item.mauSac}</td>
           <td>${item.trongLuong}</td>
           <td class="text-right">${item.soLuongTon}</td>
-          <td class="text-right font-bold">
-            ${coGiam ? `<div style="text-decoration:line-through;color:#999;font-size:11px;">${formatVND(item.giaGoc)} đ</div>` : ""}
-            ${formatVND(item.gia)} đ
-          </td>
+         <td class="text-right font-bold" style="${coGiam ? "color:#cf1322;" : ""}">
+    ${coGiam ? `<div style="text-decoration:line-through;color:#999;font-size:11px;">${formatVND(item.giaGoc)} đ</div>` : ""}
+    ${formatVND(item.gia)} đ
+</td>
           <td class="text-center"><button class="btn-select-product" onclick='themSanPhamVaoHoaDon(${JSON.stringify(item)})'>Chọn</button></td>
         </tr>`;
                 })

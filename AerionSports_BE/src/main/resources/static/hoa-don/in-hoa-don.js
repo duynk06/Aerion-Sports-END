@@ -23,14 +23,17 @@ Khách hàng: ${hoaDon.tenNguoiNhan}
 Tổng tiền: ${hoaDon.tongTienThanhToan}
 `;
 
-        // ✅ Bọc try/catch: nếu thư viện QRCode lỗi/chưa load kịp thì vẫn in được hóa đơn,
-        // chỉ là không có ảnh QR, thay vì để cả trang trắng không hiện gì.
+        // ✅ Dùng thư viện qrcode-generator tự host (không qua CDN nữa) — hàm đồng bộ,
+        // không cần await, và không còn phụ thuộc mạng ngoài nên không thể lỗi vì mất mạng/CDN sập.
         let qrImage = '';
         try {
-            if (typeof QRCode === 'undefined') {
-                throw new Error('Thư viện QRCode (window.QRCode) chưa được nạp — kiểm tra lại thẻ <script> CDN qrcode.min.js.');
+            if (typeof qrcode === 'undefined') {
+                throw new Error('Thư viện qrcode-generator.js chưa được nạp — kiểm tra lại thẻ <script th:src="@{/hoa-don/qrcode-generator.js}"> trong detail.html.');
             }
-            qrImage = await QRCode.toDataURL(qrData);
+            const qr = qrcode(0, 'M'); // 0 = tự động chọn version phù hợp độ dài dữ liệu, 'M' = mức sửa lỗi trung bình
+            qr.addData(qrData);
+            qr.make();
+            qrImage = qr.createDataURL(4, 0); // cellSize=4, margin=0 -> trả thẳng base64 PNG data URL
         } catch (err) {
             console.error('[in-hoa-don] Lỗi tạo mã QR, vẫn tiếp tục in hóa đơn không có QR:', err);
         }

@@ -397,9 +397,6 @@
         </div>
 
         <div class="form-group" th:unless="${hoaDon.trangThai == 5 or hoaDon.trangThai == 6}">
-          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Ghi chú</label>
-          <textarea name="ghiChu" rows="3" placeholder="Nhập ghi chú (không bắt buộc)..."
-                    style="width:100%;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:none;box-sizing:border-box;"></textarea>
         </div>
 
         <p th:unless="${hoaDon.trangThai == 5 or hoaDon.trangThai == 6}" style="font-size:12px;color:#f59e0b;">
@@ -485,10 +482,8 @@
       printInvoice(hoaDonData, danhSachSanPhamData, lichSuThanhToanData);
     }
   </script>
-  <!-- Thư viện tạo mã QR (thay cho import "qrcode") -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script th:src="@{/hoa-don/qrcode-generator.js}"></script>
 
-  <!-- Logic in hóa đơn -->
   <script th:src="@{/hoa-don/in-hoa-don.js}"></script>
 </div>
 
