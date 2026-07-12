@@ -26,6 +26,10 @@ import java.util.Map;
 @RequestMapping("/api/dot-giam-gia")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+/**
+ * REST API cho đợt giảm giá.
+ * File này phục vụ các client gọi JSON, còn màn admin HTML dùng ViewController riêng.
+ */
 public class DotGiamGiaController {
 
     private final DotGiamGiaService dotGiamGiaService;
@@ -39,6 +43,7 @@ public class DotGiamGiaController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
+            // Trả về nội dung trang + metadata phân trang để client tự render.
             Page<DotGiamGiaDTO> pageResult = dotGiamGiaService.getDanhSach(
                     keyword,
                     trangThai,
@@ -67,6 +72,7 @@ public class DotGiamGiaController {
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
         try {
+            // Lấy toàn bộ thông tin của một đợt giảm giá theo id.
             DotGiamGiaDTO dto = dotGiamGiaService.getById(id);
             return ResponseEntity.ok(dto);
         } catch (RuntimeException e) {
@@ -78,6 +84,7 @@ public class DotGiamGiaController {
     @PostMapping
     public ResponseEntity<?> create(@RequestBody DotGiamGiaDTO dto) {
         try {
+            // Tạo mới từ JSON body, phần validate nghiệp vụ nằm ở service.
             DotGiamGiaDTO created = dotGiamGiaService.create(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (RuntimeException e) {
@@ -89,6 +96,7 @@ public class DotGiamGiaController {
     @PutMapping("/{id:\\d+}")
     public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody DotGiamGiaDTO dto) {
         try {
+            // Cập nhật campaign theo id, giữ nguyên rule nghiệp vụ của service.
             DotGiamGiaDTO updated = dotGiamGiaService.update(id, dto);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
@@ -100,6 +108,7 @@ public class DotGiamGiaController {
     @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         try {
+            // Xóa mềm: không xóa vật lý mà chuyển trạng thái đợt giảm giá sang hủy.
             dotGiamGiaService.delete(id);
             return ResponseEntity.ok(Map.of("message", "Đã hủy đợt giảm giá thành công"));
         } catch (RuntimeException e) {
@@ -113,6 +122,7 @@ public class DotGiamGiaController {
             @PathVariable Integer id,
             @RequestParam Integer trangThai) {
         try {
+            // Switch trạng thái từ client sẽ đi qua endpoint này.
             DotGiamGiaDTO updated = dotGiamGiaService.updateTrangThai(id, trangThai);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
@@ -125,6 +135,7 @@ public class DotGiamGiaController {
     public ResponseEntity<?> getProductsForSelection(
             @RequestParam(required = false) String keyword) {
         try {
+            // Lấy danh sách sản phẩm/biến thể còn active để đổ vào bảng chọn.
             List<ChiTietDotGiamGiaDTO> products = dotGiamGiaService.getProductsForSelection(keyword);
             return ResponseEntity.ok(products);
         } catch (Exception e) {
@@ -137,6 +148,7 @@ public class DotGiamGiaController {
     public ResponseEntity<?> getDotGiamGiaHieuLuc(
             @PathVariable Integer chiTietSanPhamId) {
         try {
+            // Trả về campaign giảm giá mạnh nhất đang còn hiệu lực cho 1 biến thể.
             DotGiamGiaDTO best = dotGiamGiaService.getDotGiamGiaHieuLucCaoNhat(chiTietSanPhamId);
             return ResponseEntity.ok(best);
         } catch (IllegalArgumentException e) {
@@ -153,6 +165,7 @@ public class DotGiamGiaController {
 
     @GetMapping("/grouped-products")
     public ResponseEntity<?> getGroupedProducts(@RequestParam(value = "keyword", required = false) String keyword) {
+        // Trả dữ liệu cha/con để client dựng accordion chọn sản phẩm.
         return ResponseEntity.ok(dotGiamGiaService.getGroupedProductsForSelection(keyword));
     }
 }

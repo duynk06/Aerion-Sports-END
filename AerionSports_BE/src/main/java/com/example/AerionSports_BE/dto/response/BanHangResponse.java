@@ -26,6 +26,7 @@ public class BanHangResponse {
     private Integer idKhachHang;
     private String tenKhachHang;
     private String sdt;
+    private String email;
     // BanHangResponse.java
     private String diaChiKhachHang;
     private String tinhThanhKhachHang;
@@ -68,6 +69,7 @@ public class BanHangResponse {
             this.idKhachHang = hoaDon.getKhachHang().getId();
             this.tenKhachHang = hoaDon.getKhachHang().getHoTen();
             this.sdt = hoaDon.getKhachHang().getSdt();
+            this.email = hoaDon.getKhachHang().getEmail();
         }
 
         if (hoaDon.getNhanVien() != null) {

@@ -1,6 +1,7 @@
 package com.example.AerionSports_BE.controller;
 
 import com.example.AerionSports_BE.dto.SanPhamPosDTO;
+import com.example.AerionSports_BE.dto.request.DiaChiRequest;
 import com.example.AerionSports_BE.dto.request.ThanhToanRequest;
 import com.example.AerionSports_BE.dto.request.ThemSanPhamRequest;
 import com.example.AerionSports_BE.dto.response.BanHangResponse;
@@ -206,15 +207,6 @@ public class BanHangController {
         }
     }
 
-    @PutMapping("/{id}/bo-phieu")
-    @ResponseBody
-    public ResponseEntity<?> boPhieu(@PathVariable Integer id) {
-        try {
-            return ResponseEntity.ok(banHangService.boPhieuGiamGia(id));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 
     @GetMapping("/hoa-don/{id}/kiem-tra-gia")
     @ResponseBody
@@ -228,6 +220,38 @@ public class BanHangController {
         try {
             return ResponseEntity.ok(banHangService.timSanPhamTheoMa(maCtsp));
         } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @PostMapping("/khach-hang/{id}/dia-chi")
+    @ResponseBody
+    public ResponseEntity<?> themDiaChi(@PathVariable("id") Integer idKhachHang,
+                                        @RequestBody DiaChiRequest request) {
+        try {
+            return ResponseEntity.ok(banHangService.themDiaChiKhachHang(idKhachHang, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/dia-chi/{id}")
+    @ResponseBody
+    public ResponseEntity<?> suaDiaChi(@PathVariable("id") Integer idDiaChi,
+                                       @RequestBody DiaChiRequest request) {
+        try {
+            return ResponseEntity.ok(banHangService.capNhatDiaChiKhachHang(idDiaChi, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/dia-chi-giao-hang")
+    @ResponseBody
+    public ResponseEntity<?> capNhatDiaChiGiaoHang(@PathVariable("id") Integer idHoaDon,
+                                                   @RequestParam Integer idDiaChi) {
+        try {
+            return ResponseEntity.ok(banHangService.capNhatDiaChiGiaoHang(idHoaDon, idDiaChi));
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
