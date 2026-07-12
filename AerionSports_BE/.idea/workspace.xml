@@ -6,27 +6,19 @@
   <component name="ChangeListManager">
     <list default="true" id="6ed6c808-4310-4e17-93ca-174aff479799" name="Changes" comment="phan 30/06/2026">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/config/CorsFilterConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/config/WebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/config/WebConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/LichLamViecController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/LichLamViecController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/NhanVienController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/NhanVienController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/LichLamViecRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/LichLamViecRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/security/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/security/JwtAuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/security/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/ChiTietSanPhamService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/ChiTietSanPhamService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/SanPhamService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/SanPhamService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/impl/LichLamViecImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/impl/LichLamViecImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/config/CorsFilterConfig.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/AuthController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/AuthController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/LichLamViecController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/LichLamViecController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/LoginRequest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/LoginRequest.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/LichLamViecRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/LichLamViecRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/security/JwtAuthenticationFilter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/security/JwtAuthenticationFilter.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/security/SecurityConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/security/SecurityConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/impl/LichLamViecImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/impl/LichLamViecImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/detail-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/dot-giam-gia/detail-modal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/DotGiamGiaController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/DotGiamGiaController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/DotGiamGiaViewController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/DotGiamGiaViewController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/ChiTietDotGiamGiaDTO.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/ChiTietDotGiamGiaDTO.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/DotGiamGiaDTO.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/DotGiamGiaDTO.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/ChiTietDotGiamGiaRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/ChiTietDotGiamGiaRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/DotGiamGiaRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/DotGiamGiaRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/DotGiamGiaService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/DotGiamGiaService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/dot-giam-gia/dot-giam-gia.css" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/dot-giam-gia/dot-giam-gia.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/create-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/create-modal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/detail-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/detail-modal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/edit-modal.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/edit-modal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/dot-giam-gia/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,10 +73,10 @@
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;Spring Boot.BeDatnApplication.executor&quot;: &quot;Run&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;BanHangLan2-BE&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;caulong__backend&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/OneDrive/Desktop/30/Aerion-Sports/AerionSports_BE&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/A4/Aerion-Sports-END/AerionSports_BE&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -120,8 +112,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189" />
-        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189" />
+        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.25134.95" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.25134.95" />
       </set>
     </attachedChunks>
   </component>

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: main-layout(~{::#ban-hang-tai-quay})}">
+      th:replace="~{fragments/layout :: main-layout(~{::#ban-hang-tai-quay}, ~{::extraHead})}">
 <head>
     <meta charset="UTF-8">
     <title>Bán hàng (tại cửa hàng)</title>
+    <th:block th:fragment="extraHead"></th:block>
 </head>
 <body>
 

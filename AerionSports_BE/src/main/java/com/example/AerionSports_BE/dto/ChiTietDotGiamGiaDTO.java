@@ -12,12 +12,18 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+/**
+ * DTO cho một dòng chi tiết sản phẩm trong đợt giảm giá.
+ * File này được dùng chung cho:
+ * - danh sách sản phẩm cha/con ở modal chọn
+ * - bảng chi tiết sản phẩm đã chọn
+ * - dữ liệu trả về từ API
+ */
 public class ChiTietDotGiamGiaDTO {
-
-
 
     private Integer id;
     private Integer idDotGiamGia;
+    // ID biến thể sản phẩm chi tiết, đây là khóa chính dùng khi tick checkbox chọn sản phẩm.
     @JsonProperty("idChiTietSanPham")
     private Integer idChiTietSanPham;
     private String maCtsp;
