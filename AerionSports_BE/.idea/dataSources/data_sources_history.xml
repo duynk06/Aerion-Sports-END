@@ -9,7 +9,7 @@
       <driver-ref>sqlserver.ms</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
-      <remarks>D:/A4/Aerion-Sports-END/AerionSports_BE/src/main/resources/application.yml</remarks>
+      <remarks>D:/A4/12-7/Aerion-Sports-END/AerionSports_BE/src/main/resources/application.yml</remarks>
       <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
       <jdbc-url>jdbc:sqlserver://localhost:1433;databaseName=QUANLYVOTCAULONG2;encrypt=true;trustServerCertificate=true</jdbc-url>
       <jdbc-additional-properties>
@@ -34,7 +34,7 @@
       <driver-ref>sqlserver.ms</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
-      <remarks>D:/A4/Aerion-Sports-END/AerionSports_BE/src/main/resources/application.yml</remarks>
+      <remarks>D:/A4/12-7/Aerion-Sports-END/AerionSports_BE/src/main/resources/application.yml</remarks>
       <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
       <jdbc-url>jdbc:sqlserver://localhost:1433;databaseName=QUANLYVOTCAULONG17;encrypt=true;trustServerCertificate=true</jdbc-url>
       <jdbc-additional-properties>

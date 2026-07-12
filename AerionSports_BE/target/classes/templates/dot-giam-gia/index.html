@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: main-layout(~{::#dot-giam-gia-page}, ~{::extraHead})}">
+      th:replace="~{fragments/layout :: main-layout(~{::#dot-giam-gia-page})}">
 <head>
   <meta charset="UTF-8">
   <title th:text="${pageTitle != null ? pageTitle : 'Quản lý đợt giảm giá'}">Quản lý đợt giảm giá</title>
-  <th:block th:fragment="extraHead">
-    <link rel="stylesheet" th:href="@{/dot-giam-gia/dot-giam-gia.css(v=3)}">
-  </th:block>
 </head>
 <body>
 <div id="dot-giam-gia-page" class="dot-giam-gia-page" th:attr="data-view-mode=${viewMode != null ? viewMode : 'list'}">
+  <link rel="stylesheet" th:href="@{/dot-giam-gia/dot-giam-gia.css(v=3)}">
   <!-- Modal nào sẽ được render phụ thuộc vào action trên URL: create / edit / view. -->
   <th:block th:if="${viewMode == 'create'}">
     <th:block th:replace="~{dot-giam-gia/create-modal :: createModal(${form}, ${groupedProducts}, ${selectedProductIds}, ${selectedProducts}, ${errorMessage}, ${formAction})}"></th:block>
@@ -31,7 +29,7 @@
           <i class="fa-solid fa-filter"></i>
           Bộ lọc tìm kiếm
         </div>
-
+    
         <div class="filter-grid">
           <div>
             <label for="discount-search">Tìm kiếm</label>
@@ -48,7 +46,7 @@
               <option value="0" th:selected="${trangThai != null and trangThai == 0}">Đã hủy</option>
             </select>
           </div>
-
+ 
           <div>
             <label for="from-date">Từ ngày</label>
             <input id="from-date" name="tuNgay" type="date" th:value="${tuNgay}">

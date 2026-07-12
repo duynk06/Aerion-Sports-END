@@ -1,5 +1,8 @@
 package com.example.AerionSports_BE.security;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,9 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -56,8 +56,14 @@ public class SecurityConfig {
         httpSecurity
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
+
+                // 🟢 ĐÃ SỬA: Chuyển policy thành IF_REQUIRED để Spring Security cho phép tạo Session
+                // phục vụ lưu vết phiên làm việc tĩnh cho Thymeleaf Monolith.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+
                 .authorizeHttpRequests(auth -> auth
+
+                        // 🔓 PHÂN HỆ CÔNG KHAI TỰ DO
                         .requestMatchers("/api/auth/**", "/auth/**").permitAll()
                         .requestMatchers("/public/client-auth/**", "/api/public/client-auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
@@ -90,26 +96,39 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/realtime/**").permitAll()
 
-                        .requestMatchers("/trang-chu", "/thong-ke", "/san-pham", "/san-pham/**", "/thuoc-tinh/**",
-                                "/dot-giam-gia", "/dot-giam-gia/**", "/nhan-vien", "/nhan-vien/**",
-                                "/giao-ca", "/giao-ca/**", "/lich-lam-viec", "/lich-lam-viec/**",
-                                "/khach-hang", "/khach-hang/**").permitAll()
+                        // 🔓 TẠM MỞ TOÀN BỘ GIAO DIỆN QUẢN TRỊ THYMELEAF
+                        .requestMatchers(
+                                "/trang-chu",
+                                "/thong-ke",
+                                "/san-pham", "/san-pham/**",
+                                "/thuoc-tinh/**",
+                                "/dot-giam-gia", "/dot-giam-gia/**",
+                                "/nhan-vien", "/nhan-vien/**",
+                                "/giao-ca", "/giao-ca/**",
+                                "/lich-lam-viec", "/lich-lam-viec/**",
+                                "/khach-hang", "/khach-hang/**"
+                        ).permitAll()
 
-                        .requestMatchers("/api/thong-ke/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/giao-ca/**", "/api/lich-lam-viec/**").hasAnyRole("ADMIN", "QL", "NV")
-                        .requestMatchers("/api/dot-giam-gia/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/san-pham/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/chat-lieu-khung-vot/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/chat-lieu-than-vot/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/chu-vi-can-vot/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/danh-muc/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/diem-can-bang/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/do-cung/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/mau-sac/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/thuong-hieu/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/trong-luong/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/api/xuat-xu/**").hasAnyRole("ADMIN", "QL")
-                        .requestMatchers("/nhan-vien/**").hasRole("ADMIN")
+                        // 🔓 TẠM MỞ LUÔN CÁC API TƯƠNG ỨNG ĐỂ NÚT BẤM TRONG TRANG HOẠT ĐỘNG ĐƯỢC
+                        .requestMatchers(
+                                "/api/san-pham/**",
+                                "/api/thong-ke/**",
+                                "/api/chat-lieu-khung-vot/**",
+                                "/api/chat-lieu-than-vot/**",
+                                "/api/chu-vi-can-vot/**",
+                                "/api/danh-muc/**",
+                                "/api/diem-can-bang/**",
+                                "/api/do-cung/**",
+                                "/api/mau-sac/**",
+                                "/api/thuong-hieu/**",
+                                "/api/trong-luong/**",
+                                "/api/xuat-xu/**",
+                                "/api/giao-ca/**", "/api/lich-lam-viec/**",
+                                "/api/dot-giam-gia/**"
+
+
+                        ).permitAll()
+
                         .anyRequest().authenticated()
                 );
 

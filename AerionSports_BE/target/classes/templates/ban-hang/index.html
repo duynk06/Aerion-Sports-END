@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: main-layout(~{::#ban-hang-tai-quay}, ~{::extraHead})}">
+      th:replace="~{fragments/layout :: main-layout(~{::#ban-hang-tai-quay})}">
 <head>
     <meta charset="UTF-8">
     <title>Bán hàng (tại cửa hàng)</title>
@@ -48,6 +48,14 @@
                     </div>
                 </div>
                 <table class="product-table">
+                    <colgroup>
+                        <col style="width:80px">
+                        <col>
+                        <col style="width:150px">
+                        <col style="width:140px">
+                        <col style="width:150px">
+                        <col style="width:60px">
+                    </colgroup>
                     <thead>
                     <tr>
                         <th width="80" class="text-center">Ảnh</th>
