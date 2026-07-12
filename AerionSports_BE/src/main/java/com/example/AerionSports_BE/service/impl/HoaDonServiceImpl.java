@@ -43,7 +43,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     private LichSuThanhToanRepository lichSuThanhToanRepository;
 
     @Override
-    @Transactional(readOnly = true) // 🌟 Bổ sung cho hàm hiển thị
+    @Transactional(readOnly = true)
     public List<HoaDonResponse> hienThi() {
         return hoaDonRepository
                 .findAll()
@@ -53,7 +53,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     }
 
     @Override
-    @Transactional(readOnly = true) // 🌟 Bổ sung cho hàm search
+    @Transactional(readOnly = true)
     public List<HoaDonResponse> search(String keyword) {
         return hoaDonRepository.search(keyword)
                 .stream()
@@ -62,7 +62,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     }
 
     @Override
-    @Transactional(readOnly = true) // Của bạn đã có, rất chuẩn
+    @Transactional(readOnly = true)
     public Page<HoaDonResponse> filterHoaDon(
             String keyword,
             Integer loaiHoaDon,
@@ -85,8 +85,6 @@ public class HoaDonServiceImpl implements HoaDonService {
                 )
                 .map(HoaDonResponse::new);
     }
-
-    // ✅ THÊM: lấy toàn bộ hóa đơn khớp bộ lọc, không phân trang — phục vụ xuất Excel
     @Override
     @Transactional(readOnly = true)
     public List<HoaDonResponse> filterHoaDonKhongPhanTrang(
@@ -104,7 +102,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     }
 
     @Override
-    @Transactional(readOnly = true) // 🌟 BỔ SUNG QUAN TRỌNG NHẤT CHO LỖI 500 HIỆN TẠI
+    @Transactional(readOnly = true)
     public HoaDonResponse detail(Integer id) {
         HoaDon hoaDon = hoaDonRepository
                 .findById(id)
@@ -126,7 +124,6 @@ public class HoaDonServiceImpl implements HoaDonService {
         hoaDon.setNgayCapNhat(LocalDateTime.now());
         hoaDonRepository.save(hoaDon);
 
-        // ✅ Tìm NV theo email từ JWT, fallback về ID=1
         NhanVien nv = null;
         if (username != null) {
             nv = nhanVienRepository.findByEmail(username).orElse(null);
@@ -193,7 +190,6 @@ public class HoaDonServiceImpl implements HoaDonService {
         if (cu == 6 || cu == 5) {
             throw new RuntimeException("Không thể chuyển trạng thái từ trạng thái này!");
         }
-        // Tại quầy: chỉ cho phép 0→5 hoặc 0→6
         if (loaiHoaDon == 0) {
             if (cu == 0 && (moi == 5 || moi == 6)) return;
             throw new RuntimeException("Đơn tại quầy chỉ được chuyển sang Hoàn thành hoặc Hủy!");

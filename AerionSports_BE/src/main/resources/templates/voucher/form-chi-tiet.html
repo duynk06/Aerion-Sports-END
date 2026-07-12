@@ -9,7 +9,6 @@
 <body>
 
 <div class="layout">
-    <!-- THANH SIDEBAR MENU CHÍNH -->
     <div class="sidebar">
         <div class="logo">
             <img th:src="@{/assets/logo/Logo_Da.jpg}" alt="logo" class="logo-full" />
@@ -74,15 +73,15 @@
                 <i class="fa-solid fa-user-tie"></i>
                 <span>Nhân viên</span>
             </a>
-            <a th:href="@{/giao-ca}" class="item">
+            <a th:href="@{/giao-ca/hien-thi}" class="item">
                 <i class="fa-solid fa-business-time"></i>
                 <span>Giao ca</span>
             </a>
-            <a th:href="@{/lich-lam-viec}" class="item">
+            <a th:href="@{/lich-lam-viec/hien-thi}" class="item">
                 <i class="fa-solid fa-calendar-days"></i>
                 <span>Lịch làm việc</span>
             </a>
-            <a th:href="@{/cham-cong}" class="item">
+            <a th:href="@{/cham-cong/hien-thi}" class="item">
                 <i class="fa-solid fa-fingerprint"></i>
                 <span>Chấm công</span>
             </a>
@@ -100,7 +99,6 @@
         </div>
     </div>
 
-    <!-- PHẦN GIAO DIỆN CHÍNH BÊN PHẢI -->
     <div class="main">
         <div class="header">
             <div class="page-title">
@@ -139,7 +137,6 @@
         <div class="content">
             <div id="voucherForm" class="split-layout" th:object="${phieuGiamGia}">
 
-                <!-- CỘT TRÁI: THÔNG TIN CHI TIẾT VOUCHER (42%) -->
                 <div class="form-container left-panel">
                     <div class="list-header">
                         <div class="list-title">
@@ -167,7 +164,7 @@
 
                             <div class="form-group">
                                 <label>Loại phiếu</label>
-                                <select th:value="*{loaiPhieuGiamGia}" disabled class="disabled-input">
+                                <select th:value="*{loaiPhieuGiamGia}" id="loaiPhieuSelect" disabled class="disabled-input">
                                     <option value="Sale %" th:selected="*{loaiPhieuGiamGia == 'Sale %'}">Sale %</option>
                                     <option value="Giam Tien" th:selected="*{loaiPhieuGiamGia == 'Giam Tien'}">Giảm Tiền</option>
                                 </select>
@@ -180,12 +177,12 @@
 
                             <div class="form-group">
                                 <label>Đơn tối thiểu (đ)</label>
-                                <input type="text" class="disabled-input" th:value="*{giaTriDonToiThieu != null ? #numbers.formatInteger(giaTriDonToiThieu, 0, 'POINT') : '0'}" readonly />
+                                <input type="text" class="disabled-input" th:value="|*{giaTriDonToiThieu != null ? #numbers.formatInteger(giaTriDonToiThieu, 0, 'POINT') : '0'} đ|" readonly />
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group" id="giamToiDaGroup">
                                 <label>Giảm tối đa (đ)</label>
-                                <input type="text" class="disabled-input" th:value="*{giaTriGiamToiDa != null ? #numbers.formatInteger(giaTriGiamToiDa, 0, 'POINT') : '0'}" readonly />
+                                <input type="text" class="disabled-input" th:value="|*{giaTriGiamToiDa != null ? #numbers.formatInteger(giaTriGiamToiDa, 0, 'POINT') : '0'} đ|" readonly />
                             </div>
 
                             <div class="form-group">
@@ -203,7 +200,7 @@
                                 <input type="text" class="disabled-input" th:value="*{ngayKetThuc != null ? #temporals.format(ngayKetThuc, 'HH:mm - dd/MM/yyyy') : '-'}" readonly />
                             </div>
 
-                            <div class="form-group hidden-placeholder"></div>
+                            <div class="form-group hidden-placeholder" id="placeholderGroup"></div>
 
                             <div class="form-group full-width">
                                 <label>Mô tả chiến dịch</label>
@@ -218,7 +215,6 @@
                     </div>
                 </div>
 
-                <!-- CỘT PHẢI: ĐỐI TƯỢNG ÁP DỤNG & TABLE DANH SÁCH KHÁCH HÀNG (58%) -->
                 <div class="form-container right-panel">
                     <div class="target-group">
                         <label class="target-label">Đối tượng áp dụng</label>
@@ -234,7 +230,6 @@
                         </div>
                     </div>
 
-                    <!-- Bảng danh sách khách hàng cụ thể -->
                     <div id="personalPanel" class="table-animated-wrapper" th:style="${selectedKhachHangIds != null && !#lists.isEmpty(selectedKhachHangIds)} ? 'display: flex;' : 'display: none;'">
                         <div class="divider"></div>
                         <div class="table-area">
@@ -286,7 +281,6 @@
                         </div>
                     </div>
 
-                    <!-- Khối thông báo phủ mờ lên bảng nếu là voucher áp dụng cho ALL -->
                     <div class="table-area" th:if="${selectedKhachHangIds == null || #lists.isEmpty(selectedKhachHangIds)}">
                         <div class="overlay-msg">
                             Phiếu này áp dụng cho toàn bộ khách hàng.
@@ -319,6 +313,20 @@
         dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
     }
 
+    function checkLoaiPhieuDauVao() {
+        const selectBox = document.getElementById('loaiPhieuSelect');
+        const giamToiDaGroup = document.getElementById('giamToiDaGroup');
+        const placeholderGroup = document.getElementById('placeholderGroup');
+
+        if (selectBox && selectBox.value === 'Giam Tien') {
+            if (giamToiDaGroup) giamToiDaGroup.style.display = "none";
+            if (placeholderGroup) placeholderGroup.style.display = "block";
+        } else {
+            if (giamToiDaGroup) giamToiDaGroup.style.display = "flex";
+            if (placeholderGroup) placeholderGroup.style.display = "none";
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const currentUrl = "/phieu-giam-gia/hien-thi";
         const menuItems = document.querySelectorAll('.menu-list .item, .submenu-container .sub-item');
@@ -335,12 +343,11 @@
                 }
             }
         });
+
+        checkLoaiPhieuDauVao();
     });
 </script>
 
-<!-- ==========================================================================
-     CSS HỆ THỐNG GIAO DIỆN CHUẨN MẪU FILE THEM/SUA (DƯỚI ĐÁY FILE AN TOÀN)
-     ========================================================================== -->
 <style>
     * {
         box-sizing: border-box;

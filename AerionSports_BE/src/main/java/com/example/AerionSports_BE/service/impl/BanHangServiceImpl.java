@@ -2,6 +2,7 @@ package com.example.AerionSports_BE.service.impl;
 
 import com.example.AerionSports_BE.dto.ChiTietEmailDTO;
 import com.example.AerionSports_BE.dto.SanPhamPosDTO;
+import com.example.AerionSports_BE.dto.request.DiaChiRequest;
 import com.example.AerionSports_BE.dto.request.ThanhToanRequest;
 import com.example.AerionSports_BE.dto.request.ThemSanPhamRequest;
 import com.example.AerionSports_BE.dto.response.*;
@@ -19,7 +20,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -266,15 +266,11 @@ public class BanHangServiceImpl implements BanHangService {
                 .collect(Collectors.toList());
     }
 
-    // BanHangServiceImpl.java
     @Override
     @Transactional
     public void xoaChiTietHoaDon(Integer idChiTiet) {
-
         ChiTietHoaDon cthd = chiTietHoaDonRepository.findById(idChiTiet)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết hóa đơn!"));
-
-        // ✅ Hoàn lại tồn kho
         ChiTietSanPham spct = cthd.getChiTietSanPham();
         spct.setSoLuong(spct.getSoLuong() + cthd.getSoLuong());
         chiTietSanPhamRepository.save(spct);
@@ -282,7 +278,6 @@ public class BanHangServiceImpl implements BanHangService {
         HoaDon hoaDon = cthd.getHoaDon();
         BigDecimal tongMoi = hoaDon.getTongTienHang().subtract(cthd.getThanhTien());
         if (tongMoi.compareTo(BigDecimal.ZERO) < 0) tongMoi = BigDecimal.ZERO;
-
         hoaDon.setTongTienHang(tongMoi);
         hoaDon.setTongTienThanhToan(
                 tongMoi
@@ -292,9 +287,6 @@ public class BanHangServiceImpl implements BanHangService {
         hoaDonRepository.save(hoaDon);
         chiTietHoaDonRepository.deleteById(idChiTiet);
     }
-    // BanHangServiceImpl.java
-
-
     @Override
     @Transactional
     public BanHangResponse thanhToan(ThanhToanRequest request) {
@@ -305,20 +297,14 @@ public class BanHangServiceImpl implements BanHangService {
         PhuongThucThanhToan phuongThuc = phuongThucThanhToanRepository
                 .findById(request.getIdHinhThucThanhToan())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hình thức thanh toán!"));
-
-        // Cập nhật trạng thái
         if (hoaDon.getLoaiHoaDon() == 0) {
             hoaDon.setTrangThai(5);
         } else {
             hoaDon.setTrangThai(1);
         }
-
-        // ✅ Lưu ghi chú nếu có
         if (request.getGhiChu() != null && !request.getGhiChu().isBlank()) {
             hoaDon.setGhiChu(request.getGhiChu());
         }
-
-        // ✅ Lưu địa chỉ giao hàng từ khách hàng vào hóa đơn (nếu giao hàng và chưa có)
         if (hoaDon.getLoaiHoaDon() == 1
                 && hoaDon.getKhachHang() != null
                 && hoaDon.getKhachHang().getId() != 999) {
@@ -360,8 +346,6 @@ public class BanHangServiceImpl implements BanHangService {
             }
         }
         hoaDonRepository.save(hoaDon);
-
-        // Lưu thanh toán
         ThanhToan thanhToan = new ThanhToan();
         thanhToan.setHoaDon(hoaDon);
         thanhToan.setHinhThucThanhToan(phuongThuc);
@@ -370,8 +354,6 @@ public class BanHangServiceImpl implements BanHangService {
         thanhToan.setTrangThaiThanhToan("Thành công");
         thanhToan.setTrangThai(1);
         thanhToanRepository.save(thanhToan);
-
-        // Lưu lịch sử thanh toán
         LichSuThanhToan lichSu = new LichSuThanhToan();
         lichSu.setHoaDon(hoaDon);
         lichSu.setSoTien(hoaDon.getTongTienThanhToan());
@@ -382,13 +364,10 @@ public class BanHangServiceImpl implements BanHangService {
                 : "Thanh toán " + phuongThuc.getTenHinhThuc() + " - HĐ " + hoaDon.getMaHoaDon();
         lichSu.setGhiChu(ghiChuLichSu);
         lichSuThanhToanRepository.save(lichSu);
-
-        // ✅ Gửi mail nếu là đơn giao hàng
         if (hoaDon.getLoaiHoaDon() == 1
                 && hoaDon.getKhachHang() != null
                 && hoaDon.getKhachHang().getEmail() != null
                 && !hoaDon.getKhachHang().getId().equals(999)) {
-
             List<ChiTietEmailDTO> spEmail = hoaDon.getChiTietHoaDons().stream()
                     .map(ct -> new ChiTietEmailDTO(
                             ct.getChiTietSanPham().getIdSanPham().getTenSanPham(),
@@ -401,7 +380,6 @@ public class BanHangServiceImpl implements BanHangService {
                             ct.getThanhTien()
                     ))
                     .collect(Collectors.toList());
-
             emailService.sendOrderStatusEmail(
                     hoaDon.getKhachHang().getEmail(),
                     hoaDon.getKhachHang().getHoTen(),
@@ -420,8 +398,6 @@ public class BanHangServiceImpl implements BanHangService {
 
         return new BanHangResponse(hoaDonRepository.findByIdWithChiTiet(hoaDon.getId()));
     }
-    // BanHangServiceImpl.java
-    // BanHangServiceImpl.java — sửa hàm huyHoaDon
     @Override
     @Transactional
     public void huyHoaDon(Integer id) {
@@ -438,38 +414,30 @@ public class BanHangServiceImpl implements BanHangService {
             hoaDon.setTrangThai(6);
             hoaDonRepository.save(hoaDon);
         } else {
-            // Không có sản phẩm → xóa hẳn, nhưng phải xóa lich_su_hoa_don trước
-            lichSuHoaDonRepository.deleteByHoaDonId(id);  // ✅ xóa FK trước
+            lichSuHoaDonRepository.deleteByHoaDonId(id);
             hoaDonRepository.deleteById(id);
         }
     }
-
     @Override
     @Transactional
     public BanHangResponse capNhatLoaiHoaDon(Integer idHoaDon, Integer loaiHoaDon) {
         HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
-
         hoaDon.setLoaiHoaDon(loaiHoaDon);
-
         if (loaiHoaDon == 0) {
             hoaDon.setTienVanChuyen(BigDecimal.ZERO);
             BigDecimal tienGiam = hoaDon.getTienGiam() != null ? hoaDon.getTienGiam() : BigDecimal.ZERO;
             hoaDon.setTongTienThanhToan(hoaDon.getTongTienHang().subtract(tienGiam));
         }
-
         hoaDonRepository.save(hoaDon);
         return new BanHangResponse(hoaDonRepository.findByIdWithChiTiet(hoaDon.getId()));
     }
-
     @Override
     @Transactional
     public BanHangResponse capNhatPhiVanChuyen(Integer idHoaDon, BigDecimal phiVanChuyen) {
         HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
-
         hoaDon.setTienVanChuyen(phiVanChuyen);
-
         BigDecimal tienGiam = hoaDon.getTienGiam() != null ? hoaDon.getTienGiam() : BigDecimal.ZERO;
         hoaDon.setTongTienThanhToan(
                 hoaDon.getTongTienHang().subtract(tienGiam).add(phiVanChuyen)
@@ -478,52 +446,32 @@ public class BanHangServiceImpl implements BanHangService {
         return new BanHangResponse(hoaDonRepository.findByIdWithChiTiet(hoaDon.getId()));
     }
 
-    // BanHangServiceImpl.java
-    // BanHangServiceImpl.java
     @Override
     public List<DiaChiKhachHangResponse> getDiaChiKhachHang(Integer idKhachHang) {
-        // ✅ Dùng native query trực tiếp, không qua entity lazy load
         return diaChiKhachHangRepository.findDiaChiByKhachHang(idKhachHang);
     }
-
-
-    // BanHangServiceImpl.java
     @Override
     public PhieuGiamGiaPosResponse timPhieuGiamGiaTotNhat(Integer idHoaDon) {
-
         HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
-
         Integer idKhachHang = hoaDon.getKhachHang() != null ? hoaDon.getKhachHang().getId() : null;
 
         BigDecimal tongTienHang = hoaDon.getTongTienHang();
         BigDecimal tienVanChuyen = hoaDon.getTienVanChuyen() != null
                 ? hoaDon.getTienVanChuyen() : BigDecimal.ZERO;
-
-        // ✅ Thay findPhieuConHieuLuc(now) bằng bản có xét khách hàng
         List<PhieuGiamGia> danhSachPhieu = phieuGiamGiaRepository
                 .findPhieuConHieuLucChoKhachHang(LocalDateTime.now(), idKhachHang);
-
         if (danhSachPhieu.isEmpty()) return null;
-
-        // ... toàn bộ phần còn lại của hàm giữ nguyên, không đổi gì
-
-        // ✅ Bỏ qua phiếu đã hết lượt sử dụng
         danhSachPhieu = danhSachPhieu.stream()
                 .filter(p -> p.getSoLuong() == null || p.getSoLuongDaSuDung() == null
                         || p.getSoLuongDaSuDung() < p.getSoLuong())
                 .collect(Collectors.toList());
-
         if (danhSachPhieu.isEmpty()) return null;
-
-        // ===== VÒNG 1: tìm phiếu tốt nhất trong số ĐÃ đủ điều kiện =====
         PhieuGiamGia phieuTotNhat = null;
         BigDecimal soTienGiamMax = BigDecimal.ZERO;
-
         for (PhieuGiamGia p : danhSachPhieu) {
             BigDecimal toiThieu = p.getGiaTriDonToiThieu() != null
                     ? p.getGiaTriDonToiThieu() : BigDecimal.ZERO;
-
             if (tongTienHang.compareTo(toiThieu) >= 0) {
                 BigDecimal soTienGiam;
                 if ("VAN_CHUYEN".equalsIgnoreCase(p.getLoaiPhieuGiamGia())) {
@@ -533,31 +481,24 @@ public class BanHangServiceImpl implements BanHangService {
                 } else {
                     soTienGiam = tinhTienGiam(p, tongTienHang);
                 }
-
                 if (soTienGiam.compareTo(soTienGiamMax) > 0) {
                     soTienGiamMax = soTienGiam;
                     phieuTotNhat = p;
                 }
             }
         }
-
-        // ===== VÒNG 2: tìm phiếu gợi ý, dựa trên soTienGiamMax đã CHỐT ở vòng 1 =====
         PhieuGiamGia phieuGoiY = null;
         BigDecimal canMuaThemMin = null;
         BigDecimal giamGoiYMax = BigDecimal.ZERO;
-
         for (PhieuGiamGia p : danhSachPhieu) {
             BigDecimal toiThieu = p.getGiaTriDonToiThieu() != null
                     ? p.getGiaTriDonToiThieu() : BigDecimal.ZERO;
-
             if (tongTienHang.compareTo(toiThieu) < 0) {
                 BigDecimal canThem = toiThieu.subtract(tongTienHang);
                 BigDecimal giamNeuDat = tinhTienGiam(p, toiThieu);
-
                 boolean totHonPhieuHienTai = giamNeuDat.compareTo(soTienGiamMax) > 0;
                 boolean ganDatHon = canMuaThemMin == null
                         || canThem.compareTo(canMuaThemMin) < 0;
-
                 if (totHonPhieuHienTai && ganDatHon) {
                     canMuaThemMin = canThem;
                     phieuGoiY = p;
@@ -565,10 +506,7 @@ public class BanHangServiceImpl implements BanHangService {
                 }
             }
         }
-
-        // Xây dựng response (giữ nguyên phần dưới, không đổi)
         PhieuGiamGiaPosResponse response = null;
-
         if (phieuTotNhat != null) {
             response = new PhieuGiamGiaPosResponse();
             response.setId(phieuTotNhat.getId());
@@ -581,12 +519,10 @@ public class BanHangServiceImpl implements BanHangService {
             response.setNgayKetThuc(phieuTotNhat.getNgayKetThuc());
             response.setSoTienGiamThucTe(soTienGiamMax);
             response.setCoTheApDung(true);
-
         } else if (phieuGoiY != null) {
             response = new PhieuGiamGiaPosResponse();
             response.setCoTheApDung(false);
         }
-
         if (phieuGoiY != null && response != null) {
             PhieuGiamGiaPosResponse.PhieuGoiYResponse goiY =
                     new PhieuGiamGiaPosResponse.PhieuGoiYResponse();
@@ -601,66 +537,33 @@ public class BanHangServiceImpl implements BanHangService {
             goiY.setSoTienGiamNeuDat(giamGoiYMax);
             response.setPhieuGoiY(goiY);
         }
-
         return response;
     }
-
     private BigDecimal tinhTienGiam(PhieuGiamGia p, BigDecimal tongTienHang) {
         if (p.getGiaTriGiam() == null) return BigDecimal.ZERO;
-
         String loai = p.getLoaiPhieuGiamGia();
-
-        // Phần trăm: PHAN_TRAM hoặc bất kỳ loại nào có chứa "%"
         boolean laPhanTram = "PHAN_TRAM".equalsIgnoreCase(loai)
                 || (loai != null && loai.contains("%"));
-
         if (laPhanTram) {
-            // Tính: tongTien * phanTram / 100
             BigDecimal giam = tongTienHang
                     .multiply(p.getGiaTriGiam())
                     .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
-
-            // Giới hạn tối đa nếu có
             if (p.getGiaTriGiamToiDa() != null
                     && giam.compareTo(p.getGiaTriGiamToiDa()) > 0) {
                 giam = p.getGiaTriGiamToiDa();
             }
             return giam;
-
         } else if ("VAN_CHUYEN".equalsIgnoreCase(loai)) {
-            // Giảm phí ship: trả về giá trị giảm (không vượt quá tiền ship thực tế)
             return p.getGiaTriGiam();
 
         } else {
-            // TIEN_MAT: giảm thẳng số tiền cố định
             BigDecimal giam = p.getGiaTriGiam();
-
-            // Giới hạn tối đa nếu có (phòng trường hợp giảm nhiều hơn đơn hàng)
             if (p.getGiaTriGiamToiDa() != null
                     && giam.compareTo(p.getGiaTriGiamToiDa()) > 0) {
                 giam = p.getGiaTriGiamToiDa();
             }
             return giam;
         }
-    }
-
-    private PhieuGiamGiaPosResponse buildResponse(
-            PhieuGiamGia p, BigDecimal soTienGiam, boolean coTheApDung
-    ) {
-        PhieuGiamGiaPosResponse response = new PhieuGiamGiaPosResponse();
-        response.setId(p.getId());
-        response.setMaPhieuGiamGia(p.getMaPhieuGiamGia());
-        response.setTenPhieuGiamGia(p.getTenPhieuGiamGia());
-        response.setLoaiPhieuGiamGia(p.getLoaiPhieuGiamGia());
-        response.setGiaTriGiam(p.getGiaTriGiam());
-        response.setGiaTriDonToiThieu(p.getGiaTriDonToiThieu());
-        response.setGiaTriGiamToiDa(p.getGiaTriGiamToiDa());
-        response.setNgayKetThuc(p.getNgayKetThuc());
-        response.setSoTienGiamThucTe(soTienGiam);
-        response.setCoTheApDung(coTheApDung);
-
-        // Lưu ý: Không set canMuaThem ở đây vì biến này thuộc về PhieuGoiYResponse
-        return response;
     }
 
     @Override
@@ -668,14 +571,12 @@ public class BanHangServiceImpl implements BanHangService {
     public BanHangResponse apDungPhieuGiamGia(Integer idHoaDon, Integer idPhieuGiamGia) {
         HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
-
         PhieuGiamGia phieu = phieuGiamGiaRepository.findById(idPhieuGiamGia)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá!"));
         if (phieu.getSoLuong() != null && phieu.getSoLuongDaSuDung() != null
                 && phieu.getSoLuongDaSuDung() >= phieu.getSoLuong()) {
             throw new RuntimeException("Phiếu giảm giá đã hết lượt sử dụng!");
         }
-        // Kiểm tra điều kiện đơn tối thiểu
         BigDecimal toiThieu = phieu.getGiaTriDonToiThieu() != null
                 ? phieu.getGiaTriDonToiThieu() : BigDecimal.ZERO;
         if (hoaDon.getTongTienHang().compareTo(toiThieu) < 0) {
@@ -690,13 +591,13 @@ public class BanHangServiceImpl implements BanHangService {
         String loai = phieu.getLoaiPhieuGiamGia();
 
         if ("VAN_CHUYEN".equalsIgnoreCase(loai)) {
-            // Giảm phí ship — tienGiam = phí ship thực tế (không thể giảm nhiều hơn phí ship)
+
             BigDecimal giamShip = phieu.getGiaTriGiam().min(tienVanChuyen);
             hoaDon.setTienGiam(giamShip);
             hoaDon.setTongTienThanhToan(
                     hoaDon.getTongTienHang()
-                            .subtract(BigDecimal.ZERO) // không giảm tiền hàng
-                            .add(tienVanChuyen.subtract(giamShip)) // ship sau giảm
+                            .subtract(BigDecimal.ZERO)
+                            .add(tienVanChuyen.subtract(giamShip))
             );
         } else {
             BigDecimal soTienGiam = tinhTienGiam(phieu, hoaDon.getTongTienHang());
@@ -713,23 +614,6 @@ public class BanHangServiceImpl implements BanHangService {
     }
 
     @Override
-    @Transactional
-    public BanHangResponse boPhieuGiamGia(Integer idHoaDon) {
-        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
-
-        hoaDon.setPhieuGiamGia(null);
-        hoaDon.setTienGiam(BigDecimal.ZERO);
-        hoaDon.setTongTienThanhToan(
-                hoaDon.getTongTienHang()
-                        .add(hoaDon.getTienVanChuyen() != null ? hoaDon.getTienVanChuyen() : BigDecimal.ZERO)
-        );
-        hoaDonRepository.save(hoaDon);
-
-        return new BanHangResponse(hoaDonRepository.findByIdWithChiTiet(hoaDon.getId()));
-    }
-
-    @Override
     public List<KiemTraGiaResponse> kiemTraGiaThayDoi(Integer idHoaDon) {
         HoaDon hoaDon = hoaDonRepository.findByIdWithChiTiet(idHoaDon);
         if (hoaDon == null || hoaDon.getChiTietHoaDons() == null) return List.of();
@@ -740,14 +624,13 @@ public class BanHangServiceImpl implements BanHangService {
                     BigDecimal giaMoi = tinhGiaSauGiam(spct);   // ✅ thay cho spct.getGiaBan()
                     BigDecimal giaCu = cthd.getDonGia();
                     boolean daThayDoi = giaMoi.compareTo(giaCu) != 0;
-
                     KiemTraGiaResponse res = new KiemTraGiaResponse(
                             cthd.getId(),
                             spct.getMaCtsp(),
                             giaCu,
                             giaMoi,
                             daThayDoi,
-                            spct.getTrangThai() == 1   // ✅ field trangThai đúng chỗ
+                            spct.getTrangThai() == 1
                     );
                     return res;
                 })
@@ -788,8 +671,8 @@ public class BanHangServiceImpl implements BanHangService {
 
         BigDecimal giaGoc = ctsp.getGiaBan();
         BigDecimal giaSauGiam = tinhGiaSauGiam(ctsp);
-        dto.setGia(giaSauGiam);       // ✅ giá thực tế dùng để thêm vào hóa đơn
-        dto.setGiaGoc(giaGoc);        // ✅ giá gốc, để frontend hiện gạch ngang khi khác nhau
+        dto.setGia(giaSauGiam);
+        dto.setGiaGoc(giaGoc);
 
         dto.setSoLuongTon(ctsp.getSoLuong());
 
@@ -801,5 +684,67 @@ public class BanHangServiceImpl implements BanHangService {
         }
 
         return dto;
+    }
+    @Override
+    @Transactional
+    public List<DiaChiKhachHangResponse> themDiaChiKhachHang(Integer idKhachHang, DiaChiRequest request) {
+        KhachHang khachHang = khachHangRepository.findById(idKhachHang)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
+
+        if (Boolean.TRUE.equals(request.getMacDinh())) {
+            diaChiKhachHangRepository.boMacDinhTheoKhachHang(idKhachHang);
+        }
+
+        DiaChiKhachHang diaChi = new DiaChiKhachHang();
+        diaChi.setKhachHang(khachHang);
+        diaChi.setNguoiNhan(request.getNguoiNhan());
+        diaChi.setSdt(request.getSdt());
+        diaChi.setTinhThanh(request.getTinhThanh());
+        diaChi.setPhuongXa(request.getPhuongXa());
+        diaChi.setDiaChiChiTiet(request.getDiaChiChiTiet());
+        diaChi.setMacDinh(Boolean.TRUE.equals(request.getMacDinh()));
+        diaChiKhachHangRepository.save(diaChi);
+
+        return diaChiKhachHangRepository.findDiaChiByKhachHang(idKhachHang);
+    }
+
+    @Override
+    @Transactional
+    public List<DiaChiKhachHangResponse> capNhatDiaChiKhachHang(Integer idDiaChi, DiaChiRequest request) {
+        DiaChiKhachHang diaChi = diaChiKhachHangRepository.findById(idDiaChi)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ!"));
+
+        Integer idKhachHang = diaChi.getKhachHang().getId();
+        if (Boolean.TRUE.equals(request.getMacDinh())) {
+            diaChiKhachHangRepository.boMacDinhTheoKhachHang(idKhachHang);
+        }
+
+        diaChi.setNguoiNhan(request.getNguoiNhan());
+        diaChi.setSdt(request.getSdt());
+        diaChi.setTinhThanh(request.getTinhThanh());
+        diaChi.setPhuongXa(request.getPhuongXa());
+        diaChi.setDiaChiChiTiet(request.getDiaChiChiTiet());
+        diaChi.setMacDinh(Boolean.TRUE.equals(request.getMacDinh()));
+        diaChiKhachHangRepository.save(diaChi);
+
+        return diaChiKhachHangRepository.findDiaChiByKhachHang(idKhachHang);
+    }
+
+    @Override
+    @Transactional
+    public BanHangResponse capNhatDiaChiGiaoHang(Integer idHoaDon, Integer idDiaChi) {
+        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
+        DiaChiKhachHang diaChi = diaChiKhachHangRepository.findById(idDiaChi)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ!"));
+
+        hoaDon.setTenNguoiNhan(diaChi.getNguoiNhan());
+        hoaDon.setSdtNguoiNhan(diaChi.getSdt());
+        hoaDon.setDiaChiNhan(
+                diaChi.getDiaChiChiTiet() + ", " + diaChi.getPhuongXa() + ", " + diaChi.getTinhThanh()
+        );
+        hoaDonRepository.save(hoaDon);
+
+        return new BanHangResponse(hoaDonRepository.findByIdWithChiTiet(hoaDon.getId()));
     }
 }

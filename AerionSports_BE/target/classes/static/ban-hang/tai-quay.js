@@ -138,15 +138,22 @@
         }, 2000); // kiểm tra mỗi 5 giây, không cần đổi tab
     }
     /* ============================ GỌI API (từ BanHangService.js) =========== */
-    async function taoHoaDonCho() {
-        const res = await fetch(`${baseUrl}/tao-hoa-don`, { method: "POST" });
+    /* ============================ GỌI API (đã gộp qua apiFetch) ============ */
+    async function apiFetch(url, options = {}) {
+        const res = await fetch(url, options);
         if (!res.ok) throw new Error(await res.text());
-        return await res.json();
+        if (res.status === 204) return null;
+        const text = await res.text();
+        return text ? JSON.parse(text) : null;
     }
+    const jsonBody = (payload) => ({
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
 
-    async function getSanPham(
-        keyword, idMauSac, idTrongLuong, giaMin, giaMax, trangThai, page, size
-    ) {
+    const taoHoaDonCho = () => apiFetch(`${baseUrl}/tao-hoa-don`, { method: "POST" });
+
+    function getSanPham(keyword, idMauSac, idTrongLuong, giaMin, giaMax, trangThai, page, size) {
         const params = new URLSearchParams();
         if (keyword) params.append("keyword", keyword);
         if (idMauSac) params.append("idMauSac", idMauSac);
@@ -156,159 +163,95 @@
         if (trangThai != null) params.append("trangThai", trangThai);
         params.append("page", page);
         params.append("size", size);
-        const res = await fetch(`${baseUrl}/san-pham?${params}`);
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
+        return apiFetch(`${baseUrl}/san-pham?${params}`);
     }
 
-    async function getMauSac() {
-        const res = await fetch(`${apiUrl}/api/mau-sac/all`);
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
+    const getMauSac = () => apiFetch(`${apiUrl}/api/mau-sac/all`);
+    const getTrongLuong = () => apiFetch(`${apiUrl}/api/trong-luong/all`);
+    const getKhoangGia = () => apiFetch(`${baseUrl}/khoang-gia`);
 
-    async function getTrongLuong() {
-        const res = await fetch(`${apiUrl}/api/trong-luong/all`);
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
-    async function getKhoangGia() {
-        const res = await fetch(`${baseUrl}/khoang-gia`);
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
-    async function getKhachHangPos(keyword, page, size) {
+    function getKhachHangPos(keyword, page, size) {
         const params = new URLSearchParams();
         if (keyword) params.append("keyword", keyword);
         params.append("page", page);
         params.append("size", size);
-        const res = await fetch(`${baseUrl}/khach-hang?${params}`);
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
+        return apiFetch(`${baseUrl}/khach-hang?${params}`);
     }
 
-    async function updateKhachHangHoaDon(idHoaDon, idKhachHang) {
-        const res = await fetch(
-            `${baseUrl}/${idHoaDon}/khach-hang?idKhachHang=${idKhachHang}`,
-            { method: "PUT" }
-        );
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
+    const updateKhachHangHoaDon = (idHoaDon, idKhachHang) =>
+        apiFetch(`${baseUrl}/${idHoaDon}/khach-hang?idKhachHang=${idKhachHang}`, { method: "PUT" });
+
+    const themChiTietHoaDon = (payload) =>
+        apiFetch(`${baseUrl}/them-san-pham`, { method: "POST", ...jsonBody(payload) });
+
+    const capNhatSoLuong = (idChiTiet, soLuongMoi) =>
+        apiFetch(`${baseUrl}/chi-tiet/${idChiTiet}/so-luong?soLuong=${soLuongMoi}`, { method: "PUT" });
+
+    const getHoaDonCho = () => apiFetch(`${baseUrl}/hoa-don-cho`);
+    const huyHoaDon = (idHoaDon) => apiFetch(`${baseUrl}/hoa-don/${idHoaDon}`, { method: "DELETE" });
+    const xoaChiTietHoaDon = (idChiTiet) => apiFetch(`${baseUrl}/chi-tiet/${idChiTiet}`, { method: "DELETE" });
+    const thanhToanHoaDon = (payload) => apiFetch(`${baseUrl}/thanh-toan`, { method: "POST", ...jsonBody(payload) });
+
+    const capNhatLoaiHoaDon = (idHoaDon, loaiHoaDon) =>
+        apiFetch(`${baseUrl}/${idHoaDon}/loai-hoa-don?loaiHoaDon=${loaiHoaDon}`, { method: "PUT" });
+
+    const capNhatPhiVanChuyen = (idHoaDon, phiVanChuyen) =>
+        apiFetch(`${baseUrl}/${idHoaDon}/phi-van-chuyen?phiVanChuyen=${phiVanChuyen}`, { method: "PUT" });
+
+    const getDiaChiKhachHang = (idKhachHang) => apiFetch(`${baseUrl}/khach-hang/${idKhachHang}/dia-chi`);
+
+    const capNhatDiaChiGiaoHangHoaDon = (idHoaDon, idDiaChi) =>
+        apiFetch(`${baseUrl}/${idHoaDon}/dia-chi-giao-hang?idDiaChi=${idDiaChi}`, { method: "PUT" });
+
+    const themDiaChiKhachHang = (idKhachHang, payload) =>
+        apiFetch(`${baseUrl}/khach-hang/${idKhachHang}/dia-chi`, { method: "POST", ...jsonBody(payload) });
+
+    const suaDiaChiKhachHang = (idDiaChi, payload) =>
+        apiFetch(`${baseUrl}/dia-chi/${idDiaChi}`, { method: "PUT", ...jsonBody(payload) });
+
+    /* ===== API tỉnh/huyện/xã (dữ liệu 3 cấp trước sáp nhập 07/2025) ===== */
+    const OPEN_API_BASE = "https://provinces.open-api.vn/api/v1";
+    const layDanhSachTinhThanh = () => apiFetch(`${OPEN_API_BASE}/p/`);
+
+    async function layDanhSachQuanHuyen(maTinh) {
+        const data = await apiFetch(`${OPEN_API_BASE}/p/${maTinh}?depth=2`);
+        return data?.districts || [];
+    }
+    async function layDanhSachPhuongXa(maHuyen) {
+        const data = await apiFetch(`${OPEN_API_BASE}/d/${maHuyen}?depth=2`);
+        return data?.wards || [];
     }
 
-    async function themChiTietHoaDon(payload) {
-        const res = await fetch(`${baseUrl}/them-san-pham`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
-    async function capNhatSoLuong(idChiTiet, soLuongMoi) {
-        const res = await fetch(
-            `${baseUrl}/chi-tiet/${idChiTiet}/so-luong?soLuong=${soLuongMoi}`,
-            { method: "PUT" }
-        );
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
-    async function getHoaDonCho() {
-        const res = await fetch(`${baseUrl}/hoa-don-cho`);
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
-    async function huyHoaDon(idHoaDon) {
-        const res = await fetch(`${baseUrl}/hoa-don/${idHoaDon}`, {
-            method: "DELETE",
-        });
-        if (!res.ok) throw new Error(await res.text());
-    }
-
-    async function xoaChiTietHoaDon(idChiTiet) {
-        const res = await fetch(`${baseUrl}/chi-tiet/${idChiTiet}`, {
-            method: "DELETE",
-        });
-        if (!res.ok) throw new Error(await res.text());
-    }
-
-    async function thanhToanHoaDon(payload) {
-        const res = await fetch(`${baseUrl}/thanh-toan`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
-    async function capNhatLoaiHoaDon(idHoaDon, loaiHoaDon) {
-        const res = await fetch(
-            `${baseUrl}/${idHoaDon}/loai-hoa-don?loaiHoaDon=${loaiHoaDon}`,
-            { method: "PUT" }
-        );
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
-    async function capNhatPhiVanChuyen(idHoaDon, phiVanChuyen) {
-        const res = await fetch(
-            `${baseUrl}/${idHoaDon}/phi-van-chuyen?phiVanChuyen=${phiVanChuyen}`,
-            { method: "PUT" }
-        );
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
-    async function getDiaChiKhachHang(idKhachHang) {
-        const res = await fetch(
-            `${baseUrl}/khach-hang/${idKhachHang}/dia-chi`
-        );
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
-
+// Các hàm dưới đây tự nuốt lỗi (trả về giá trị mặc định) thay vì throw,
+// nên giữ try/catch riêng thay vì dùng thẳng apiFetch
     async function getPhieuGiamGiaTotNhat(idHoaDon) {
-        const res = await fetch(`${baseUrl}/${idHoaDon}/phieu-giam-gia-tot-nhat`);
-        if (!res.ok) return null;
-        const text = await res.text();
-        return text ? JSON.parse(text) : null;
+        try {
+            return await apiFetch(`${baseUrl}/${idHoaDon}/phieu-giam-gia-tot-nhat`);
+        } catch {
+            return null;
+        }
     }
 
-    async function apDungPhieuGiamGia(idHoaDon, idPhieu) {
-        const res = await fetch(
-            `${baseUrl}/${idHoaDon}/ap-dung-phieu?idPhieu=${idPhieu}`,
-            { method: "PUT" }
-        );
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
+    const apDungPhieuGiamGia = (idHoaDon, idPhieu) =>
+        apiFetch(`${baseUrl}/${idHoaDon}/ap-dung-phieu?idPhieu=${idPhieu}`, { method: "PUT" });
 
-    async function boPhieuGiamGia(idHoaDon) {
-        const res = await fetch(`${baseUrl}/${idHoaDon}/bo-phieu`, {
-            method: "PUT",
-        });
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-    }
+    const boPhieuGiamGia = (idHoaDon) =>
+        apiFetch(`${baseUrl}/${idHoaDon}/bo-phieu`, { method: "PUT" });
 
     async function kiemTraGiaSanPham(idHoaDon) {
-        const res = await fetch(`${baseUrl}/hoa-don/${idHoaDon}/kiem-tra-gia`);
-        if (!res.ok) return [];
-        return await res.json();
+        try {
+            return await apiFetch(`${baseUrl}/hoa-don/${idHoaDon}/kiem-tra-gia`);
+        } catch {
+            return [];
+        }
     }
 
     async function timSanPhamTheoMa(maCtsp) {
-        const res = await fetch(
-            `${baseUrl}/san-pham/tim-theo-ma?maCtsp=${encodeURIComponent(maCtsp)}`
-        );
-        if (!res.ok) throw new Error("Không tìm thấy sản phẩm với mã này!");
-        return await res.json();
+        try {
+            return await apiFetch(`${baseUrl}/san-pham/tim-theo-ma?maCtsp=${encodeURIComponent(maCtsp)}`);
+        } catch {
+            throw new Error("Không tìm thấy sản phẩm với mã này!");
+        }
     }
 
     /* ============================ ĐỒNG BỘ / TẢI DỮ LIỆU ==================== */
@@ -439,13 +382,6 @@
         }
     }
 
-    window.khongDungMa = async function () {
-        state.phieuGiamGiaHienTai = null;
-        await xuLyBoPhieu();
-        renderPaymentBody();
-    };
-
-    /* ============================ HÓA ĐƠN CHỜ / TAB ========================= */
     window.taoHoaDon = async function () {
         if (state.hoaDonCho.length >= 5) {
             showThongBao("Đã đạt tối đa 5 hóa đơn chờ!", "error");
@@ -493,8 +429,6 @@
         await setActiveHoaDon(id);
         renderTabs();
     };
-
-    // Tương đương watch(activeHoaDon, ...) trong Vue
     async function setActiveHoaDon(newId) {
         if (isSyncing) {
             state.activeHoaDon = newId;
@@ -517,8 +451,6 @@
         renderCustomerCard();
         renderPaymentBody();
     }
-
-    /* ============================ SẢN PHẨM TRONG HÓA ĐƠN ==================== */
     window.themSanPhamVaoHoaDon = async function (sanPham) {
         if (!state.activeHoaDon) return showThongBao("Vui lòng chọn hóa đơn!", "error");
         if (sanPham.soLuongTon <= 0) return showThongBao("Sản phẩm đã hết hàng!", "error");
@@ -544,7 +476,6 @@
             isSyncing = false;
         }
     };
-
     function mapHoaDon(hd) {
         return {
             ...hd,
@@ -560,7 +491,6 @@
                 : KHACH_HANG_VANG_LAI,
         };
     }
-
     window.capNhatSoLuongSanPham = async function (idChiTiet, soLuongMoi) {
         const sl = parseInt(soLuongMoi, 10);
         if (isNaN(sl) || sl < 1) return;
@@ -582,7 +512,6 @@
             isSyncing = false;
         }
     };
-
     window.tangSoLuong = function (idChiTiet) {
         const sp = state.chiTietHoaDonHienTai.find((s) => s.id === idChiTiet);
         if (sp) window.capNhatSoLuongSanPham(idChiTiet, sp.soLuong + 1);
@@ -615,8 +544,6 @@
             isSyncing = false;
         }
     };
-
-    /* ============================ KHÁCH HÀNG ================================ */
     window.chonKhachHang = async function (kh) {
         if (!state.activeHoaDon) return;
         try {
@@ -636,12 +563,12 @@
             renderCustomerCard();
             renderTabs();
             if (getLoaiHoaDonHienTai() === 1) await capNhatPhiVanChuyenHoaDon();
+            await lamMoiPhieuGiamGia();
             renderPaymentBody();
         } catch (e) {
             showThongBao("Không thể gán khách hàng!", "error");
         }
     };
-
     window.chonKhachVangLai = async function () {
         if (!state.activeHoaDon) return;
         try {
@@ -658,12 +585,12 @@
             closeCustomerModal();
             renderCustomerCard();
             renderTabs();
+            await lamMoiPhieuGiamGia();
             renderPaymentBody();
         } catch (e) {
             showThongBao("Lỗi gán khách vãng lai!", "error");
         }
     };
-
     window.toggleLoaiHoaDon = async function () {
         if (!state.activeHoaDon) return;
         const loaiMoi = getLoaiHoaDonHienTai() === 0 ? 1 : 0;
@@ -678,14 +605,28 @@
                 state.hoaDonCho[index].loaiHoaDon = loaiMoi;
                 state.hoaDonCho[index].tienVanChuyen = response.tienVanChuyen;
             }
-            if (loaiMoi === 1) await capNhatPhiVanChuyenHoaDon();
+            if (loaiMoi === 1) {
+                await capNhatPhiVanChuyenHoaDon();
+                if (!kh.diaChi) await tuDongChonDiaChiMacDinh();
+            }
             renderCustomerCard();
             renderPaymentBody();
         } catch (e) {
             showThongBao("Lỗi cập nhật hình thức đơn!", "error");
         }
     };
-
+    async function tuDongChonDiaChiMacDinh() {
+        const kh = getKhachHangDuocChon();
+        if (!kh) return;
+        try {
+            const ds = await getDiaChiKhachHang(kh.id);
+            state.dsDiaChi = ds;
+            const macDinh = ds.find((d) => d.macDinh) || ds[0];
+            if (macDinh) await window.chonDiaChi(macDinh);
+        } catch (e) {
+            console.error("Lỗi tự động chọn địa chỉ:", e);
+        }
+    }
     async function capNhatPhiVanChuyenHoaDon() {
         try {
             const response = await capNhatPhiVanChuyen(state.activeHoaDon, getPhiVanChuyen());
@@ -697,7 +638,6 @@
             console.error("Lỗi cập nhật phí ship:", e);
         }
     }
-
     window.moModalDiaChi = async function () {
         const kh = getKhachHangDuocChon();
         if (!kh || kh.id === 999) return;
@@ -709,20 +649,24 @@
             showThongBao("Lỗi tải địa chỉ!", "error");
         }
     };
-
     window.chonDiaChi = async function (dc) {
         const index = state.hoaDonCho.findIndex((hd) => hd.id === state.activeHoaDon);
         if (index !== -1) {
             state.hoaDonCho[index].khachHang.diaChi = dc.diaChiDayDu || dc.diaChiChiTiet || "";
             state.hoaDonCho[index].khachHang.tinhThanh = dc.tinhThanh || "";
+            state.hoaDonCho[index].khachHang.nguoiNhanGiao = dc.nguoiNhan || "";
+            state.hoaDonCho[index].khachHang.sdtGiao = dc.sdt || "";
         }
         closeModal("addressModal");
+        try {
+            await capNhatDiaChiGiaoHangHoaDon(state.activeHoaDon, dc.id);
+        } catch (e) {
+            console.error("Lỗi lưu địa chỉ giao hàng:", e);
+        }
         if (getLoaiHoaDonHienTai() === 1) await capNhatPhiVanChuyenHoaDon();
         renderCustomerCard();
         renderPaymentBody();
     };
-
-    /* ============================ QUÉT QR SẢN PHẨM =========================== */
     window.moModalQuetQR = async function () {
         if (!state.activeHoaDon) return showThongBao("Vui lòng chọn hóa đơn!", "error");
         document.getElementById("qrScanKetQua").style.display = "none";
@@ -733,7 +677,7 @@
             html5QrCode = new Html5Qrcode("qr-reader");
         }
         if (!html5QrCode) {
-            document.getElementById("qrScanLoi").textContent = "❌ Thư viện quét QR chưa tải xong!";
+            document.getElementById("qrScanLoi").textContent = "Thư viện quét QR chưa tải xong!";
             document.getElementById("qrScanLoi").style.display = "block";
             return;
         }
@@ -752,11 +696,10 @@
             );
         } catch (err) {
             const loiEl = document.getElementById("qrScanLoi");
-            loiEl.textContent = "❌ Không thể truy cập Camera!";
+            loiEl.textContent = "Không thể truy cập Camera!";
             loiEl.style.display = "block";
         }
     };
-
     window.dongModalQuetQR = async function () {
         if (html5QrCode && html5QrCode.getState && html5QrCode.getState() === 2) {
             try {
@@ -767,18 +710,17 @@
         }
         closeModal("qrScanModal");
     };
-
     async function xuLyQrQuetDuoc(maCtsp) {
         const loiEl = document.getElementById("qrScanLoi");
         try {
             const sanPham = await timSanPhamTheoMa(maCtsp);
             if (!sanPham) {
-                loiEl.textContent = `❌ Không tìm thấy sản phẩm với mã: ${maCtsp}`;
+                loiEl.textContent = `Không tìm thấy sản phẩm với mã: ${maCtsp}`;
                 loiEl.style.display = "block";
                 return;
             }
             if (sanPham.soLuongTon <= 0) {
-                loiEl.textContent = `❌ Sản phẩm ${maCtsp} đã hết hàng!`;
+                loiEl.textContent = `Sản phẩm ${maCtsp} đã hết hàng!`;
                 loiEl.style.display = "block";
                 return;
             }
@@ -787,13 +729,12 @@
             document.getElementById("qrScanKetQua").style.display = "none";
             loiEl.style.display = "none";
         } catch (e) {
-            loiEl.textContent = "❌ Lỗi xử lý mã QR hoặc kết nối API.";
+            loiEl.textContent = " Lỗi xử lý mã QR hoặc kết nối API.";
             loiEl.style.display = "block";
             console.error(e);
         }
     }
 
-    /* ============================ THANH TOÁN ================================= */
     window.xuLyThanhToan = async function (idHinhThuc) {
         if (!state.activeHoaDon || state.chiTietHoaDonHienTai.length === 0)
             return showThongBao("Đơn hàng trống!", "error");
@@ -824,7 +765,6 @@
             return;
         await thucHienThanhToan(1);
     };
-
     window.thucHienThanhToan = thucHienThanhToan;
     async function thucHienThanhToan(idHinhThuc) {
         try {
@@ -853,7 +793,6 @@
             showThongBao("Thanh toán thất bại!", "error");
         }
     }
-
     async function kiemTraSanPhamNgungHoatDong() {
         if (!state.activeHoaDon || state.chiTietHoaDonHienTai.length === 0) return;
         try {
@@ -881,15 +820,13 @@
                     "error"
                 );
                 renderProductTable();
-                renderTabs();          // ✅ cập nhật số lượng badge trên tab
-                await lamMoiPhieuGiamGia();  // ✅ tính lại phiếu giảm giá vì tổng tiền đổi
+                renderTabs();
+                await lamMoiPhieuGiamGia();
             }
         } catch (e) {
             console.error(e);
         }
     }
-
-    /* ============================ RENDER: TABS =============================== */
     function renderTabs() {
         const wrap = document.getElementById("tabsWrapper");
         const counter = document.getElementById("soDonHienTai");
@@ -972,7 +909,6 @@
             .join("");
     }
 
-    /* ============================ RENDER: THÔNG TIN KHÁCH HÀNG ================ */
     function renderCustomerCard() {
         const el = document.getElementById("customerCard");
         if (!el) return;
@@ -981,13 +917,12 @@
 
         if (!kh || kh.id === 999) {
             el.innerHTML = `
-        <div style="margin-bottom:12px;">
-          <span class="text-muted text-sm" style="display:block;">Tên khách hàng</span>
-          <h4 class="mt-1">Khách hàng vãng lai</h4>
-        </div>`;
+      <div>
+        <span class="text-muted text-sm" style="display:block;">Tên khách hàng</span>
+        <h4 class="mt-1">Khách hàng vãng lai</h4>
+      </div>`;
             return;
         }
-
         let html = `
       <div style="margin-bottom:12px;">
         <span class="text-muted text-sm" style="display:block;">Tên khách hàng</span>
@@ -1002,41 +937,52 @@
         }
         if (kh.email) {
             html += `
-      <div style="margin-bottom:12px;">
+      <div${loaiHd === 1 ? ' style="margin-bottom:12px;"' : ""}>
         <span class="text-muted text-sm" style="display:block;">Email</span>
         <div class="mt-1">${kh.email}</div>
       </div>`;
         }
-        if (kh.diaChi) {
-            html += `
-      <div style="margin-bottom:12px;">
-        <span class="text-muted text-sm" style="display:block;">Địa chỉ</span>
-        <div class="mt-1" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-          <span>${kh.diaChi}</span>
-          ${
-                loaiHd === 1
-                    ? `<button onclick="moModalDiaChi()" style="background:none;border:1px solid #1890ff;color:#1890ff;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">Thay đổi</button>`
-                    : ""
-            }
-        </div>
-      </div>`;
-        }
         if (loaiHd === 1) {
-            const tinhThanh = (kh.tinhThanh || "").toLowerCase();
-            const label = tinhThanh.includes("hà nội") || tinhThanh.includes("ha noi") ? "Hà Nội" : "Tỉnh khác";
+            const nguoiNhan = kh.nguoiNhanGiao || kh.hoTen || "";
+            const sdtNhan = kh.sdtGiao || kh.sdt || "";
+            const diaChiHienThi = kh.diaChi || "Chưa có địa chỉ giao hàng";
+
             html += `
-      <div style="margin-top:12px;padding:8px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;">
-        <span class="text-muted text-sm" style="display:block;">Phí vận chuyển </span>
-        <div class="mt-1 font-bold" style="color:#52c41a;">
-          ${formatVND(getPhiVanChuyen())} đ
-          <small class="text-muted" style="font-weight:normal;">(${label})</small>
+      <hr class="divider" style="margin:14px 0;">
+      <div class="shipping-header">
+        <span class="shipping-title">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="3" width="15" height="13"></rect>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+          </svg>
+          Thông tin giao hàng
+        </span>
+        <a class="shipping-edit-link" onclick="moModalDiaChi()">Chỉnh sửa</a>
+      </div>
+      <div class="shipping-grid">
+        <div>
+          <span class="text-muted text-sm" style="display:block;">Người nhận</span>
+          <div class="mt-1 font-bold">${nguoiNhan}</div>
         </div>
+        <div>
+          <span class="text-muted text-sm" style="display:block;">Số điện thoại</span>
+          <div class="mt-1 font-bold">${sdtNhan}</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <span class="text-muted text-sm" style="display:block;">Địa chỉ giao hàng</span>
+        <div class="shipping-address-box mt-1">${diaChiHienThi}</div>
+      </div>
+      <div style="margin-top:12px;padding:8px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;">
+        <span class="text-muted text-sm" style="display:block;">Phí vận chuyển</span>
+        <div class="mt-1 font-bold" style="color:#52c41a;">${formatVND(getPhiVanChuyen())} đ</div>
       </div>`;
         }
+
         el.innerHTML = html;
     }
-
-    /* ============================ RENDER: KHU VỰC THANH TOÁN =================== */
     function renderPaymentBody() {
         // Toggle hình thức
         const loaiHd = getLoaiHoaDonHienTai();
@@ -1044,13 +990,9 @@
         const labelEl = document.getElementById("loaiHoaDonLabel");
         if (toggleEl) toggleEl.classList.toggle("active", loaiHd === 1);
         if (labelEl) labelEl.textContent = loaiHd === 1 ? "Giao hàng" : "Bán tại quầy";
-
-
         const couponArea = document.getElementById("couponArea");
         if (couponArea) {
             const phieu = state.phieuGiamGiaHienTai;
-
-            // Tính sẵn khối HTML gợi ý (nếu có) — dùng chung cho cả 2 trường hợp bên dưới
             const buildGoiYHtml = (p) => {
                 if (!p || !p.phieuGoiY) return "";
                 const gy = p.phieuGoiY;
@@ -1111,8 +1053,6 @@
                 couponArea.innerHTML = "";
             }
         }
-
-        // Tổng kết thanh toán
         const summary = document.getElementById("summaryList");
         if (summary) {
             const tienGiam = getTienGiamHienTai();
@@ -1174,12 +1114,9 @@
             tienThuaEl.textContent = formatVND(getTienThua()) + " đ";
         }
     };
-
     window.onGhiChuInput = function (value) {
         state.ghiChu = value;
     };
-
-    /* ============================ RENDER: MODAL SẢN PHẨM ======================= */
     function renderFilterOptions() {
         const mauSacSelect = document.getElementById("mauSacSelect");
         if (mauSacSelect) {
@@ -1201,7 +1138,6 @@
         }
         updateGiaMaxUI();
     }
-
     function updateGiaMaxUI() {
         const label = document.getElementById("giaMaxLabel");
         const progress = document.getElementById("sliderProgress");
@@ -1210,7 +1146,6 @@
             progress.style.width = (state.giaMax / state.maxPrice) * 100 + "%";
         }
     }
-
     function renderProductModalTable() {
         const body = document.getElementById("productModalTableBody");
         if (body) {
@@ -1244,7 +1179,6 @@
         if (prevBtn) prevBtn.disabled = state.page === 0;
         if (nextBtn) nextBtn.disabled = state.page + 1 >= state.totalPages;
     }
-
     window.nextPage = function () {
         if (state.page + 1 < state.totalPages) {
             state.page++;
@@ -1257,7 +1191,6 @@
             loadData();
         }
     };
-
     window.resetFilter = function () {
         state.keyword = "";
         state.idMauSac = null;
@@ -1274,13 +1207,11 @@
         updateGiaMaxUI();
         loadData();
     };
-
     function debounceLoadData() {
         state.page = 0;
         clearTimeout(filterTimeout);
         filterTimeout = setTimeout(loadData, 300);
     }
-
     window.onKeywordInput = function (value) {
         state.keyword = value;
         debounceLoadData();
@@ -1302,8 +1233,6 @@
         updateGiaMaxUI();
         debounceLoadData();
     };
-
-    /* ============================ RENDER: MODAL KHÁCH HÀNG ===================== */
     function renderCustomerModalTable() {
         const body = document.getElementById("customerModalTableBody");
         if (body) {
@@ -1334,7 +1263,6 @@
         if (prevBtn) prevBtn.disabled = state.pageKh === 0;
         if (nextBtn) nextBtn.disabled = state.pageKh + 1 >= state.totalPagesKh;
     }
-
     window.nextPageKh = function () {
         if (state.pageKh + 1 < state.totalPagesKh) {
             state.pageKh++;
@@ -1353,20 +1281,13 @@
         clearTimeout(searchKhTimeout);
         searchKhTimeout = setTimeout(loadKhachHang, 300);
     };
-
-    /* ============================ RENDER: MODAL ĐỊA CHỈ ========================= */
     function renderAddressModalList() {
         const el = document.getElementById("addressModalList");
         if (!el) return;
-        if (state.dsDiaChi.length === 0) {
-            el.innerHTML = `<div class="text-center text-muted" style="padding:30px;">Khách hàng chưa có địa chỉ nào</div>`;
-            return;
-        }
-        el.innerHTML = state.dsDiaChi
-            .map((dc) => {
-                const style = dc.macDinh
-                    ? "border-color:#52c41a;background:#f6ffed;"
-                    : "";
+        const listHtml = state.dsDiaChi.length === 0
+            ? `<div class="text-center text-muted" style="padding:20px;">Khách hàng chưa có địa chỉ nào</div>`
+            : state.dsDiaChi.map((dc) => {
+                const style = dc.macDinh ? "border-color:#52c41a;background:#f6ffed;" : "";
                 return `
         <div style="border:1px solid #e8e8e8;border-radius:8px;padding:14px 16px;margin-bottom:12px;${style}">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
@@ -1374,23 +1295,185 @@
               <div style="font-weight:600;font-size:14px;margin-bottom:4px;">
                 ${dc.nguoiNhan}
                 <span style="font-weight:normal;color:#888;margin-left:8px;">${dc.sdt}</span>
-                ${
-                    dc.macDinh
-                        ? `<span style="background:#52c41a;color:#fff;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:8px;font-weight:normal;">Mặc định</span>`
-                        : ""
-                }
+                ${dc.macDinh ? `<span style="background:#52c41a;color:#fff;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:8px;font-weight:normal;">Mặc định</span>` : ""}
               </div>
               <div style="color:#555;font-size:13px;">${dc.diaChiDayDu}</div>
             </div>
-            <button onclick='chonDiaChi(${JSON.stringify(dc)})'
-                    style="background:#222;color:#fff;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;white-space:nowrap;flex-shrink:0;">Chọn</button>
+            <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+              <button onclick='chonDiaChi(${JSON.stringify(dc)})'
+                      style="background:#222;color:#fff;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;">Chọn</button>
+              <button onclick='moFormSuaDiaChi(${JSON.stringify(dc)})'
+                      style="background:#fff;color:#1890ff;border:1px solid #1890ff;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;">Sửa</button>
+            </div>
           </div>
         </div>`;
-            })
-            .join("");
-    }
+            }).join("");
 
-    /* ============================ RENDER: MODAL QR THANH TOÁN =================== */
+        el.innerHTML = `
+      <div id="addressListWrap">${listHtml}</div>
+      <button class="btn-outline-modal" style="width:100%;margin-top:8px;" onclick="moFormThemDiaChi()">+ Thêm địa chỉ mới</button>
+      <div id="addressFormWrap" style="display:none;"></div>`;
+    }
+    function renderDiaChiForm(mode, dc) {
+        dc = dc || {};
+        return `
+      <div class="address-form">
+        <h4 style="margin:0 0 12px 0;">${mode === "edit" ? "Sửa địa chỉ" : "Thêm địa chỉ mới"}</h4>
+        <div class="filter-row">
+          <div class="filter-group flex-1">
+            <label>Người nhận</label>
+            <input id="dcNguoiNhan" type="text" class="modal-input" value="${dc.nguoiNhan || ""}"/>
+          </div>
+          <div class="filter-group flex-1">
+            <label>Số điện thoại</label>
+            <input id="dcSdt" type="text" class="modal-input" value="${dc.sdt || ""}"/>
+          </div>
+        </div>
+        <div class="filter-row" style="margin-top:12px;">
+          <div class="filter-group flex-1">
+            <label>Tỉnh/Thành phố</label>
+            <select id="dcTinhThanhSelect" class="modal-select">
+              <option value="">-- Đang tải... --</option>
+            </select>
+          </div>
+          <div class="filter-group flex-1">
+            <label>Quận/Huyện</label>
+            <select id="dcQuanHuyenSelect" class="modal-select" disabled>
+              <option value="">-- Chọn tỉnh/thành trước --</option>
+            </select>
+          </div>
+          <div class="filter-group flex-1">
+            <label>Phường/Xã/Thị trấn</label>
+            <select id="dcPhuongXaSelect" class="modal-select" disabled>
+              <option value="">-- Chọn quận/huyện trước --</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-group" style="margin-top:12px;">
+          <label>Địa chỉ chi tiết (số nhà, tên đường...)</label>
+          <input id="dcDiaChiChiTiet" type="text" class="modal-input" value="${dc.diaChiChiTiet || ""}"/>
+        </div>
+        <label class="radio-label" style="margin-top:12px;">
+          <input type="checkbox" id="dcMacDinh" ${dc.macDinh ? "checked" : ""}/> Đặt làm địa chỉ mặc định
+        </label>
+        <div style="display:flex;gap:12px;margin-top:16px;">
+          <button class="btn-primary" onclick="luuDiaChi('${mode}', ${dc.id ?? "null"})">Lưu</button>
+          <button class="btn-outline-modal" onclick="dongFormDiaChi()">Hủy</button>
+        </div>
+      </div>`;
+    }
+    async function khoiTaoDropdownDiaChi(dc) {
+        dc = dc || {};
+        let tenXaCu = "", tenHuyenCu = "";
+        if (dc.phuongXa) {
+            const parts = dc.phuongXa.split(",").map((s) => s.trim());
+            tenXaCu = parts[0] || "";
+            tenHuyenCu = parts[1] || "";
+        }
+        const tinhSelect = document.getElementById("dcTinhThanhSelect");
+        const huyenSelect = document.getElementById("dcQuanHuyenSelect");
+        const xaSelect = document.getElementById("dcPhuongXaSelect");
+        try {
+            const dsTinh = await layDanhSachTinhThanh();
+            tinhSelect.innerHTML = `<option value="">-- Chọn tỉnh/thành --</option>` +
+                dsTinh.map((t) => `<option value="${t.code}" data-name="${t.name}" ${t.name === dc.tinhThanh ? "selected" : ""}>${t.name}</option>`).join("");
+            tinhSelect.onchange = async () => {
+                const maTinh = tinhSelect.value;
+                huyenSelect.innerHTML = `<option value="">-- Đang tải... --</option>`;
+                xaSelect.innerHTML = `<option value="">-- Chọn quận/huyện trước --</option>`;
+                huyenSelect.disabled = true;
+                xaSelect.disabled = true;
+                if (!maTinh) return;
+                try {
+                    const dsHuyen = await layDanhSachQuanHuyen(maTinh);
+                    huyenSelect.innerHTML = `<option value="">-- Chọn quận/huyện --</option>` +
+                        dsHuyen.map((h) => `<option value="${h.code}" data-name="${h.name}">${h.name}</option>`).join("");
+                    huyenSelect.disabled = false;
+                } catch (e) {
+                    showThongBao("Lỗi tải quận/huyện!", "error");
+                }
+            };
+            huyenSelect.onchange = async () => {
+                const maHuyen = huyenSelect.value;
+                xaSelect.innerHTML = `<option value="">-- Đang tải... --</option>`;
+                xaSelect.disabled = true;
+                if (!maHuyen) return;
+                try {
+                    const dsXa = await layDanhSachPhuongXa(maHuyen);
+                    xaSelect.innerHTML = `<option value="">-- Chọn phường/xã --</option>` +
+                        dsXa.map((x) => `<option value="${x.code}" data-name="${x.name}">${x.name}</option>`).join("");
+                    xaSelect.disabled = false;
+                } catch (e) {
+                    showThongBao("Lỗi tải phường/xã!", "error");
+                }
+            };
+            if (dc.tinhThanh && tinhSelect.value) {
+                const dsHuyen = await layDanhSachQuanHuyen(tinhSelect.value);
+                huyenSelect.innerHTML = `<option value="">-- Chọn quận/huyện --</option>` +
+                    dsHuyen.map((h) => `<option value="${h.code}" data-name="${h.name}" ${h.name === tenHuyenCu ? "selected" : ""}>${h.name}</option>`).join("");
+                huyenSelect.disabled = false;
+                if (tenHuyenCu && huyenSelect.value) {
+                    const dsXa = await layDanhSachPhuongXa(huyenSelect.value);
+                    xaSelect.innerHTML = `<option value="">-- Chọn phường/xã --</option>` +
+                        dsXa.map((x) => `<option value="${x.code}" data-name="${x.name}" ${x.name === tenXaCu ? "selected" : ""}>${x.name}</option>`).join("");
+                    xaSelect.disabled = false;
+                }
+            }
+        } catch (e) {
+            showThongBao("Lỗi tải danh sách tỉnh/thành!", "error");
+        }
+    }
+    window.moFormThemDiaChi = function () {
+        const wrap = document.getElementById("addressFormWrap");
+        wrap.style.display = "block";
+        wrap.innerHTML = renderDiaChiForm("add");
+        khoiTaoDropdownDiaChi();   // ✅ thêm dòng này — gọi API tải tỉnh/huyện/xã
+    };
+    window.moFormSuaDiaChi = function (dc) {
+        const wrap = document.getElementById("addressFormWrap");
+        wrap.style.display = "block";
+        wrap.innerHTML = renderDiaChiForm("edit", dc);
+        khoiTaoDropdownDiaChi(dc);   // ✅ thêm dòng này
+    };
+    window.dongFormDiaChi = function () {
+        const wrap = document.getElementById("addressFormWrap");
+        wrap.style.display = "none";
+        wrap.innerHTML = "";
+    };
+    window.luuDiaChi = async function (mode, id) {
+        const tinhSelect = document.getElementById("dcTinhThanhSelect");
+        const huyenSelect = document.getElementById("dcQuanHuyenSelect");
+        const xaSelect = document.getElementById("dcPhuongXaSelect");
+        const tenTinh = tinhSelect.options[tinhSelect.selectedIndex]?.dataset.name || "";
+        const tenHuyen = huyenSelect.options[huyenSelect.selectedIndex]?.dataset.name || "";
+        const tenXa = xaSelect.options[xaSelect.selectedIndex]?.dataset.name || "";
+        if (!tenTinh || !tenHuyen || !tenXa) {
+            return showThongBao("Vui lòng chọn đủ Tỉnh/Thành, Quận/Huyện, Phường/Xã!", "error");
+        }
+        const payload = {
+            nguoiNhan: document.getElementById("dcNguoiNhan").value.trim(),
+            sdt: document.getElementById("dcSdt").value.trim(),
+            tinhThanh: tenTinh,
+            phuongXa: `${tenXa}, ${tenHuyen}`,   // ✅ ghép chung giống trang khách hàng, không lưu cột riêng
+            diaChiChiTiet: document.getElementById("dcDiaChiChiTiet").value.trim(),
+            macDinh: document.getElementById("dcMacDinh").checked,
+        };
+        if (!payload.nguoiNhan || !payload.sdt || !payload.diaChiChiTiet) {
+            return showThongBao("Vui lòng nhập đủ người nhận, SĐT và địa chỉ chi tiết!", "error");
+        }
+        const kh = getKhachHangDuocChon();
+        try {
+            if (mode === "edit") {
+                state.dsDiaChi = await suaDiaChiKhachHang(id, payload);
+            } else {
+                state.dsDiaChi = await themDiaChiKhachHang(kh.id, payload);
+            }
+            renderAddressModalList();
+            showThongBao("Đã lưu địa chỉ!", "success");
+        } catch (e) {
+            showThongBao(e.message || "Lỗi lưu địa chỉ!", "error");
+        }
+    };
     function renderQrModalInfo() {
         const maEl = document.getElementById("qrMaHoaDon");
         const soTienEl = document.getElementById("qrSoTien");
@@ -1402,8 +1485,6 @@
         if (ghiChuEl)
             ghiChuEl.textContent = state.ghiChu || "Thanh toán QR - " + state.qrThongTin.maHoaDon;
     }
-
-    /* ============================ MODAL HELPERS ================================= */
     function openModal(id) {
         const el = document.getElementById(id);
         if (el) el.style.display = "flex";
@@ -1414,7 +1495,6 @@
     }
     window.openModal = openModal;
     window.closeModal = closeModal;
-
     window.openProductModal = function () {
         openModal("productModal");
     };
@@ -1425,8 +1505,6 @@
     function closeCustomerModal() {
         closeModal("customerModal");
     }
-
-    /* ============================ VISIBILITY CHANGE (giao ca / đổi tab) ========= */
     async function handleVisibilityChange() {
         if (document.visibilityState === "visible" && state.activeHoaDon) {
             await Promise.all([
@@ -1437,8 +1515,6 @@
             ]);
         }
     }
-
-    /* ============================ KHỞI TẠO (thay onMounted) ===================== */
     async function init() {
         await Promise.all([loadData(), loadFilterData()]);
         try {
@@ -1459,6 +1535,5 @@
         document.addEventListener("visibilitychange", handleVisibilityChange);
         batDauPollingSanPhamNgungHoatDong();   // ✅ thêm dòng này
     }
-
     document.addEventListener("DOMContentLoaded", init);
 })();

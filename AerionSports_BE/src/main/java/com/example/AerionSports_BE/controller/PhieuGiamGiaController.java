@@ -1,15 +1,20 @@
 package com.example.AerionSports_BE.controller;
 
 import com.example.AerionSports_BE.entity.PhieuGiamGia;
+import com.example.AerionSports_BE.entity.KhachHang;
 import com.example.AerionSports_BE.service.PhieuGiamGiaService;
 import com.example.AerionSports_BE.service.KhachHangService;
+import com.example.AerionSports_BE.service.EmailService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,6 +24,9 @@ public class PhieuGiamGiaController {
 
     private final PhieuGiamGiaService service;
     private final KhachHangService khachHangService;
+
+    @Autowired
+    private EmailService emailService;
 
     public PhieuGiamGiaController(PhieuGiamGiaService service, KhachHangService khachHangService) {
         this.service = service;
@@ -48,10 +56,12 @@ public class PhieuGiamGiaController {
         if (trangThai != null) {
             if (trangThai == 1) {
                 list = list.stream().filter(p -> p.getTrangThai() != null && p.getTrangThai() == 1
-                        && (p.getNgayKetThuc() == null || !p.getNgayKetThuc().toLocalDate().isBefore(homNay))).toList();
+                        && (p.getNgayKetThuc() == null || !p.getNgayKetThuc().toLocalDate().isBefore(homNay))
+                        && p.getSoLuong() > (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0)).toList();
             } else if (trangThai == 0) {
                 list = list.stream().filter(p -> p.getTrangThai() != null && (p.getTrangThai() == 0
-                        || (p.getTrangThai() == 1 && p.getNgayKetThuc() != null && p.getNgayKetThuc().toLocalDate().isBefore(homNay)))).toList();
+                        || (p.getTrangThai() == 1 && p.getNgayKetThuc() != null && p.getNgayKetThuc().toLocalDate().isBefore(homNay))
+                        || p.getSoLuong() <= (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0))).toList();
             }
         }
 
@@ -113,8 +123,43 @@ public class PhieuGiamGiaController {
 
     @PostMapping("/luu")
     public String add(@ModelAttribute("phieuGiamGia") PhieuGiamGia phieuGiamGia,
-                      @RequestParam(value = "khachHangIds", required = false) List<Integer> khachHangIds) {
-        service.add(phieuGiamGia);
+                      @RequestParam("doiTuongApDung") String doiTuongApDung,
+                      @RequestParam(value = "khachHangIds", required = false) List<Integer> khachHangIds,
+                      RedirectAttributes redirectAttributes) {
+        try {
+            phieuGiamGia.setTrangThai(1);
+            service.addVoucherVoiKhachHang(phieuGiamGia, khachHangIds);
+
+            if ("PERSONAL".equals(doiTuongApDung) && khachHangIds != null && !khachHangIds.isEmpty()) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                String ngayChotHan = phieuGiamGia.getNgayKetThuc().format(formatter);
+
+                String chuoiGiaTriGiam = "";
+                if ("Sale %".equals(phieuGiamGia.getLoaiPhieuGiamGia())) {
+                    chuoiGiaTriGiam = phieuGiamGia.getGiaTriGiam() + "%";
+                } else {
+                    DecimalFormat df = new DecimalFormat("#,###");
+                    chuoiGiaTriGiam = df.format(phieuGiamGia.getGiaTriGiam()) + " đ";
+                }
+
+                for (Integer idKh : khachHangIds) {
+                    KhachHang kh = khachHangService.getById(idKh);
+                    if (kh != null && kh.getEmail() != null && !kh.getEmail().trim().isEmpty()) {
+
+                        emailService.sendVoucherEmail(
+                                kh.getEmail(),
+                                kh.getHoTen(),
+                                phieuGiamGia.getMaPhieuGiamGia(),
+                                chuoiGiaTriGiam,
+                                ngayChotHan
+                        );
+                    }
+                }
+            }
+            redirectAttributes.addFlashAttribute("successMessage", "Thêm phiếu giảm giá mới thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm phiếu giảm giá thất bại: " + e.getMessage());
+        }
         return "redirect:/phieu-giam-gia/hien-thi";
     }
 
@@ -130,10 +175,17 @@ public class PhieuGiamGiaController {
     @PostMapping("/cap-nhat/{id}")
     public String update(@PathVariable Integer id,
                          @ModelAttribute("phieuGiamGia") PhieuGiamGia phieuGiamGia,
-                         @RequestParam(value = "khachHangIds", required = false) List<Integer> khachHangIds) {
-        service.update(id, phieuGiamGia);
+                         @RequestParam(value = "khachHangIds", required = false) List<Integer> khachHangIds,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            service.updateVoucherVoiKhachHang(id, phieuGiamGia, khachHangIds);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin phiếu thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại: " + e.getMessage());
+        }
         return "redirect:/phieu-giam-gia/hien-thi";
     }
+
     @GetMapping("/chi-tiet/{id}")
     public String showDetail(@PathVariable Integer id, Model model) {
         PhieuGiamGia phieuGiamGia = service.getById(id);
@@ -141,6 +193,7 @@ public class PhieuGiamGiaController {
         model.addAttribute("khachHangList", khachHangService.getAll());
         return "voucher/form-chi-tiet";
     }
+
     @GetMapping("/toggle/{id}")
     public String toggleStatus(
             @PathVariable("id") Integer id,

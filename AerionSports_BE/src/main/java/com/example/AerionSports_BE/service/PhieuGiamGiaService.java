@@ -15,4 +15,6 @@ public interface PhieuGiamGiaService {
     PhieuGiamGia update(Integer id, PhieuGiamGia phieuGiamGia);
 
     void delete(Integer id);
+    PhieuGiamGia addVoucherVoiKhachHang(PhieuGiamGia pgg, List<Integer> khachHangIds);
+    PhieuGiamGia updateVoucherVoiKhachHang(Integer id, PhieuGiamGia pggInput, List<Integer> khachHangIds);
 }

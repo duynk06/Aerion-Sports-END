@@ -3,6 +3,7 @@ package com.example.AerionSports_BE.repository;
 import com.example.AerionSports_BE.dto.response.DiaChiKhachHangResponse;
 import com.example.AerionSports_BE.entity.DiaChiKhachHang;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,4 +32,7 @@ public interface DiaChiKhachHangRepository extends JpaRepository<DiaChiKhachHang
     List<DiaChiKhachHangResponse> findDiaChiByKhachHang(
             @Param("idKhachHang") Integer idKhachHang
     );
+    @Modifying
+    @Query("UPDATE DiaChiKhachHang d SET d.macDinh = false WHERE d.khachHang.id = :idKhachHang")
+    void boMacDinhTheoKhachHang(@Param("idKhachHang") Integer idKhachHang);
 }

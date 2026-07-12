@@ -73,15 +73,15 @@
                 <i class="fa-solid fa-user-tie"></i>
                 <span>Nhân viên</span>
             </a>
-            <a th:href="@{/giao-ca}" class="item">
+            <a th:href="@{/giao-ca/hien-thi}" class="item">
                 <i class="fa-solid fa-business-time"></i>
                 <span>Giao ca</span>
             </a>
-            <a th:href="@{/lich-lam-viec}" class="item">
+            <a th:href="@{/lich-lam-viec/hien-thi}" class="item">
                 <i class="fa-solid fa-calendar-days"></i>
                 <span>Lịch làm việc</span>
             </a>
-            <a th:href="@{/cham-cong}" class="item">
+            <a th:href="@{/cham-cong/hien-thi}" class="item">
                 <i class="fa-solid fa-fingerprint"></i>
                 <span>Chấm công</span>
             </a>
@@ -182,7 +182,7 @@
                                 <input type="hidden" th:field="*{giaTriDonToiThieu}" id="giaTriDonToiThieu" />
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group" id="giamToiDaGroup">
                                 <label>Giảm tối đa (đ) <span class="required-star">*</span></label>
                                 <input type="text" id="giaTriGiamToiDaDisplay" oninput="onInputCurrency('giaTriGiamToiDa', this)" required />
                                 <input type="hidden" th:field="*{giaTriGiamToiDa}" id="giaTriGiamToiDa" />
@@ -203,7 +203,7 @@
                                 <input type="datetime-local" name="ngayKetThuc" id="ngayKetThuc" th:value="${phieuGiamGia.ngayKetThuc != null ? (#temporals.format(phieuGiamGia.ngayKetThuc, 'yyyy-MM-dd') + 'T' + #temporals.format(phieuGiamGia.ngayKetThuc, 'HH:mm')) : ''}" required />
                             </div>
 
-                            <div class="form-group hidden-placeholder"></div>
+                            <div class="form-group hidden-placeholder" id="placeholderGroup"></div>
 
                             <div class="form-group full-width">
                                 <label>Mô tả</label>
@@ -341,11 +341,14 @@
         }
     }
 
+    // SỬA ĐỔI: Thêm logic ẩn/hiện trường "Giảm tối đa" cho form sửa
     function updateLabelLoaiPhieu() {
         const select = document.getElementById('loaiPhieuSelect');
         const label = document.getElementById('giaTriGiamLabel');
         const displayInput = document.getElementById('giaTriGiamDisplay');
         const hiddenInput = document.getElementById('giaTriGiam');
+        const giamToiDaGroup = document.getElementById('giamToiDaGroup');
+        const placeholderGroup = document.getElementById('placeholderGroup');
 
         if (select.value === 'Sale %') {
             label.innerHTML = "Giá trị giảm (%) <span class='required-star'>*</span>";
@@ -354,10 +357,18 @@
                 hiddenInput.value = 100;
                 displayInput.value = 100;
             }
+            if (giamToiDaGroup) giamToiDaGroup.style.display = "flex";
+            if (placeholderGroup) placeholderGroup.style.display = "none";
+            document.getElementById('giaTriGiamToiDaDisplay').required = true;
         } else {
             label.innerHTML = "Giá trị giảm (đ) <span class='required-star'>*</span>";
             displayInput.placeholder = "Nhập số tiền giảm";
             displayInput.value = formatCurrencyValue(hiddenInput.value);
+
+            if (giamToiDaGroup) giamToiDaGroup.style.display = "none";
+            if (placeholderGroup) placeholderGroup.style.display = "block"; // Giữ lưới Grid cân xứng
+            document.getElementById('giaTriGiamToiDaDisplay').required = false;
+            document.getElementById('giaTriGiamToiDa').value = 0;
         }
     }
 
@@ -457,9 +468,11 @@
         }
     }
 
+    // SỬA ĐỔI: Bổ sung ràng buộc Đơn tối thiểu >= Giá trị giảm tiền cho Form sửa khi cập nhật
     document.getElementById('voucherForm').addEventListener('submit', function(e) {
         const select = document.getElementById('loaiPhieuSelect').value;
-        const input = document.getElementById('giaTriGiam').value;
+        const inputGiaTri = Number(document.getElementById('giaTriGiam').value) || 0;
+        const inputDonToiThieu = Number(document.getElementById('giaTriDonToiThieu').value) || 0;
         const radioPersonal = document.querySelector('input[name="doiTuongApDung"]:checked').value;
         const ngayKetThucStr = document.getElementById('ngayKetThuc').value;
 
@@ -469,9 +482,16 @@
             return;
         }
 
-        if (select === 'Sale %' && (input <= 0 || input > 100)) {
+        if (select === 'Sale %' && (inputGiaTri <= 0 || inputGiaTri > 100)) {
             e.preventDefault();
             alert('Tỷ lệ phần trăm giảm giá phải nằm trong khoảng từ 1% đến 100%!');
+            return;
+        }
+
+        // THÊM: Chặn validate dữ liệu nếu Đơn tối thiểu thấp hơn tiền giảm
+        if (select === 'Giam Tien' && inputDonToiThieu < inputGiaTri) {
+            e.preventDefault();
+            alert('Giá trị cấu hình lỗi: Số tiền "Đơn tối thiểu" bắt buộc phải lớn hơn hoặc bằng "Giá trị giảm tiền"!');
             return;
         }
 
@@ -526,9 +546,6 @@
     });
 </script>
 
-<!-- ==========================================================================
-     TOÀN BỘ CSS HỆ THỐNG GIAO DIỆN (ĐÃ ĐƯỢC ĐẨY XUỐNG DƯỚI ĐÁY FILE)
-     ========================================================================== -->
 <style>
     * {
         box-sizing: border-box;
@@ -818,6 +835,10 @@
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
+    }
+    .form-grid th, .form-grid td {
+        display: flex;
+        flex-direction: column;
     }
     .form-group {
         display: flex;
