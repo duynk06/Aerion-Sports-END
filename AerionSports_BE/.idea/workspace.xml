@@ -4,28 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ed6c808-4310-4e17-93ca-174aff479799" name="Changes" comment="phan 30/06/2026">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+    <list default="true" id="6ed6c808-4310-4e17-93ca-174aff479799" name="Changes" comment="update 13/7/2026">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/ChiTietSanPhamController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/ChiTietSanPhamController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/SanPhamController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/SanPhamController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/dto/request/SanPhamFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/dto/request/SanPhamFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/dto/response/HoaDonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/dto/response/HoaDonResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/SanPhamRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/SanPhamRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/SanPhamService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/SanPhamService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/impl/HoaDonServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/impl/HoaDonServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/san-pham/san-pham.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/san-pham/san-pham.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/fragments/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/fragments/sidebar.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/detail.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/bien-the.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/danh-sach-bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/danh-sach-bien-the.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/san-pham.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/san-pham.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-bien-the.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-san-pham.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-san-pham.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/thong-ke/thong-ke.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/thong-ke/thong-ke.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/thuoc-tinh/thuoc-tinh-view.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/thuoc-tinh/thuoc-tinh-view.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,12 +40,12 @@
     &quot;assignee&quot;: &quot;vietphan2006&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/duynk06/Aerion-Sports-END.git",
-    "accountId": "b9d26234-f6b4-4a21-9936-5718a3ac00dd"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/duynk06/Aerion-Sports-END.git&quot;,
+    &quot;accountId&quot;: &quot;b9d26234-f6b4-4a21-9936-5718a3ac00dd&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 1
@@ -69,29 +55,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "Spring Boot.BeDatnApplication.executor": "Run",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "TongKet__BE",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/ADMIN/OneDrive/Desktop/moi/Aerion-Sports-END/AerionSports_BE",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.BeDatnApplication.executor&quot;: &quot;Run&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;TongKet__BE&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/OneDrive/Desktop/moi/Aerion-Sports-END/AerionSports_BE&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ADMIN\OneDrive\Desktop\30\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\dto\response" />
@@ -167,6 +153,8 @@
       <workItem from="1782967003495" duration="1423000" />
       <workItem from="1782973052136" duration="7953000" />
       <workItem from="1783896115981" duration="5108000" />
+      <workItem from="1783902780881" duration="93000" />
+      <workItem from="1783949123826" duration="3372000" />
     </task>
     <task id="LOCAL-00001" summary="update chitietdotgiamgia">
       <option name="closed" value="true" />
@@ -272,7 +260,15 @@
       <option name="project" value="LOCAL" />
       <updated>1782837334780</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="update 13/7/2026">
+      <option name="closed" value="true" />
+      <created>1783902863143</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1783902863143</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -298,7 +294,8 @@
     <MESSAGE value="phan 18/06/2026" />
     <MESSAGE value="phan 20/06/2026" />
     <MESSAGE value="phan 30/06/2026" />
-    <option name="LAST_COMMIT_MESSAGE" value="phan 30/06/2026" />
+    <MESSAGE value="update 13/7/2026" />
+    <option name="LAST_COMMIT_MESSAGE" value="update 13/7/2026" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -203,8 +203,53 @@ public class SanPhamController {
                     responseData.put("id", savedXx.getId()); responseData.put("ten", savedXx.getTenXuatXu()); responseData.put("ma", savedXx.getMaXuatXu());
                     break;
 
+                // 🟢 BỔ SUNG: Thêm nhanh Độ cứng thân vợt
+                case "do-cung":
+                    String maDc = "DC" + String.format("%03d", doCungService.getAll().size() + 1);
+                    var dcr = new com.example.AerionSports_BE.dto.request.DoCungRequest(); // Kiểm tra lại chính xác class Request DTO này trong project của bạn
+                    dcr.setTenDoCung(value); dcr.setMaDoCung(maDc); dcr.setTrangThai(1);
+                    var savedDc = doCungService.save(dcr);
+                    responseData.put("id", savedDc.getId()); responseData.put("ten", savedDc.getTenDoCung()); responseData.put("ma", savedDc.getMaDoCung());
+                    break;
+
+                // 🟢 BỔ SUNG: Thêm nhanh Điểm cân bằng
+                case "diem-can-bang":
+                    String maCbg = "CB" + String.format("%03d", diemCanBangService.getAll().size() + 1);
+                    var cbgr = new com.example.AerionSports_BE.dto.request.DiemCanBangRequest();
+                    cbgr.setTenDiemCanBang(value); cbgr.setMaDiemCanBang(maCbg); cbgr.setTrangThai(1);
+                    var savedCbg = diemCanBangService.save(cbgr);
+                    responseData.put("id", savedCbg.getId()); responseData.put("ten", savedCbg.getTenDiemCanBang()); responseData.put("ma", savedCbg.getMaDiemCanBang());
+                    break;
+
+                // 🟢 BỔ SUNG: Thêm nhanh Chu vi cán vợt
+                case "chu-vi-can-vot":
+                    String maCv = "CV" + String.format("%03d", chuViCanVotService.getAll().size() + 1);
+                    var cvr = new com.example.AerionSports_BE.dto.request.ChuViCanVotRequest();
+                    cvr.setTenChuViCanVot(value); cvr.setMaChuViCanVot(maCv); cvr.setTrangThai(1);
+                    var savedCv = chuViCanVotService.save(cvr);
+                    responseData.put("id", savedCv.getId()); responseData.put("ten", savedCv.getTenChuViCanVot()); responseData.put("ma", savedCv.getMaChuViCanVot());
+                    break;
+
+                // 🟢 BỔ SUNG: Thêm nhanh Chất liệu thân vợt
+                case "chat-lieu-than-vot":
+                    String maClt = "CLT" + String.format("%03d", chatLieuThanVotService.getAll().size() + 1);
+                    var cltr = new com.example.AerionSports_BE.dto.request.ChatLieuThanVotRequest();
+                    cltr.setTenChatLieuThanVot(value); cltr.setMaChatLieuThanVot(maClt); cltr.setTrangThai(1);
+                    var savedClt = chatLieuThanVotService.save(cltr);
+                    responseData.put("id", savedClt.getId()); responseData.put("ten", savedClt.getTenChatLieuThanVot()); responseData.put("ma", savedClt.getMaChatLieuThanVot());
+                    break;
+
+                // 🟢 BỔ SUNG: Thêm nhanh Chất liệu khung vợt
+                case "chat-lieu-khung-vot":
+                    String maClk = "CLK" + String.format("%03d", chatLieuKhungVotService.getAll().size() + 1);
+                    var clkr = new com.example.AerionSports_BE.dto.request.ChatLieuKhungVotRequest();
+                    clkr.setTenChatLieuKhungVot(value); clkr.setMaChatLieuKhungVot(maClk); clkr.setTrangThai(1);
+                    var savedClk = chatLieuKhungVotService.save(clkr);
+                    responseData.put("id", savedClk.getId()); responseData.put("ten", savedClk.getTenChatLieuKhungVot()); responseData.put("ma", savedClk.getMaChatLieuKhungVot());
+                    break;
+
                 default:
-                    return ResponseEntity.badRequest().body(Map.of("message", "Loại thuộc tính không hỗ trợ thêm nhanh"));
+                    return ResponseEntity.badRequest().body(Map.of("message", "Loại thuộc tính [" + loai + "] không hỗ trợ thêm nhanh"));
             }
             return ResponseEntity.ok(responseData);
         } catch (Exception e) {

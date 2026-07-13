@@ -82,7 +82,7 @@
                         <select name="loaiHoaDonFilter" id="loaiHoaDonFilter">
                             <option value="">Tất cả</option>
                             <option value="0" th:selected="${loaiHoaDonFilter == 0}">Tại quầy</option>
-                            <option value="1" th:selected="${loaiHoaDonFilter == 1}">Online</option>
+                            <option value="1" th:selected="${loaiHoaDonFilter == 1}">Trực tuyến</option>
                         </select>
                     </div>
                     <div>
@@ -184,7 +184,7 @@
                     <td>
                         <span class="invoice-badge"
                               th:classappend="${hoaDon.loaiHoaDon == 1 ? 'invoice-online' : 'invoice-offline'}"
-                              th:text="${hoaDon.loaiHoaDon == 1 ? 'Online' : 'Tại quầy'}">
+                              th:text="${hoaDon.loaiHoaDon == 1 ? 'Trực tuyến' : 'Tại quầy'}">
                         </span>
                     </td>
                     <td class="money" th:text="${#numbers.formatDecimal(hoaDon.tongTienThanhToan, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>

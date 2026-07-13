@@ -191,7 +191,7 @@
                 and (#strings.equalsIgnoreCase(hoaDon.loaiPhieuGiamGia,'PHAN_TRAM')
                      or #strings.contains(hoaDon.loaiPhieuGiamGia,'%'))}"
               class="discount-badge"
-              th:text="${#numbers.formatDecimal(hoaDon.giaTriGiamGoc,0,'COMMA',0,'POINT')} + '% (' + ${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ)'">
+              th:text="${#numbers.formatDecimal(hoaDon.giaTriGiamGoc,0,'COMMA',0,'POINT')} + '% (-' + ${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ)'">
   </span>
 
         <!-- Phiếu số tiền cố định / vận chuyển -->
@@ -200,7 +200,7 @@
                      or (not #strings.equalsIgnoreCase(hoaDon.loaiPhieuGiamGia,'PHAN_TRAM')
                          and not #strings.contains(hoaDon.loaiPhieuGiamGia,'%')))}"
               class="discount-badge"
-              th:text="${#numbers.formatDecimal(hoaDon.giaTriGiamGoc,0,'COMMA',0,'POINT')} + ' đ (' + ${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ)'">
+              th:text="${#numbers.formatDecimal(hoaDon.giaTriGiamGoc,0,'COMMA',0,'POINT')} + ' đ (-' + ${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ)'">
   </span>
 
         <!-- Không có phiếu giảm giá -->
@@ -210,7 +210,7 @@
       </div>
       <div class="summary-item">
         <span class="shipping-label">Phí vận chuyển <img class="imageVanChuyen" src="/images/image.png" alt=""> </span>
-        <span th:text="${#numbers.formatDecimal(hoaDon.tienVanChuyen,0,'COMMA',0,'POINT')} + ' đ'"></span>
+        <span th:text="${'+'+#numbers.formatDecimal(hoaDon.tienVanChuyen,0,'COMMA',0,'POINT')} + ' đ'"></span>
       </div>
       <hr>
       <div class="summary-total"><span>Tổng thanh toán</span>
@@ -228,7 +228,7 @@
       <div class="card-title"><i class="fa-solid fa-location-dot"></i><span>Thông tin giao hàng</span></div>
       <div class="info-row"><label>Địa chỉ:</label><span th:text="${hoaDon.diaChiMacDinhKhachHang}"></span></div>
       <div class="info-row"><label>Loại đơn:</label>
-        <span th:text="${hoaDon.loaiHoaDon == 0 ? 'Tại quầy' : 'Online'}"></span></div>
+        <span th:text="${hoaDon.loaiHoaDon == 0 ? 'Tại quầy' : 'Trực tuyến'}"></span></div>
       <div class="info-row"><label>Ghi chú:</label><span th:text="${hoaDon.ghiChu}"></span></div>
     </div>
   </div>
@@ -244,7 +244,7 @@
       <tr th:each="item, st : ${lichSuThanhToan}">
         <td th:text="${st.count}"></td>
         <td th:text="${#numbers.formatDecimal(item.soTien,0,'COMMA',0,'POINT')} + ' đ'"></td>
-        <td th:text="${#temporals.format(item.ngayThanhToan,'dd/MM/yyyy HH:mm')}"></td>
+        <td th:text="${#temporals.format(item.ngayThanhToan,'HH:mm dd/MM/yyyy')}"></td>
         <td th:text="${item.phuongThucThanhToan}"></td>
         <td th:text="${item.ghiChu}"></td>
       </tr>
