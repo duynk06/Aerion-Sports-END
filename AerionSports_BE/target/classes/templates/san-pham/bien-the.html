@@ -5,7 +5,46 @@
 <body>
 
 <div th:fragment="content">
-    <link rel="stylesheet" th:href="@{/san-pham/bien-the.css}">
+    <link class="stat-style" rel="stylesheet" th:href="@{/san-pham/bien-the.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Đồng bộ hóa giao diện bộ lọc theo cấu trúc trang Danh sách sản phẩm cha */
+        .filter-box-custom {
+            background: #ffffff; padding: 25px; border-radius: 12px;
+            border: 1px solid #edf2f7; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); margin-bottom: 20px;
+        }
+        .card-header-custom {
+            display: flex; align-items: center; gap: 10px;
+            background: #f79b66; color: white; padding: 12px 18px;
+            border-radius: 8px; margin-bottom: 18px; font-weight: 600; font-size: 15px; text-align: left;
+        }
+        .filter-grid-custom {
+            display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; text-align: left;
+        }
+        .form-group-custom { display: flex; flex-direction: column; align-items: stretch; }
+        .form-group-custom label { margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #4a5568; }
+        .form-group-custom input, .form-group-custom select {
+            width: 100%; height: 40px; box-sizing: border-box; border: 1px solid #cbd5e1;
+            border-radius: 8px; padding: 0 12px; color: #333; font-size: 14px; outline: none;
+            transition: border-color 0.2s; font-family: Arial, sans-serif;
+        }
+        .form-group-custom input:focus, .form-group-custom select:focus { border-color: #f79b66; }
+
+        /* Khối nút hành động Đặt lại / Lọc dữ liệu */
+        .filter-action-custom {
+            display: flex; justify-content: flex-end; gap: 12px;
+            margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9;
+        }
+        .btn-reset-custom, .btn-search-custom {
+            border: none; border-radius: 8px; padding: 10px 22px;
+            cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease; text-decoration: none;
+        }
+        .btn-reset-custom { background: #f3f4f6; color: #4b5563; text-decoration: none; text-align: center; display: inline-block; line-height: 20px; }
+        .btn-reset-custom:hover { background: #e5e7eb; }
+        .btn-search-custom { background: #e6f7f0; color: #0aa06e; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-search-custom:hover { background: #ccefe3; transform: translateY(-1px); }
+    </style>
 
     <div class="breadcrumb-container">
         <span class="breadcrumb-text">Quản lý sản phẩm / <strong style="color: #f97316;">Chi tiết biến thể</strong></span>
@@ -19,35 +58,38 @@
         Đang hiển thị danh sách biến thể của: <strong>[<span th:text="${maSP}"></span>] - <span th:text="${tenSP}"></span></strong>
     </div>
 
-    <div class="filter-container-orange" id="filterPanel">
-        <div class="filter-header-title"><i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm biến thể</div>
-        <div class="filter-body-content">
-            <form method="get" th:action="@{/san-pham/bien-the}" class="filter-grid">
-                <input type="hidden" name="idSP" th:value="${idSP}"/>
-                <input type="hidden" name="maSP" th:value="${maSP}"/>
-                <input type="hidden" name="tenSP" th:value="${tenSP}"/>
-                <input type="hidden" name="page" value="0"/>
-                <input type="hidden" name="size" th:value="${pageSize}"/>
+    <div class="filter-box-custom" id="filterPanel">
+        <div class="card-header-custom">
+            <i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm biến thể chi tiết
+        </div>
+        <form method="get" th:action="@{/san-pham/bien-the}">
+            <input type="hidden" name="idSP" th:value="${idSP}"/>
+            <input type="hidden" name="maSP" th:value="${maSP}"/>
+            <input type="hidden" name="tenSP" th:value="${tenSP}"/>
+            <input type="hidden" name="page" value="0"/>
+            <input type="hidden" name="size" th:value="${pageSize}"/>
 
-                <div class="filter-item">
-                    <label>Từ khóa tìm kiếm</label>
-                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập mã SKU biến thể..."/>
+            <div class="filter-grid-custom">
+                <div class="form-group-custom">
+                    <label>Mã SKU biến thể:</label>
+                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập mã SKU biến thể cần tìm..."/>
                 </div>
-                <div class="filter-item">
-                    <label>Trạng thái</label>
+
+                <div class="form-group-custom">
+                    <label>Trạng thái hoạt động:</label>
                     <select name="trangThai">
                         <option value="">Tất cả trạng thái</option>
                         <option value="1" th:selected="${trangThai != null and trangThai == 1}">Đang hoạt động</option>
                         <option value="0" th:selected="${trangThai != null and trangThai == 0}">Ngừng hoạt động</option>
                     </select>
                 </div>
-                <div class="filter-buttons-group">
-                    <button type="submit" class="btn-trigger-filter">Tìm kiếm</button>
-                    <a class="btn-reset-filter"
-                       th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP})}">Đặt lại</a>
-                </div>
-            </form>
-        </div>
+            </div>
+
+            <div class="filter-action-custom">
+                <a class="btn-reset-custom" th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP})}">Đặt lại</a>
+                <button type="submit" class="btn-search-custom">Lọc dữ liệu</button>
+            </div>
+        </form>
     </div>
 
     <div class="data-table-container">
@@ -152,12 +194,22 @@
             </table>
         </div>
 
-        <div class="custom-pagination-wrapper">
-            <a class="page-arrow-btn" th:classappend="${currentPage == 0} ? 'disabled'"
-               th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP}, keyword=${keyword}, trangThai=${trangThai}, page=${currentPage - 1}, size=${pageSize})}">&lt;</a>
-            <span class="page-text-indicator" th:text="'Trang ' + (${currentPage} + 1) + ' / ' + (${totalPages} > 0 ? ${totalPages} : 1)"></span>
-            <a class="page-arrow-btn" th:classappend="${currentPage >= totalPages - 1 or totalPages <= 1} ? 'disabled'"
-               th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP}, keyword=${keyword}, trangThai=${trangThai}, page=${currentPage + 1}, size=${pageSize})}">&gt;</a>
+        <div class="custom-pagination-container" style="display: flex !important; justify-content: space-between !important; align-items: center !important; margin-top: 15px; padding: 10px 0;">
+            <div class="pagination-left-summary" style="font-size: 14px; color: #475569;">
+                Tổng số: <strong th:text="${totalElements}">0</strong> biến thể sản phẩm hệ thống
+            </div>
+
+            <div class="pagination-right-controls" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                <a class="page-arrow-btn" th:if="${currentPage > 0}"
+                   th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP}, keyword=${keyword}, trangThai=${trangThai}, page=${currentPage - 1}, size=${pageSize})}">&lt;</a>
+                <span class="page-arrow-btn disabled" th:if="${currentPage == 0}">&lt;</span>
+
+                <span class="page-text-indicator" th:text="'Trang ' + (${currentPage} + 1) + ' / ' + (${totalPages > 0 ? totalPages : 1})"></span>
+
+                <a class="page-arrow-btn" th:if="${currentPage < totalPages - 1}"
+                   th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP}, keyword=${keyword}, trangThai=${trangThai}, page=${currentPage + 1}, size=${pageSize})}">&gt;</a>
+                <span class="page-arrow-btn disabled" th:if="${currentPage >= totalPages - 1}">&gt;</span>
+            </div>
         </div>
     </div>
 
@@ -187,9 +239,16 @@
             </div>
         </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script th:src="@{/san-pham/bien-the.js}"></script>
+    <script>
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filterPanel');
+            panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+        }
+    </script>
 </div>
 
 </body>

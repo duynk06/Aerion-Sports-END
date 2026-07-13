@@ -58,7 +58,6 @@
         .status-delivered { background: #86efac; color: #14532d; border-color: #4ade80; }
         .status-completed { background: #86efac; color: #14532d; border-color: #4ade80; }
         .status-cancel { background: #86efac; color: #14532d; border-color: #4ade80; }
-        .status-request-cancel { background: #86efac; color: #14532d; border-color: #4ade80; }
         .status-refunded { background: #86efac; color: #14532d; border-color: #4ade80; }
         .invoice-offline { background: #86efac; color: #14532d; }
         .invoice-online { background: #86efac; color: #14532d; }
@@ -146,9 +145,6 @@
 
                 <a th:href="@{/hoa-don(trangThaiFilter=6, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
                    th:classappend="${trangThaiFilter == 6} ? 'active' : ''">Đã hủy</a>
-
-                <a th:href="@{/hoa-don(trangThaiFilter=7, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
-                   th:classappend="${trangThaiFilter == 7} ? 'active' : ''">Yêu cầu huỷ</a>
             </div>
 
             <table>
@@ -192,7 +188,7 @@
                         </span>
                     </td>
                     <td class="money" th:text="${#numbers.formatDecimal(hoaDon.tongTienThanhToan, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
-                    <td th:text="${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${#temporals.format(hoaDon.ngayTao, 'HH:mm dd/MM/yyyy')}"></td>
                     <td>
                        <span class="status-badge"
                              th:classappend="${hoaDon.trangThaiClass}"

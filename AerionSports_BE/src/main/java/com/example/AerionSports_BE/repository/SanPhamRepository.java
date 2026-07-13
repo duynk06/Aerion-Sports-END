@@ -21,51 +21,61 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     boolean existsByMaSanPhamAndIdNot(String ma, Integer id);
 
     @Query(value = """
-    SELECT s
-    FROM SanPham s
-    LEFT JOIN s.idThuongHieu
-    LEFT JOIN s.idXuatXu
-    LEFT JOIN s.idDoCung
-    LEFT JOIN s.idDiemCanBang
-    LEFT JOIN s.idDanhMuc
-    LEFT JOIN s.idChuViCanVot
-    WHERE
-        (:k IS NULL OR :k = '' OR
-         LOWER(s.maSanPham) LIKE LOWER(CONCAT('%', :k, '%'))
-         OR LOWER(s.tenSanPham) LIKE LOWER(CONCAT('%', :k, '%')))
-    AND (:th IS NULL OR s.idThuongHieu.id = :th)
-    AND (:xx IS NULL OR s.idXuatXu.id = :xx)
-    AND (:dm IS NULL OR s.idDanhMuc.id = :dm)
-    AND (:cv IS NULL OR s.idChuViCanVot.id = :cv)
-    AND (:dc IS NULL OR s.idDoCung.id = :dc)
-    AND (:dcb IS NULL OR s.idDiemCanBang.id = :dcb)
-    AND (:t IS NULL OR s.trangThai = :t)
-    AND (:soLuongMin IS NULL OR (
-        SELECT COALESCE(SUM(c.soLuong), 0) 
-        FROM ChiTietSanPham c 
-        WHERE c.idSanPham.id = s.id
-    ) >= :soLuongMin)
-    """,
+SELECT s
+FROM SanPham s
+LEFT JOIN s.idThuongHieu
+LEFT JOIN s.idXuatXu
+LEFT JOIN s.idDoCung
+LEFT JOIN s.idDiemCanBang
+LEFT JOIN s.idDanhMuc
+LEFT JOIN s.idChuViCanVot
+WHERE
+    (:k IS NULL OR :k = '' OR
+     LOWER(s.maSanPham) LIKE LOWER(CONCAT('%', :k, '%'))
+     OR LOWER(s.tenSanPham) LIKE LOWER(CONCAT('%', :k, '%')))
+AND (:th IS NULL OR s.idThuongHieu.id = :th)
+AND (:xx IS NULL OR s.idXuatXu.id = :xx)
+AND (:dm IS NULL OR s.idDanhMuc.id = :dm)
+AND (:cv IS NULL OR s.idChuViCanVot.id = :cv)
+AND (:dc IS NULL OR s.idDoCung.id = :dc)
+AND (:dcb IS NULL OR s.idDiemCanBang.id = :dcb)
+AND (:t IS NULL OR s.trangThai = :t)
+AND (:soLuongMin IS NULL OR (
+    SELECT COALESCE(SUM(c.soLuong), 0)
+    FROM ChiTietSanPham c
+    WHERE c.idSanPham.id = s.id
+) >= :soLuongMin)
+AND (:giaMax IS NULL OR EXISTS (
+    SELECT 1 FROM ChiTietSanPham c2
+    WHERE c2.idSanPham.id = s.id
+    AND c2.giaBan <= :giaMax
+))
+""",
             countQuery = """
-    SELECT COUNT(s)
-    FROM SanPham s
-    WHERE
-        (:k IS NULL OR :k = '' OR
-         LOWER(s.maSanPham) LIKE LOWER(CONCAT('%', :k, '%'))
-         OR LOWER(s.tenSanPham) LIKE LOWER(CONCAT('%', :k, '%')))
-    AND (:th IS NULL OR s.idThuongHieu.id = :th)
-    AND (:xx IS NULL OR s.idXuatXu.id = :xx)
-    AND (:dm IS NULL OR s.idDanhMuc.id = :dm)
-    AND (:cv IS NULL OR s.idChuViCanVot.id = :cv)
-    AND (:dc IS NULL OR s.idDoCung.id = :dc)
-    AND (:dcb IS NULL OR s.idDiemCanBang.id = :dcb)
-    AND (:t IS NULL OR s.trangThai = :t)
-    AND (:soLuongMin IS NULL OR (
-        SELECT COALESCE(SUM(c.soLuong), 0) 
-        FROM ChiTietSanPham c 
-        WHERE c.idSanPham.id = s.id
-    ) >= :soLuongMin)
-    """)
+SELECT COUNT(s)
+FROM SanPham s
+WHERE
+    (:k IS NULL OR :k = '' OR
+     LOWER(s.maSanPham) LIKE LOWER(CONCAT('%', :k, '%'))
+     OR LOWER(s.tenSanPham) LIKE LOWER(CONCAT('%', :k, '%')))
+AND (:th IS NULL OR s.idThuongHieu.id = :th)
+AND (:xx IS NULL OR s.idXuatXu.id = :xx)
+AND (:dm IS NULL OR s.idDanhMuc.id = :dm)
+AND (:cv IS NULL OR s.idChuViCanVot.id = :cv)
+AND (:dc IS NULL OR s.idDoCung.id = :dc)
+AND (:dcb IS NULL OR s.idDiemCanBang.id = :dcb)
+AND (:t IS NULL OR s.trangThai = :t)
+AND (:soLuongMin IS NULL OR (
+    SELECT COALESCE(SUM(c.soLuong), 0)
+    FROM ChiTietSanPham c
+    WHERE c.idSanPham.id = s.id
+) >= :soLuongMin)
+AND (:giaMax IS NULL OR EXISTS (
+    SELECT 1 FROM ChiTietSanPham c2
+    WHERE c2.idSanPham.id = s.id
+    AND c2.giaBan <= :giaMax
+))
+""")
     Page<SanPham> search(
             @Param("k") String keyword,
             @Param("th") Integer idThuongHieu,
@@ -76,6 +86,7 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
             @Param("dcb") Integer idDiemCanBang,
             @Param("t") Integer trangThai,
             @Param("soLuongMin") Integer soLuongMin,
+            @Param("giaMax") Long giaMax,      // 🟢 thêm
             Pageable pageable);
 
     @Modifying

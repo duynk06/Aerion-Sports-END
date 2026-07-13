@@ -43,6 +43,8 @@ public class SanPhamController {
             @RequestParam(value = "idThuongHieu", required = false) Integer idThuongHieu,
             @RequestParam(value = "idXuatXu", required = false) Integer idXuatXu,
             @RequestParam(value = "trangThai", required = false) Integer trangThai,
+            @RequestParam(value = "soLuongMin", required = false) Integer soLuongMin,
+            @RequestParam(value = "giaMax", required = false) Long giaMax,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "5") int size,
             Model model
@@ -52,6 +54,8 @@ public class SanPhamController {
         filter.setIdThuongHieu(idThuongHieu);
         filter.setIdXuatXu(idXuatXu);
         filter.setTrangThai(trangThai);
+        filter.setSoLuongMin(soLuongMin);
+        filter.setGiaMax(giaMax);
         filter.setPage(page);
         filter.setSize(size);
 
@@ -62,7 +66,7 @@ public class SanPhamController {
         for (SanPhamResponse sp : danhSach) {
             int tongTon = 0;
             Long giaMin = null;
-            Long giaMax = null;
+            Long giaMaxBienThe = null;
             try {
                 var chiTietSanPhams = sp.getChiTietSanPhams();
                 if (chiTietSanPhams != null) {
@@ -71,14 +75,14 @@ public class SanPhamController {
                         long giaBan = bt.getGiaBan() == null ? 0L : bt.getGiaBan().longValue();
                         tongTon += soLuong;
                         if (giaMin == null || giaBan < giaMin) giaMin = giaBan;
-                        if (giaMax == null || giaBan > giaMax) giaMax = giaBan;
+                        if (giaMaxBienThe == null || giaBan > giaMaxBienThe) giaMaxBienThe = giaBan;
                     }
                 }
             } catch (Exception ignored) {}
             Map<String, Object> tk = new HashMap<>();
             tk.put("tongTon", tongTon);
             tk.put("giaMin", giaMin);
-            tk.put("giaMax", giaMax);
+            tk.put("giaMax", giaMaxBienThe);
             thongKeBienThe.put(sp.getId(), tk);
         }
 
@@ -95,6 +99,8 @@ public class SanPhamController {
         model.addAttribute("idThuongHieu", idThuongHieu);
         model.addAttribute("idXuatXu", idXuatXu);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("soLuongMin", soLuongMin);      // 🟢 giữ giá trị trên ô input
+        model.addAttribute("giaMaxChon", giaMax);
         model.addAttribute("giaCaoNhatHeThong", giaCaoNhatHeThong); // 🟢 Đẩy mốc giá max sang HTML
         model.addAttribute("danhSachThuongHieu", thuongHieuService.getAll());
         model.addAttribute("danhSachXuatXu", xuatXuService.getAll());

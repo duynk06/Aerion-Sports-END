@@ -180,6 +180,7 @@ public class SanPhamService implements ISanPhamService {
                 f.getIdDiemCanBang(),
                 f.getTrangThai(),
                 f.getSoLuongMin(),
+                f.getGiaMax(),                  
                 PageRequest.of(f.getPage(), f.getSize(), Sort.by("ngayTao").descending())
         ).map(this::toRes);
     }

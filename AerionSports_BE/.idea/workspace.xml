@@ -5,13 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6ed6c808-4310-4e17-93ca-174aff479799" name="Changes" comment="phan 30/06/2026">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/impl/BanHangServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/impl/BanHangServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/impl/HoaDonServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/impl/HoaDonServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/templates/voucher/danh-sach.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/voucher/danh-sach.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/templates/voucher/form-chi-tiet.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/voucher/form-chi-tiet.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/templates/voucher/form-sua.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/voucher/form-sua.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/templates/voucher/form-them.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/voucher/form-them.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/ChiTietSanPhamController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/ChiTietSanPhamController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/SanPhamController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/SanPhamController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/dto/request/SanPhamFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/dto/request/SanPhamFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/dto/response/HoaDonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/dto/response/HoaDonResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/SanPhamRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/SanPhamRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/SanPhamService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/SanPhamService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/impl/HoaDonServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/service/impl/HoaDonServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/san-pham/san-pham.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/san-pham/san-pham.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/fragments/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/fragments/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/bien-the.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/danh-sach-bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/danh-sach-bien-the.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/san-pham.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/san-pham.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-bien-the.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-san-pham.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-san-pham.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/thong-ke/thong-ke.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/thong-ke/thong-ke.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/thuoc-tinh/thuoc-tinh-view.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/thuoc-tinh/thuoc-tinh-view.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,12 +54,12 @@
     &quot;assignee&quot;: &quot;vietphan2006&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/duynk06/Aerion-Sports.git&quot;,
-    &quot;accountId&quot;: &quot;b9d26234-f6b4-4a21-9936-5718a3ac00dd&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/duynk06/Aerion-Sports-END.git",
+    "accountId": "b9d26234-f6b4-4a21-9936-5718a3ac00dd"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 1
@@ -69,7 +83,7 @@
     "git-widget-placeholder": "TongKet__BE",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/A4/12-7/Aerion-Sports-END/AerionSports_BE",
+    "last_opened_file_path": "C:/Users/ADMIN/OneDrive/Desktop/moi/Aerion-Sports-END/AerionSports_BE",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -105,8 +119,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.25134.95" />
-        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.25134.95" />
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189" />
       </set>
     </attachedChunks>
   </component>
@@ -152,6 +166,7 @@
       <workItem from="1782918743310" duration="11000" />
       <workItem from="1782967003495" duration="1423000" />
       <workItem from="1782973052136" duration="7953000" />
+      <workItem from="1783896115981" duration="5108000" />
     </task>
     <task id="LOCAL-00001" summary="update chitietdotgiamgia">
       <option name="closed" value="true" />

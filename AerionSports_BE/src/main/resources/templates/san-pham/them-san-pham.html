@@ -6,6 +6,7 @@
 
 <div th:fragment="content">
     <link rel="stylesheet" th:href="@{/san-pham/san-pham.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
         .form-section { background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #edf2f7; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 25px; }
@@ -18,6 +19,8 @@
         .form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; outline: none; font-family: Arial, sans-serif; height: 40px; box-sizing: border-box; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #f79b66; }
 
+        .btn-quick-add { background: #f79b66; color: #fff; border: none; padding: 0 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-quick-add:hover { background: #e08553; }
         .field-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important; }
 
         .custom-multiselect-container { position: relative; width: 100%; margin-bottom: 20px; }
@@ -80,7 +83,7 @@
                             <option value="">-- Chọn thương hiệu --</option>
                             <option th:each="th : ${danhSachThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}"></option>
                         </select>
-                        <button type="button" onclick="moModalThemNhanh('thuong-hieu', 'Thương hiệu', event)" style="background:#f79b66; color:#fff; border:none; padding:0 12px; border-radius:8px; font-weight:bold; cursor:pointer;">+</button>
+                        <button type="button" class="btn-quick-add" onclick="moModalThemNhanh('thuong-hieu', 'Thương hiệu', event)">+</button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -90,7 +93,7 @@
                             <option value="">-- Chọn xuất xứ --</option>
                             <option th:each="xx : ${danhSachXuatXu}" th:value="${xx.id}" th:text="${xx.tenXuatXu}"></option>
                         </select>
-                        <button type="button" onclick="moModalThemNhanh('xuat-xu', 'Xuất xứ', event)" style="background:#f79b66; color:#fff; border:none; padding:0 12px; border-radius:8px; font-weight:bold; cursor:pointer;">+</button>
+                        <button type="button" class="btn-quick-add" onclick="moModalThemNhanh('xuat-xu', 'Xuất xứ', event)">+</button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -110,45 +113,60 @@
                             <option value="">-- Chọn danh mục --</option>
                             <option th:each="dm : ${danhSachDanhMuc}" th:value="${dm.id}" th:text="${dm.tenDanhMuc}"></option>
                         </select>
-                        <button type="button" onclick="moModalThemNhanh('danh-muc', 'Danh mục', event)" style="background:#f79b66; color:#fff; border:none; padding:0 12px; border-radius:8px; font-weight:bold; cursor:pointer;">+</button>
+                        <button type="button" class="btn-quick-add" onclick="moModalThemNhanh('danh-muc', 'Danh mục', event)">+</button>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Độ cứng thân vợt <span class="required">*</span></label>
-                    <select id="idDoCung" name="idDoCung" required>
-                        <option value="">-- Chọn độ cứng --</option>
-                        <option th:each="dc : ${danhSachDoCung}" th:value="${dc.id}" th:text="${dc.tenDoCung}"></option>
-                    </select>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="idDoCung" name="idDoCung" required style="flex: 1;">
+                            <option value="">-- Chọn độ cứng --</option>
+                            <option th:each="dc : ${danhSachDoCung}" th:value="${dc.id}" th:text="${dc.tenDoCung}"></option>
+                        </select>
+                        <button type="button" class="btn-quick-add" onclick="moModalThemNhanh('do-cung', 'Độ cứng thân vợt', event)">+</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Điểm cân bằng <span class="required">*</span></label>
-                    <select id="idDiemCanBang" name="idDiemCanBang" required>
-                        <option value="">-- Chọn điểm cân bằng --</option>
-                        <option th:each="cb : ${danhSachDiemCanBang}" th:value="${cb.id}" th:text="${cb.tenDiemCanBang}"></option>
-                    </select>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="idDiemCanBang" name="idDiemCanBang" required style="flex: 1;">
+                            <option value="">-- Chọn điểm cân bằng --</option>
+                            <option th:each="cb : ${danhSachDiemCanBang}" th:value="${cb.id}" th:text="${cb.tenDiemCanBang}"></option>
+                        </select>
+                        <button type="button" class="btn-quick-add" onclick="moModalThemNhanh('diem-can-bang', 'Điểm cân bằng', event)">+</button>
+                    </div>
                 </div>
             </div>
             <div class="form-grid-3">
                 <div class="form-group">
                     <label>Chu vi cán vợt <span class="required">*</span></label>
-                    <select id="idChuViCanVot" name="idChuViCanVot" required>
-                        <option value="">-- Chọn chu vi cán --</option>
-                        <option th:each="cv : ${danhSachChuViCan}" th:value="${cv.id}" th:text="${cv.tenChuViCanVot}"></option>
-                    </select>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="idChuViCanVot" name="idChuViCanVot" required style="flex: 1;">
+                            <option value="">-- Chọn chu vi cán --</option>
+                            <option th:each="cv : ${danhSachChuViCan}" th:value="${cv.id}" th:text="${cv.tenChuViCanVot}"></option>
+                        </select>
+                        <button type="button" class="btn-quick-add" onclick="moModalThemNhanh('chu-vi-can-vot', 'Chu vi cán vợt', event)">+</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Chất liệu thân vợt <span class="required">*</span></label>
-                    <select id="idChatLieuThanVot" name="idChatLieuThanVot" required>
-                        <option value="">-- Chọn chất liệu thân --</option>
-                        <option th:each="clt : ${danhSachChatLieuThan}" th:value="${clt.id}" th:text="${clt.tenChatLieuThanVot}"></option>
-                    </select>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="idChatLieuThanVot" name="idChatLieuThanVot" required style="flex: 1;">
+                            <option value="">-- Chọn chất liệu thân --</option>
+                            <option th:each="clt : ${danhSachChatLieuThan}" th:value="${clt.id}" th:text="${clt.tenChatLieuThanVot}"></option>
+                        </select>
+                        <button type="button" class="btn-quick-add" onclick="moModalThemNhanh('chat-lieu-than-vot', 'Chất liệu thân vợt', event)">+</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Chất liệu khung vợt <span class="required">*</span></label>
-                    <select id="idChatLieuKhungVot" name="idChatLieuKhungVot" required>
-                        <option value="">-- Chọn chất liệu khung --</option>
-                        <option th:each="clk : ${danhSachChatLieuKhung}" th:value="${clk.id}" th:text="${clk.tenChatLieuKhungVot}"></option>
-                    </select>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="idChatLieuKhungVot" name="idChatLieuKhungVot" required style="flex: 1;">
+                            <option value="">-- Chọn chất liệu khung --</option>
+                            <option th:each="clk : ${danhSachChatLieuKhung}" th:value="${clk.id}" th:text="${clk.tenChatLieuKhungVot}"></option>
+                        </select>
+                        <button type="button" class="btn-quick-add" onclick="moModalThemNhanh('chat-lieu-khung-vot', 'Chất liệu khung vợt', event)">+</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -446,26 +464,13 @@
         });
 
         function dinhDangSoTien(input) {
-            const soCu = input.value.length;
-            const viTriCuCuoi = input.selectionEnd;
-            const soKyTuTruocConTro = (input.value.slice(0, viTriCuCuoi).match(/\d/g) || []).length;
-
             let chiSo = input.value.replace(/\D/g, '');
             if (chiSo === '') {
                 input.value = '';
                 return;
             }
             chiSo = chiSo.replace(/^0+(?=\d)/, '');
-
-            const daDinhDang = new Intl.NumberFormat('vi-VN').format(Number(chiSo));
-            input.value = daDinhDang;
-
-            let dem = 0, viTriMoi = daDinhDang.length;
-            for (let i = 0; i < daDinhDang.length; i++) {
-                if (/\d/.test(daDinhDang[i])) dem++;
-                if (dem === soKyTuTruocConTro) { viTriMoi = i + 1; break; }
-            }
-            input.setSelectionRange(viTriMoi, viTriMoi);
+            input.value = new Intl.NumberFormat('vi-VN').format(Number(chiSo));
         }
 
         function layGiaTriSoTuChuoi(chuoi) {
@@ -474,9 +479,7 @@
         }
 
         function generateVariantMatrix() {
-            if (!kiemTraThongTinBatBuoc()) {
-                return;
-            }
+            if (!kiemTraThongTinBatBuoc()) return;
 
             const tbody = document.getElementById('matrixTbody');
             const wrapper = document.getElementById('matrixTableWrapper');
@@ -485,9 +488,6 @@
 
             if (selectedMausGlobal.length === 0 || selectedTrongsGlobal.length === 0) {
                 alert('Vui lòng chọn ít nhất một Màu sắc và một Trọng lượng trước khi tạo danh sách biến thể!');
-                wrapper.style.display = 'none';
-                bulkPanel.style.display = 'none';
-                imgSection.style.display = 'none';
                 return;
             }
 
@@ -501,7 +501,6 @@
 
             selectedMausGlobal.forEach(mau => {
                 selectedTrongsGlobal.forEach(trong => {
-                    const key = `${mau.id}-${trong.id}`;
                     const tr = document.createElement('tr');
                     tr.className = 'matrix-row';
                     tr.setAttribute('data-mau-id', mau.id);
@@ -515,7 +514,7 @@
                         <td><input type="text" class="form-group input-sku" value="${prefixMaSP}-SKU-${mau.name.toUpperCase()}-${trong.name.toUpperCase()}" style="height:32px; padding:4px 8px; width:100%;" required></td>
                         <td><input type="text" inputmode="numeric" class="form-group input-nhap" placeholder="0" oninput="dinhDangSoTien(this)" style="height:32px; padding:4px 8px; width:100%;" required></td>
                         <td><input type="text" inputmode="numeric" class="form-group input-ban" placeholder="0" oninput="dinhDangSoTien(this)" style="height:32px; padding:4px 8px; width:100%;" required></td>
-                        <td><input type="number" class="form-group input-sl" value="10" min="0" placeholder="0" style="height:32px; padding:4px 8px; width:90px;" required></td>
+                        <td><input type="number" class="form-group input-sl" value="10" min="0" style="height:32px; padding:4px 8px; width:90px;" required></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -542,23 +541,19 @@
                     updatedCount++;
                 }
             });
-            if(updatedCount === 0) alert('Vui lòng tích chọn ít nhất 1 dòng ma trận biến thể bên dưới để áp dụng điền nhanh!');
+            if(updatedCount === 0) alert('Vui lòng tích chọn ít nhất 1 dòng ma trận biến thể bên dưới!');
         }
 
         function renderImageUploadCards() {
             const container = document.getElementById('imageUploadContainer');
             container.innerHTML = '';
-
             selectedMausGlobal.forEach(mau => {
                 const card = document.createElement('div');
                 card.className = 'image-upload-card';
                 card.setAttribute('data-mau-id', mau.id);
-
                 card.innerHTML = `
                     <div class="color-tag">Màu ${mau.name} *</div>
-                    <div class="img-preview-square">
-                        <img class="preview-img-tag" src="https://placehold.co/60x60?text=No+Image" style="opacity:0.3">
-                    </div>
+                    <div class="img-preview-square"><img class="preview-img-tag" src="https://placehold.co/60x60?text=No+Image" style="opacity:0.3"></div>
                     <button type="button" class="btn-upload-trigger" onclick="this.nextElementSibling.click()">Chọn ảnh đại diện màu</button>
                     <input type="file" name="fileAnhs" class="file-input-control" accept="image/*" style="display:none;" onchange="previewColorImage(this, ${mau.id})">
                     <input type="hidden" name="fileAnhMauIds" value="${mau.id}">
@@ -589,9 +584,18 @@
             if (loai === 'danh-muc') targetSelectId = "idDanhMuc";
             else if (loai === 'thuong-hieu') targetSelectId = "idThuongHieu";
             else if (loai === 'xuat-xu') targetSelectId = "idXuatXu";
+            else if (loai === 'do-cung') targetSelectId = "idDoCung";
+            else if (loai === 'diem-can-bang') targetSelectId = "idDiemCanBang";
+            else if (loai === 'chu-vi-can-vot') targetSelectId = "idChuViCanVot";
+            else if (loai === 'chat-lieu-than-vot') targetSelectId = "idChatLieuThanVot";
+            else if (loai === 'chat-lieu-khung-vot') targetSelectId = "idChatLieuKhungVot";
 
             document.getElementById('quickAddModalOverlay').style.display = 'flex';
         }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') dongModalThemNhanh();
+        });
 
         function dongModalThemNhanh() {
             document.getElementById('quickAddModalOverlay').style.display = 'none';
@@ -600,30 +604,21 @@
         async function submitThemNhanhThuocTinh() {
             const loai = document.getElementById('quickAddLoai').value;
             const ten = document.getElementById('quickAddTen').value.trim();
-
-            if (!ten) {
-                alert("Vui lòng nhập tên thuộc tính!");
-                return;
-            }
+            if (!ten) { alert("Vui lòng nhập tên thuộc tính!"); return; }
 
             try {
-                const response = await fetch(`/san-pham/api/them-nhanh-thuoc-tinh/${loai}?ten=${encodeURIComponent(ten)}`, {
-                    method: 'POST'
-                });
-
+                const response = await fetch(`/san-pham/api/them-nhanh-thuoc-tinh/${loai}?ten=${encodeURIComponent(ten)}`, { method: 'POST' });
                 if (response.ok) {
                     const data = await response.json();
                     const selectEl = document.getElementById(targetSelectId);
-
                     const newOption = new Option(data.ten, data.id, true, true);
                     selectEl.add(newOption);
-
-                    alert(`Thêm mới thành công thuộc tính với Mã tự tăng: [${data.ma}]!`);
+                    alert(`Thêm mới thành công thuộc tính: [${data.ten}]!`);
                     dongModalThemNhanh();
                     selectEl.classList.remove('field-error');
                 } else {
                     const errData = await response.json();
-                    alert("Lỗi từ hệ thống: " + (errData.message || "Không thể lưu thuộc tính"));
+                    alert("Lỗi: " + (errData.message || "Không thể lưu thuộc tính"));
                 }
             } catch (e) {
                 alert("Mất kết nối server, vui lòng thử lại sau!");
@@ -631,45 +626,29 @@
         }
 
         async function validateAndSubmitForm(event) {
-            event.preventDefault(); // Chặn submit mặc định để thực hiện kiểm tra
+            event.preventDefault();
+            if (!kiemTraThongTinBatBuoc()) return false;
 
-            // 1. Kiểm tra các trường thông tin bắt buộc phía trên
-            if (!kiemTraThongTinBatBuoc()) {
-                return false;
-            }
-
-            // 2. Kiểm tra danh sách biến thể trong bảng ma trận
             const matrixRows = document.querySelectorAll('.matrix-row');
-            if (matrixRows.length === 0) {
-                alert('Lỗi: Bạn chưa bấm nút "Tạo danh sách biến thể"!');
-                return false;
-            }
+            if (matrixRows.length === 0) { alert('Lỗi: Bạn chưa bấm nút "Tạo danh sách biến thể"!'); return false; }
 
             let validMatrix = true;
             matrixRows.forEach(row => {
                 const sku = row.querySelector('.input-sku').value.trim();
                 const nhap = layGiaTriSoTuChuoi(row.querySelector('.input-nhap').value);
                 const ban = layGiaTriSoTuChuoi(row.querySelector('.input-ban').value);
-                const sl = parseInt(row.querySelector('.input-sl').value) || 0;
-
                 if(!sku) { alert('Mã SKU biến thể không được bỏ trống!'); validMatrix = false; }
-                if(nhap <= 0 || ban <= 0) { alert(`Mã SKU [${sku}]: Giá nhập và Giá bán phải lớn hơn 0 đ!`); validMatrix = false; }
-                if(ban < nhap) { alert(`Mã SKU [${sku}]: Lỗi thiết lập, giá bán lẻ không được nhỏ hơn giá nhập kho!`); validMatrix = false; }
-                if(sl < 0) { alert(`Mã SKU [${sku}]: Số lượng tồn kho không được là số âm!`); validMatrix = false; }
+                if(nhap <= 0 || ban <= 0) { alert(`Mã SKU [${sku}]: Giá nhập và giá bán phải lớn hơn 0!`); validMatrix = false; }
+                if(ban < nhap) { alert(`Mã SKU [${sku}]: Giá bán lẻ không được nhỏ hơn giá nhập!`); validMatrix = false; }
             });
             if(!validMatrix) return false;
 
-            // 3. Kiểm tra tệp tin hình ảnh bắt buộc theo màu sắc
             let missingImage = false;
             document.querySelectorAll('.file-input-control').forEach(input => {
                 if(input.files.length === 0) missingImage = true;
             });
-            if(missingImage) {
-                alert('Lỗi validate: Mọi màu sắc được chọn kinh doanh đều bắt buộc phải chọn một tệp tin hình ảnh đại diện hiển thị!');
-                return false;
-            }
+            if(missingImage) { alert('Lỗi: Mọi màu sắc kinh doanh đều bắt buộc phải chọn hình ảnh!'); return false; }
 
-            // 4. Đóng gói danh sách dữ liệu biến thể từ ma trận
             const listVariantsData = [];
             matrixRows.forEach(row => {
                 listVariantsData.push({
@@ -684,7 +663,6 @@
             });
             document.getElementById('bienTheJson').value = JSON.stringify(listVariantsData);
 
-            // 5. 🛑 LOGIC NGHIỆP VỤ CAO CẤP: KIỂM TRA TRÙNG THÔNG SỐ NỀN SẢN PHẨM CHA
             const currentSpecs = {
                 idDanhMuc: document.getElementById('idDanhMuc').value,
                 idDoCung: document.getElementById('idDoCung').value,
@@ -707,43 +685,33 @@
                 }
             }
 
-            // Trường hợp phát hiện trùng khít hoàn toàn 6 thông số kỹ thuật nền
             if(duplicatedProduct) {
-                // Tạo hộp thoại confirm 3 tùy chọn bằng giao diện UI/UX thông minh
                 const thôngBaoLựaChon = confirm(
                     `⚠️ CẢNH BÁO TRÙNG LẶP THÔNG SỐ NỀN:\n\n` +
-                    `Cấu hình thông số kỹ thuật bạn vừa chọn trùng khớp 100% với dòng vợt đã tồn tại trên hệ thống:\n` +
+                    `Thông số kỹ thuật trùng khớp 100% với dòng vợt đã tồn tại:\n` +
                     `👉 [${duplicatedProduct.maSanPham}] - ${duplicatedProduct.tenSanPham}\n\n` +
-                    `Hệ thống Aerion Sports đưa ra giải pháp:\n` +
-                    `- Nhấn [ OK ] để TỰ ĐỘNG GỘP các biến thể mới này trực tiếp vào sản phẩm cũ đã có trên hệ thống.\n` +
-                    `- Nhấn [ CANCEL ] nếu bạn muốn chuyển hướng sang trang quản lý biến thể của dòng vợt cũ để kiểm tra lại.`
+                    `- Nhấn [ OK ] để TỰ ĐỘNG GỘP các biến thể mới này trực tiếp vào sản phẩm cũ.\n` +
+                    `- Nhấn [ CANCEL ] để chuyển sang trang quản lý biến thể của dòng vợt cũ.`
                 );
 
                 if (thôngBaoLựaChon) {
-                    // HƯỚNG 1: Người dùng chọn GỘP biến thể vào sản phẩm cha cũ
-                    // Gán lại ID sản phẩm cha cũ vào form để Backend xử lý lưu nối tiếp thay vì tạo mới
-                    let hiddenIdSP = document.querySelector('input[name="idSanPham"]');
+                    let hiddenIdSP = document.querySelector('input[name="idSanPhamGop"]');
                     if(!hiddenIdSP) {
                         hiddenIdSP = document.createElement('input');
                         hiddenIdSP.type = 'hidden';
-                        hiddenIdSP.name = 'idSanPhamGop'; // Backend nhận biết yêu cầu gộp bằng trường này
+                        hiddenIdSP.name = 'idSanPhamGop';
                         document.getElementById('formGrandProduct').appendChild(hiddenIdSP);
                     }
                     hiddenIdSP.value = duplicatedProduct.id;
-
-                    // Thực hiện submit form gửi yêu cầu gộp về Backend
                     document.getElementById('formGrandProduct').submit();
                     return true;
                 } else {
-                    // HƯỚNG 2: Người dùng muốn hủy để kiểm tra hoặc đi thẳng tới trang danh sách biến thể cũ
                     window.location.href = `/san-pham/bien-the?idSP=${duplicatedProduct.id}&maSP=${duplicatedProduct.maSanPham}&tenSP=${duplicatedProduct.tenSanPham}`;
                     return false;
                 }
             }
 
-            // Nếu thông số nền hoàn toàn mới, tiến hành tạo sản phẩm cha bình thường
-            const xacNhanTaoMoi = confirm('Hệ thống Aerion Sports xác nhận:\n\nBạn có chắc chắn muốn khởi tạo dòng sản phẩm mới cùng danh sách biến thể này không?');
-            if (xacNhanTaoMoi) {
+            if (confirm('Bạn có chắc chắn muốn khởi tạo dòng sản phẩm mới cùng danh sách biến thể này không?')) {
                 document.getElementById('formGrandProduct').submit();
                 return true;
             }

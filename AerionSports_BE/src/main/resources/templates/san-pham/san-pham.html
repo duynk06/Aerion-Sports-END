@@ -6,43 +6,75 @@
 
 <div th:fragment="content">
     <link rel="stylesheet" th:href="@{/san-pham/san-pham.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Tinh chỉnh lại khung bộ lọc dạng lưới xếp ô truyền thống nhưng mỏng nhẹ, vừa vặn mắt */
+        .filter-box-custom {
+            background: #ffffff; padding: 20px 25px; border-radius: 12px;
+            border: 1px solid #edf2f7; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); margin-bottom: 20px;
+        }
+        .card-header-custom {
+            display: flex; align-items: center; gap: 10px;
+            background: #f79b66; color: white; padding: 12px 18px;
+            border-radius: 8px; margin-bottom: 18px; font-weight: 600; font-size: 15px; text-align: left;
+        }
+
+        /* Giữ nguyên cấu trúc lưới filter ô vuông của bạn nhưng thu hẹp khoảng cách thoáng đãng */
+        .filter-grid-custom {
+            display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; text-align: left;
+        }
+        .form-group-custom { display: flex; flex-direction: column; align-items: stretch; }
+        .form-group-custom label { margin-bottom: 6px; font-size: 12.5px; font-weight: 600; color: #4a5568; }
+
+        /* Hạ độ cao của các ô nhập xuống 36px gọn gàng, chữ tinh tế hơn */
+        .form-group-custom input, .form-group-custom select {
+            width: 100%; height: 36px !important; box-sizing: border-box; border: 1px solid #cbd5e1;
+            border-radius: 8px; padding: 0 12px; color: #333; font-size: 13.5px; outline: none;
+            transition: border-color 0.2s; font-family: Arial, sans-serif;
+        }
+        .form-group-custom input:focus, .form-group-custom select:focus { border-color: #f79b66; }
+        .price-slider-container { display: flex; align-items: center; height: 36px; }
+        .custom-slider-compact { width: 100%; accent-color: #f79b66; cursor: pointer; }
+
+        /* Tinh chỉnh làm cặp nút bấm hành động ở góc dưới nhỏ gọn, bé lại tinh tế */
+        .filter-action-custom {
+            display: flex; justify-content: flex-end; gap: 10px;
+            margin-top: 15px; padding-top: 12px; border-top: 1px solid #f1f5f9;
+        }
+        .btn-reset-custom, .btn-search-custom {
+            border: none; border-radius: 6px; padding: 8px 18px;
+            cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s ease; text-decoration: none;
+        }
+        .btn-reset-custom { background: #f3f4f6; color: #4b5563; text-decoration: none; text-align: center; display: inline-block; line-height: 18px; }
+        .btn-reset-custom:hover { background: #e5e7eb; }
+        .btn-search-custom { background: #e6f7f0; color: #0aa06e; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-search-custom:hover { background: #ccefe3; transform: translateY(-1px); }
+    </style>
 
     <div class="breadcrumb-container">
-        <div class="breadcrumb-text">
-            <strong>Quản lý sản phẩm</strong> / Danh sách sản phẩm hệ thống
-        </div>
         <button type="button" class="btn-toggle-filter" onclick="toggleFilterPanel()">Ẩn/Hiện bộ lọc</button>
     </div>
 
-    <div class="filter-container-orange" id="filterPanel">
-        <div class="filter-header-title"><i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm</div>
-        <div class="filter-body-content">
-            <form method="get" th:action="@{/san-pham}" class="filter-grid">
-                <input type="hidden" name="page" value="0"/>
-                <input type="hidden" name="size" th:value="${pageSize}"/>
+    <div class="filter-box-custom" id="filterPanel">
+        <div class="card-header-custom">
+            <i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm
+        </div>
 
-                <div class="filter-item">
-                    <label>Tìm kiếm</label>
+        <form method="get" th:action="@{/san-pham}">
+            <input type="hidden" name="page" value="0"/>
+            <input type="hidden" name="size" th:value="${pageSize}"/>
+
+            <div class="filter-grid-custom">
+                <div class="form-group-custom">
+                    <label>Tìm kiếm sản phẩm:</label>
                     <input type="text" name="keyword" th:value="${keyword}" placeholder="Mã hoặc tên sản phẩm..."/>
                 </div>
 
-                <div class="filter-item slider-item">
-                    <label>Khoảng giá : 0đ - <span id="giaMaxLabel" th:text="${#numbers.formatInteger(giaCaoNhatHeThong, 1, 'POINT')}">50.000.000</span>đ</label>
-                    <div class="price-slider-wrapper">
-                        <input type="range" id="giaMaxSlider" min="0" th:max="${giaCaoNhatHeThong}" step="1" th:value="${giaCaoNhatHeThong}"
-                               class="custom-slider" oninput="onGiaMaxChange(this.value)"/>
-                    </div>
-                </div>
-
-                <div class="filter-item" style="max-width: 140px;">
-                    <label>Số lượng tồn tối thiểu</label>
-                    <input type="number" name="soLuongMin" th:value="${soLuongMin}" min="0" placeholder="Ví dụ: 0, 10..."/>
-                </div>
-
-                <div class="filter-item">
-                    <label>Thương hiệu</label>
-                    <select name="idThuongHieu" onchange="this.form.submit()">
-                        <option value="">-- Tất cả --</option>
+                <div class="form-group-custom">
+                    <label>Thương hiệu:</label>
+                    <select name="idThuongHieu">
+                        <option value="">Tất cả</option>
                         <option th:each="th : ${danhSachThuongHieu}"
                                 th:value="${th.id}"
                                 th:selected="${idThuongHieu != null and idThuongHieu == th.id}"
@@ -50,10 +82,10 @@
                     </select>
                 </div>
 
-                <div class="filter-item">
-                    <label>Xuất xứ</label>
-                    <select name="idXuatXu" onchange="this.form.submit()">
-                        <option value="">-- Tất cả --</option>
+                <div class="form-group-custom">
+                    <label>Xuất xứ:</label>
+                    <select name="idXuatXu">
+                        <option value="">Tất cả</option>
                         <option th:each="xx : ${danhSachXuatXu}"
                                 th:value="${xx.id}"
                                 th:selected="${idXuatXu != null and idXuatXu == xx.id}"
@@ -61,21 +93,35 @@
                     </select>
                 </div>
 
-                <div class="filter-item">
-                    <label>Trạng thái</label>
-                    <select name="trangThai" onchange="this.form.submit()">
-                        <option value="">-- Tất cả --</option>
+                <div class="form-group-custom">
+                    <label>Trạng thái:</label>
+                    <select name="trangThai">
+                        <option value="">Tất cả</option>
                         <option value="1" th:selected="${trangThai != null and trangThai == 1}">Đang kinh doanh</option>
                         <option value="0" th:selected="${trangThai != null and trangThai == 0}">Ngừng kinh doanh</option>
                     </select>
                 </div>
 
-                <div class="filter-item filter-actions">
-                    <button type="submit" class="btn-trigger-filter">Tìm kiếm</button>
-                    <a th:href="@{/san-pham}" class="btn-filter-clear">Đặt lại</a>
+                <div class="form-group-custom">
+                    <label>Số lượng tồn tối thiểu:</label>
+                    <input type="number" name="soLuongMin" th:value="${soLuongMin}" min="0" placeholder="Ví dụ: 0, 10..."/>
                 </div>
-            </form>
-        </div>
+
+                <div class="form-group-custom">
+                    <label>Khoảng giá tối đa (<span id="giaMaxLabel" th:text="${giaMaxChon != null ? #numbers.formatInteger(giaMaxChon, 1, 'POINT') : #numbers.formatInteger(giaCaoNhatHeThong, 1, 'POINT')}">50.000.000</span>đ):</label>
+                    <div class="price-slider-container">
+                        <input type="range" id="giaMaxSlider" name="giaMax" min="0" th:max="${giaCaoNhatHeThong}" step="1"
+                               th:value="${giaMaxChon != null ? giaMaxChon : giaCaoNhatHeThong}"
+                               class="custom-slider-compact" oninput="onGiaMaxChange(this.value)"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-action-custom">
+                <a th:href="@{/san-pham}" class="btn-reset-custom">Đặt lại</a>
+                <button type="submit" class="btn-search-custom">Lọc dữ liệu</button>
+            </div>
+        </form>
     </div>
 
     <div class="data-table-container">
@@ -105,9 +151,7 @@
             <tr th:if="${#lists.isEmpty(danhSachSanPham)}">
                 <td colspan="9" class="empty-table-row">Không tìm thấy sản phẩm nào khớp với bộ lọc dữ liệu!</td>
             </tr>
-            <tr th:each="sp, iter : ${danhSachSanPham}"
-                th:data-gia-min="${thongKeBienThe[sp.id] != null ? thongKeBienThe[sp.id].giaMin : 0}"
-                th:data-ton="${thongKeBienThe[sp.id] != null ? thongKeBienThe[sp.id].tongTon : 0}">
+            <tr th:each="sp, iter : ${danhSachSanPham}">
                 <td style="text-align: center;" th:text="${currentPage * pageSize + iter.count}"></td>
                 <td><span class="product-code-text" th:text="${sp.maSanPham}"></span></td>
                 <td th:text="${sp.tenSanPham}"></td>
@@ -155,54 +199,19 @@
                 Tổng số: <strong th:text="${totalElements}"></strong> sản phẩm hệ thống
             </div>
             <div class="pagination-right-controls">
-
-                <!-- Nút Trang trước -->
-                <a class="page-arrow-btn"
-                   th:if="${currentPage > 0}"
-                   th:href="@{/san-pham(
-            keyword=${keyword},
-            idThuongHieu=${idThuongHieu},
-            idXuatXu=${idXuatXu},
-            trangThai=${trangThai},
-            page=${currentPage - 1},
-            size=${pageSize})}">
-                    &lt;
-                </a>
-
-                <span class="page-arrow-btn disabled"
-                      th:if="${currentPage == 0}">
-        &lt;
-    </span>
-
-                <!-- Hiển thị số trang -->
-                <span class="page-text-indicator"
-                      th:text="'Trang ' + (${currentPage} + 1) + ' / ' + (${totalPages > 0 ? totalPages : 1})">
-    </span>
-
-                <!-- Nút Trang sau -->
-                <a class="page-arrow-btn"
-                   th:if="${currentPage < totalPages - 1}"
-                   th:href="@{/san-pham(
-            keyword=${keyword},
-            idThuongHieu=${idThuongHieu},
-            idXuatXu=${idXuatXu},
-            trangThai=${trangThai},
-            page=${currentPage + 1},
-            size=${pageSize})}">
-                    &gt;
-                </a>
-
-                <span class="page-arrow-btn disabled"
-                      th:if="${currentPage >= totalPages - 1}">
-        &gt;
-    </span>
-
+                <a class="page-arrow-btn" th:if="${currentPage > 0}"
+                   th:href="@{/san-pham(keyword=${keyword}, idThuongHieu=${idThuongHieu}, idXuatXu=${idXuatXu}, trangThai=${trangThai}, soLuongMin=${soLuongMin}, giaMax=${giaMaxChon}, page=${currentPage - 1}, size=${pageSize})}">&lt;</a>
+                <span class="page-arrow-btn disabled" th:if="${currentPage == 0}">&lt;</span>
+                <span class="page-text-indicator" th:text="'Trang ' + (${currentPage} + 1) + ' / ' + (${totalPages > 0 ? totalPages : 1})"></span>
+                <a class="page-arrow-btn" th:if="${currentPage < totalPages - 1}"
+                   th:href="@{/san-pham(keyword=${keyword}, idThuongHieu=${idThuongHieu}, idXuatXu=${idXuatXu}, trangThai=${trangThai}, soLuongMin=${soLuongMin}, giaMax=${giaMaxChon}, page=${currentPage + 1}, size=${pageSize})}">&gt;</a>
+                <span class="page-arrow-btn disabled" th:if="${currentPage >= totalPages - 1}">&gt;</span>
             </div>
         </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script th:src="@{/san-pham/san-pham.js}"></script>
 </div>
-
 </body>
 </html>

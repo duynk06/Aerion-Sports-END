@@ -209,7 +209,6 @@ public class HoaDonServiceImpl implements HoaDonService {
             case 4 -> "Đã giao hàng";
             case 5 -> "Đã hoàn thành";
             case 6 -> "Đã hủy";
-            case 7 -> "Yêu cầu hủy";
             default -> "Khởi tạo";
         };
     }

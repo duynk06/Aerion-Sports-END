@@ -46,6 +46,8 @@ public class HoaDonResponse {
     //--THÔNG TIN PHIẾU GIẢM GIÁ
     private String maPhieuGiamGia;
     private String tenPhieuGiamGia;
+    private String loaiPhieuGiamGia;      // ← THÊM: "PHAN_TRAM", "VAN_CHUYEN", hoặc mặc định (số tiền cố định)
+    private BigDecimal giaTriGiamGoc;
 
     public HoaDonResponse(HoaDon hoaDon) {
         this.id = hoaDon.getId();
@@ -90,6 +92,8 @@ public class HoaDonResponse {
         if(hoaDon.getPhieuGiamGia() != null) {
             this.tenPhieuGiamGia = hoaDon.getPhieuGiamGia().getTenPhieuGiamGia();
             this.maPhieuGiamGia = hoaDon.getPhieuGiamGia().getMaPhieuGiamGia();
+            this.loaiPhieuGiamGia = hoaDon.getPhieuGiamGia().getLoaiPhieuGiamGia();   // ← THÊM
+            this.giaTriGiamGoc = hoaDon.getPhieuGiamGia().getGiaTriGiam();           // ← THÊM
         }
     }
 
@@ -104,7 +108,6 @@ public class HoaDonResponse {
             case 4 -> "status-delivered";
             case 5 -> "status-completed";
             case 6 -> "status-cancel";
-            case 7 -> "status-request-cancel";
             default -> "";
         };
     }
@@ -119,7 +122,6 @@ public class HoaDonResponse {
             case 4 -> "Đã giao hàng";
             case 5 -> "Đã hoàn thành";
             case 6 -> "Đã hủy";
-            case 7 -> "Yêu cầu hủy";
             default -> "Không xác định";
         };
     }

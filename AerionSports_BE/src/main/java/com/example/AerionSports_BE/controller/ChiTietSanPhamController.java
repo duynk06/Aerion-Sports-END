@@ -171,20 +171,32 @@ public class ChiTietSanPhamController {
         return "san-pham/sua-bien-the";
     }
 
-    // 5. Xử lý nhận dữ liệu POST lưu thực thể biến thể mới
+    // 5. Xử lý nhận dữ liệu POST lưu thực thể biến thể mới (Đã tối ưu cho giao diện rút gọn)
     @PostMapping("/san-pham/bien-the/luu")
     public String luuBienThe(
             @ModelAttribute ChiTietSanPhamRequest request,
             @RequestParam("idSP") Integer idSP,
             @RequestParam("maSP") String maSP,
-            @RequestParam("tenSP") String tenSP
+            @RequestParam("tenSP") String tenSP,
+            @RequestParam(value = "fileAnh", required = false) MultipartFile fileAnh // Nhận tệp ảnh nếu giao diện đẩy lên
     ) {
         try {
+            // Thiết lập các thuộc tính ngầm để đảm bảo tính toàn vẹn của DTO/Entity
+            request.setIdSanPham(idSP);
+            request.setTrangThai(1); // Mặc định biến thể mới tạo ở trạng thái Đang hoạt động
+
+            // Nếu Service của bạn có hàm hỗ trợ upload xử lý fileAnh kèm Request, hãy truyền vào.
+            // Nếu dùng hàm mặc định, Spring sẽ tự động ánh xạ các trường số tiền thông qua @ModelAttribute.
             chiTietSanPhamService.save(request);
-            return "redirect:/san-pham/bien-the?idSP=" + idSP + "&maSP=" + maSP + "&tenSP=" + tenSP;
+
+            // Mã hóa tên sản phẩm tránh lỗi ký tự tiếng Việt có dấu trên URL khi redirect
+            String encodedTen = URLEncoder.encode(tenSP, StandardCharsets.UTF_8);
+            return "redirect:/san-pham/bien-the?idSP=" + idSP + "&maSP=" + maSP + "&tenSP=" + encodedTen;
         } catch (Exception e) {
+            e.printStackTrace();
             String encodedError = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-            return "redirect:/san-pham/bien-the/them-moi?idSP=" + idSP + "&maSP=" + maSP + "&tenSP=" + tenSP + "&error=" + encodedError;
+            String encodedTen = URLEncoder.encode(tenSP, StandardCharsets.UTF_8);
+            return "redirect:/san-pham/bien-the/them-moi?idSP=" + idSP + "&maSP=" + maSP + "&tenSP=" + encodedTen + "&error=" + encodedError;
         }
     }
 

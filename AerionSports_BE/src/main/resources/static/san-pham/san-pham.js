@@ -1,30 +1,18 @@
 function toggleFilterPanel() {
     const panel = document.getElementById('filterPanel');
-    panel.style.display = (panel.style.display === 'none') ? '' : 'none';
+    if (!panel) return;
+    panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
 }
 
-// 🟢 ĐÃ SỬA: Định dạng phân tách dấu chấm tiền tệ vi-VN động khi kéo slider
+// Định dạng dấu chấm tiền tệ vi-VN động trực tiếp khi kéo thanh slider
 function onGiaMaxChange(value) {
-    document.getElementById('giaMaxLabel').innerText = new Intl.NumberFormat('vi-VN').format(value);
-    applyClientFilter();
+    const label = document.getElementById('giaMaxLabel');
+    if (label) {
+        label.textContent = new Intl.NumberFormat('vi-VN').format(value);
+    }
 }
 
-function applyClientFilter() {
-    const slider = document.getElementById('giaMaxSlider');
-    if (!slider) return;
-
-    const giaMax = Number(slider.value);
-
-    const rows = document.querySelectorAll('#tblSanPham tbody tr[data-gia-min]');
-    rows.forEach(row => {
-        const giaMin = Number(row.getAttribute('data-gia-min')) || 0;
-
-        // Chỉ lọc theo khoảng giá của slider kéo nhanh
-        const matchGia = giaMin <= giaMax;
-        row.style.display = matchGia ? '' : 'none';
-    });
-}
-
+// Thay đổi nhanh trạng thái kinh doanh của sản phẩm cha
 async function toggleTrangThai(id, trangThaiHienTai, event) {
     if (event) event.stopPropagation();
 
@@ -39,7 +27,7 @@ async function toggleTrangThai(id, trangThaiHienTai, event) {
         const res = await fetch(`/san-pham/api/san-pham/${id}/trang-thai?trangThai=${trangThaiMoi}`, {
             method: 'PUT'
         });
-        if (!res.ok) throw new Error('Request failed');
+        if (!res.ok) throw new Error('Cập nhật trạng thái thất bại!');
         alert('Thay đổi trạng thái sản phẩm và các biến thể thành công!');
         window.location.reload();
     } catch (e) {
@@ -47,12 +35,15 @@ async function toggleTrangThai(id, trangThaiHienTai, event) {
     }
 }
 
+// Xuất Excel các dòng dữ liệu đang hiển thị trên bảng
 function exportToExcel() {
     const table = document.getElementById('tblSanPham');
+    if (!table) return;
+
     const visibleRows = Array.from(table.querySelectorAll('tbody tr')).filter(r => r.style.display !== 'none' && !r.classList.contains('empty-table-row'));
 
     if (visibleRows.length === 0) {
-        alert('Không có dữ liệu để xuất Excel!');
+        alert('Không có dữ liệu hợp lệ để xuất Excel!');
         return;
     }
     if (!confirm('Bạn có chắc chắn muốn xuất danh sách sản phẩm hiện tại ra file Excel không?')) return;
@@ -80,5 +71,3 @@ function exportToExcel() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Sản phẩm');
     XLSX.writeFile(workbook, 'Danh_sach_san_pham.xlsx');
 }
-
-document.addEventListener('DOMContentLoaded', applyClientFilter);

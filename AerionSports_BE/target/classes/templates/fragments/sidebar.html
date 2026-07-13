@@ -152,54 +152,77 @@
     <i class="fa-solid fa-users"></i> <span>Khách hàng</span>
   </a>
 
-  <!-- JS xử lý Đóng/Mở và Tự động Sáng Menu -->
   <script>
-    // Hàm đóng mở menu thủ công
-    function toggleSubmenu(element) {
-      const submenu = element.nextElementSibling;
-      const chevron = element.querySelector('.toggle-icon');
+  // Hàm đóng mở menu thủ công
+  function toggleSubmenu(element) {
+  const submenu = element.nextElementSibling;
+  const chevron = element.querySelector('.toggle-icon');
 
-      if (submenu.style.display === "block") {
-        submenu.style.display = "none";
-        chevron.classList.replace('fa-chevron-down', 'fa-chevron-right');
-      } else {
-        submenu.style.display = "block";
-        chevron.classList.replace('fa-chevron-right', 'fa-chevron-down');
-      }
-    }
+  if (submenu.style.display === "block") {
+  submenu.style.display = "none";
+  chevron.classList.replace('fa-chevron-down', 'fa-chevron-right');
+  } else {
+  submenu.style.display = "block";
+  chevron.classList.replace('fa-chevron-right', 'fa-chevron-down');
+  }
+  }
 
-    // Script tự động kích hoạt menu dựa vào URL khi trang vừa tải xong
-    document.addEventListener("DOMContentLoaded", function() {
-      const currentPath = window.location.pathname;
-      const links = document.querySelectorAll('.menu-list a');
+  // Script tự động kích hoạt menu và đổi tiêu đề Header dựa vào URL
+  document.addEventListener("DOMContentLoaded", function() {
+  const currentPath = window.location.pathname;
+  const links = document.querySelectorAll('.menu-list a');
 
-      links.forEach(link => {
-        const href = link.getAttribute('href');
-        if (!href) return;
+  // Tìm thẻ tiêu đề ở trên Header của Layout
+  const mainTitleElement = document.querySelector('.main-layout-title');
+  const baseTitle = "Quản lý hệ thống"; // Tiêu đề gốc mặc định
 
-        // Nếu đường dẫn hiện tại khớp đúng hoặc là trang con của href
-        if (currentPath === href || currentPath.startsWith(href + '/')) {
-          link.classList.add('active');
+  links.forEach(link => {
+  const href = link.getAttribute('href');
+  if (!href) return;
 
-          // Nếu là menu con (sub-item), ta tự động xổ menu cha ra và làm sáng menu cha
-          if (link.classList.contains('sub-item')) {
-            const submenu = link.closest('.submenu');
-            if (submenu) {
-              submenu.style.display = 'block'; // Mở danh sách con
+  // Nếu đường dẫn hiện tại khớp đúng hoặc là trang con của href
+  if (currentPath === href || currentPath.startsWith(href + '/')) {
+  link.classList.add('active');
 
-              const parentItem = submenu.previousElementSibling;
-              if (parentItem) {
-                parentItem.classList.add('active'); // Làm sáng mục cha (vd: Thuộc tính)
-                const chevron = parentItem.querySelector('.toggle-icon');
-                if (chevron) {
-                  chevron.classList.replace('fa-chevron-right', 'fa-chevron-down');
-                }
-              }
-            }
-          }
-        }
-      });
-    });
+  let breadcrumbText = baseTitle;
+
+  // TRƯỜNG HỢP 1: Nếu là menu con (sub-item)
+  if (link.classList.contains('sub-item')) {
+  const submenu = link.closest('.submenu');
+  if (submenu) {
+  submenu.style.display = 'block'; // Mở danh sách con
+
+  const parentItem = submenu.previousElementSibling;
+  if (parentItem) {
+  parentItem.classList.add('active'); // Làm sáng mục cha (vd: Thuộc tính)
+  const chevron = parentItem.querySelector('.toggle-icon');
+  if (chevron) {
+  chevron.classList.replace('fa-chevron-right', 'fa-chevron-down');
+  }
+
+  // Lấy text của mục cha và mục con để tạo chuỗi: "Quản lý hệ thống / Thuộc tính / Màu sắc"
+  const parentText = parentItem.querySelector('span').textContent.trim();
+  const childText = link.textContent.trim();
+  breadcrumbText += ` / ${parentText} / ${childText}`;
+  }
+  }
+  }
+  // TRƯỜNG HỢP 2: Nếu là menu cấp 1 bình thường (Trang chủ, Hóa đơn, Bán hàng,...)
+  else {
+  const itemText = link.querySelector('span').textContent.trim();
+  // Tránh bị lặp chữ nếu bấm vào trang chủ/hoặc trang trùng tên
+  if(itemText !== baseTitle) {
+  breadcrumbText += ` / ${itemText}`;
+  }
+  }
+
+  // Cập nhật text lên Header của Layout nếu tìm thấy thẻ
+  if (mainTitleElement) {
+  mainTitleElement.textContent = breadcrumbText;
+  }
+  }
+  });
+  });
   </script>
 
 </div>

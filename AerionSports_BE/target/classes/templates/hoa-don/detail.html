@@ -52,7 +52,6 @@
       object-fit: contain;
     }
     .status-banner.wait{background:#fef3c7;color:#92400e;}
-    .status-banner.cancel-req{background:#ffedd5;color:#9a3412;}
     .status-banner.cancelled{background:#fee2e2;color:#b91c1c;}
     .status-banner.done{background:#dcfce7;color:#166534;}
     .order-steps{display:flex;justify-content:space-between;margin:10px 0 20px;}
@@ -127,21 +126,19 @@
     <div class="card-title"><i class="fa-solid fa-truck-fast"></i><span>Trạng thái đơn hàng</span></div>
 
     <!-- Tại quầy hoặc trạng thái đặc biệt -> banner -->
-    <div th:if="${hoaDon.loaiHoaDon == 0 or hoaDon.trangThai == 6 or hoaDon.trangThai == 7}"
+    <div th:if="${hoaDon.loaiHoaDon == 0 or hoaDon.trangThai == 6}"
          class="status-banner">
 
       <div class="status-icon" th:switch="${hoaDon.trangThai}">
         <i th:case="0" class="fa-solid fa-hourglass-half"></i>
         <i th:case="6" class="fa-solid fa-ban"></i>
-        <i th:case="7" class="fa-solid fa-triangle-exclamation"></i>
         <i th:case="*" class="fa-solid fa-flag-checkered"></i>
       </div>
 
       <span th:text="${hoaDon.trangThaiName}"></span>
     </div>
 
-    <!-- Đơn online bình thường (0-5) -> step bar -->
-    <div class="order-steps" th:unless="${hoaDon.loaiHoaDon == 0 or hoaDon.trangThai == 6 or hoaDon.trangThai == 7}">
+    <div class="order-steps" th:unless="${hoaDon.loaiHoaDon == 0 or hoaDon.trangThai == 6}">
 
       <div class="step" th:each="s : ${#numbers.sequence(0,5)}"
            th:classappend="${s <= hoaDon.trangThai} ? 'active active-line' : ''">
@@ -187,7 +184,29 @@
         <span th:text="${#numbers.formatDecimal(hoaDon.tongTienHang,0,'COMMA',0,'POINT')} + ' đ'"></span></div>
       <div class="summary-item">
         <span>Giảm giá <small th:if="${hoaDon.maPhieuGiamGia}" th:text="'(' + ${hoaDon.maPhieuGiamGia} + ')'"></small></span>
-        <span th:text="${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ'"></span>
+
+        <!-- Phiếu phần trăm: chấp nhận "PHAN_TRAM" (không phân biệt hoa thường) hoặc chứa ký tự % -->
+        <span th:if="${hoaDon.maPhieuGiamGia != null
+                and hoaDon.loaiPhieuGiamGia != null
+                and (#strings.equalsIgnoreCase(hoaDon.loaiPhieuGiamGia,'PHAN_TRAM')
+                     or #strings.contains(hoaDon.loaiPhieuGiamGia,'%'))}"
+              class="discount-badge"
+              th:text="${#numbers.formatDecimal(hoaDon.giaTriGiamGoc,0,'COMMA',0,'POINT')} + '% (' + ${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ)'">
+  </span>
+
+        <!-- Phiếu số tiền cố định / vận chuyển -->
+        <span th:if="${hoaDon.maPhieuGiamGia != null
+                and (hoaDon.loaiPhieuGiamGia == null
+                     or (not #strings.equalsIgnoreCase(hoaDon.loaiPhieuGiamGia,'PHAN_TRAM')
+                         and not #strings.contains(hoaDon.loaiPhieuGiamGia,'%')))}"
+              class="discount-badge"
+              th:text="${#numbers.formatDecimal(hoaDon.giaTriGiamGoc,0,'COMMA',0,'POINT')} + ' đ (' + ${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ)'">
+  </span>
+
+        <!-- Không có phiếu giảm giá -->
+        <span th:if="${hoaDon.maPhieuGiamGia == null}"
+              th:text="${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ'">
+  </span>
       </div>
       <div class="summary-item">
         <span class="shipping-label">Phí vận chuyển <img class="imageVanChuyen" src="/images/image.png" alt=""> </span>
@@ -314,7 +333,6 @@
             <option value="4">Đã giao hàng</option>
             <option value="5">Đã hoàn thành</option>
             <option value="6">Đã hủy</option>
-            <option value="7">Yêu cầu hủy</option>
           </select>
         </div>
         <button class="search-history-btn" onclick="resetHistoryFilter()"><i class="fa-solid fa-rotate-right"></i></button>
@@ -335,7 +353,6 @@
             <span th:case="4">Đã giao hàng</span>
             <span th:case="5">Đã hoàn thành</span>
             <span th:case="6">Đã hủy</span>
-            <span th:case="7">Yêu cầu hủy</span>
             <span th:case="*">Khởi tạo</span>
           </td>
           <td th:text="${item.tenNhanVien}"></td>
@@ -385,12 +402,6 @@
           </select>
         </div>
 
-        <div th:if="${hoaDon.trangThai == 7}" style="margin-bottom:14px;">
-          <label style="font-size:13px;font-weight:600;">Chuyển sang</label>
-          <select name="trangThaiMoi" style="width:100%;height:36px;border-radius:6px;border:1px solid #d1d5db;margin-top:6px;">
-            <option value="6">Đã hủy</option>
-          </select>
-        </div>
 
         <div th:if="${hoaDon.trangThai == 5 or hoaDon.trangThai == 6}"
              style="color:#888;font-size:13px;text-align:center;padding:12px;background:#f3f4f6;border-radius:8px;margin-bottom:14px;">

@@ -18,6 +18,7 @@ public class SanPhamFilter {
 
     private Integer trangThai;
     private Integer soLuongMin;
+    private Long giaMax;
     private int page = 0;
     private int size = 10;
 }
