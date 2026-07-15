@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!-- Định nghĩa mảnh ghép tên là 'main-layout' và nhận một tham số là 'dynamicContent' -->
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="main-layout(dynamicContent)">
+<head>
+  <meta charset="UTF-8">
+  <title>Aerion Sports - Quản trị</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
+
+  <!-- Bạn có thể để CSS chung (như của thẻ body, thẻ a) ở đây -->
+  <style>
+    body { margin: 0; background-color: #f3f4f6; font-family: Arial, sans-serif; }
+    .header-user-box { position: relative; }
+    .header-user-dropdown {
+      position: absolute;
+      top: 48px;
+      right: 0;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      min-width: 160px;
+      overflow: hidden;
+      z-index: 100;
+      display: none;
+    }
+    .header-user-dropdown.open { display: block; }
+    .header-user-dropdown button {
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 13.5px;
+      color: #374151;
+      cursor: pointer;
+    }
+    .header-user-dropdown button:hover { background: #f9fafb; }
+    .header-user-dropdown button.logout-btn { color: #dc2626; }
+  </style>
+</head>
+<body>
+
+<!--
+  🌟 KHỐI AUTH CHUNG CHO TOÀN BỘ TRANG QUẢN TRỊ
+  Đặt trước phần nội dung động để interceptor và kiểm tra đăng nhập
+  chạy trước khi bất kỳ script nào trong trang con (dynamicContent) gọi axios.
+-->
+<script>
+  (function () {
+    const currentPath = window.location.pathname;
+    const isLoginPage = currentPath.startsWith('/login');
+
+    // 1. Chặn truy cập nếu chưa đăng nhập (trừ chính trang /login)
+    const token = sessionStorage.getItem('token');
+    if (!token && !isLoginPage) {
+      window.location.href = '/login';
+    }
+
+    // 2. Gắn JWT vào mọi request axios
+    axios.interceptors.request.use(config => {
+      const t = sessionStorage.getItem('token');
+      if (t) {
+        config.headers.Authorization = 'Bearer ' + t;
+      }
+      return config;
+    });
+
+    // 3. Tự động đăng xuất nếu token hết hạn / không hợp lệ (401)
+    //    hoặc không đủ quyền (403) thì báo lỗi, không tự đăng xuất.
+    axios.interceptors.response.use(
+            res => res,
+            err => {
+              if (err.response && err.response.status === 401 && !isLoginPage) {
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('user');
+                window.location.href = '/login';
+              }
+              return Promise.reject(err);
+            }
+    );
+
+    // 4. Hàm dùng chung cho nút đăng xuất
+    window.aerionLogout = function () {
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      document.cookie = 'jwt_token=; path=/; max-age=0';  // 🌟 THÊM: xoá cookie
+      window.location.href = '/login';
+    };
+
+    // 5. Toggle dropdown user ở header
+    window.aerionToggleUserMenu = function (event) {
+      event.stopPropagation();
+      const el = document.getElementById('header-user-dropdown');
+      if (el) el.classList.toggle('open');
+    };
+
+    document.addEventListener('click', function () {
+      const el = document.getElementById('header-user-dropdown');
+      if (el) el.classList.remove('open');
+    });
+
+    // 6. Hiển thị thông tin người dùng thật (thay cho "Admin" cứng)
+    document.addEventListener('DOMContentLoaded', function () {
+      const nameEl = document.getElementById('header-user-name');
+      const roleEl = document.getElementById('header-user-role');
+      if (!nameEl || !roleEl) return;
+
+      try {
+        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+        nameEl.innerText = user.ten_nv || user.tenDangNhap || 'Người dùng';
+
+        const roleMap = { 'ADMIN': 'Quản trị viên', 'QL': 'Quản lý', 'NV': 'Nhân viên' };
+        roleEl.innerText = roleMap[user.ma_vai_tro] || user.ma_vai_tro || '';
+      } catch (e) {
+        console.error('Lỗi đọc thông tin người dùng:', e);
+      }
+    });
+  })();
+</script>
+
+<!-- KHUNG CHÍNH -->
+<div style="display: flex; height: 100vh; overflow: hidden;">
+
+  <!-- SIDEBAR (Gọi từ file sidebar.html bạn đã tạo ở bước trước) -->
+  <div th:replace="~{fragments/sidebar :: menu-sidebar}"></div>
+
+  <!-- CỘT PHẢI -->
+  <div style="flex: 1; display: flex; flex-direction: column;">
+
+    <!-- HEADER CỐ ĐỊNH CHUNG -->
+    <div style="height: 65px; background: #fff; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb;">
+      <!-- Dùng biến động để thay đổi Tiêu đề theo từng trang nếu muốn -->
+      <h2 style="margin: 0; font-size: 20px; color: #1f2937;">Quản lý hệ thống</h2>
+
+      <div class="header-user-box">
+        <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="aerionToggleUserMenu(event)">
+          <div style="width: 36px; height: 36px; background: #f79b66; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div style="line-height: 1.2;">
+            <div id="header-user-name" style="font-weight: 600; font-size: 14px; color: #111827;">Đang tải...</div>
+            <div id="header-user-role" style="font-size: 12px; color: #6b7280;"></div>
+          </div>
+          <i class="fa-solid fa-chevron-down" style="font-size: 11px; color: #9ca3af;"></i>
+        </div>
+
+        <div id="header-user-dropdown" class="header-user-dropdown">
+          <button type="button" class="logout-btn" onclick="aerionLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i>&nbsp; Đăng xuất
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHẦN MAIN CONTENT (LỖ HỔNG) -->
+    <div style="flex: 1; padding: 24px; overflow-y: auto;">
+      <!-- Mã lệnh này sẽ nhúng nội dung từ trang khác vào chính xác vị trí này -->
+      <div th:replace="${dynamicContent}"></div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

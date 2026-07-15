@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: main-layout(~{::#hoa-don-chi-tiet})}">
+<head>
+  <meta charset="UTF-8">
+  <title>Chi tiết hóa đơn</title>
+</head>
+<body>
+
+<div id="hoa-don-chi-tiet">
+
+  <style>
+    .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid #e5e7eb;}
+    .card-title{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin-bottom:14px;color:#333;}
+    .card-title i{color:#f79b66;}
+
+    .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+    .header-left{display:flex;align-items:center;gap:12px;}
+    .back-btn{width:36px;height:36px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;text-decoration:none;color:#333;display:flex;align-items:center;justify-content:center;}
+    .back-btn:hover{background:#f5f5f5;}
+    .page-title{margin:0;font-size:18px;font-weight:700;}
+    .invoice-code{font-size:12px;color:#888;}
+    .btn-print-invoice{border:none;background:#f79b66;color:#fff;padding:10px 18px;border-radius:6px;cursor:pointer;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+
+    .status-banner{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      margin:10px 0 20px;
+      font-weight:600;
+      font-size:14px;
+      text-align:center;
+      color:#f79b66;
+    }
+    .status-banner .status-icon{
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:13px;
+      background:#f79b66;
+      color:#fff;
+    }
+    .imageVanChuyen{
+      width: 45px;
+      height: 20px;
+      object-fit: contain;
+    }
+    .status-banner.wait{background:#fef3c7;color:#92400e;}
+    .status-banner.cancel-req{background:#ffedd5;color:#9a3412;}
+    .status-banner.cancelled{background:#fee2e2;color:#b91c1c;}
+    .status-banner.done{background:#dcfce7;color:#166534;}
+    .order-steps{display:flex;justify-content:space-between;margin:10px 0 20px;}
+    .step{flex:1;text-align:center;position:relative;}
+    .step:not(:last-child)::after{content:'';position:absolute;top:16px;left:50%;width:100%;height:2px;background:#e5e7eb;z-index:0;}
+    .step.active:not(:last-child)::after{background:#f79b66;}
+    .step-icon{width:32px;height:32px;border-radius:50%;background:#e5e7eb;color:#888;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;position:relative;z-index:1;font-size:13px;}
+    .step-icon.active{background:#f79b66;color:#fff;}
+    .step-label{font-size:11px;color:#888;}
+    .step-label.active{color:#f79b66;font-weight:600;}
+
+    .action-group{display:flex;gap:10px;}
+    .change-status-btn,.history-btn, .action-btn{border:1px solid #ddd;background:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;}
+    .change-status-btn:hover,.history-btn:hover, .action-btn:hover{background:#f5f5f5;}
+
+    .middle-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+    .summary-item{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;color:#444;}
+    .summary-total{display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding-top:8px;}
+    .shipping-label{display:flex;align-items:center;gap:6px;}
+    .shipping-logo{height:16px;}
+    .info-row{display:flex;gap:8px;font-size:13px;padding:6px 0;}
+    .info-row label{color:#888;min-width:70px;}
+
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    thead{background:#f79b66;color:#fff;}
+    th,td{padding:10px;text-align:center;vertical-align:middle;}
+    tbody tr:hover{background:#fafafa;}
+
+    .table-toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+    .table-toolbar input,.table-toolbar select{height:36px;border:1px solid #d1d5db;border-radius:6px;padding:0 10px;font-size:13px;}
+    .table-toolbar input{flex:1;min-width:180px;}
+    .reset-btn{border:none;background:#f3f4f6;border-radius:6px;width:36px;cursor:pointer;}
+
+    .table-footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:13px;}
+    .pagination{display:flex;align-items:center;}
+    .page-center{display:flex;align-items:center;gap:10px;}
+    .page-center button{width:28px;height:28px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;}
+    .page-center button:disabled{opacity:.4;cursor:not-allowed;}
+
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000;}
+    .modal-overlay.open{display:flex;}
+    .history-modal,.status-modal{background:#fff;border-radius:12px;padding:20px;width:600px;max-height:85vh;overflow-y:auto;}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+    .modal-header h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;}
+    .close-btn{border:none;background:none;cursor:pointer;font-size:16px;color:#888;}
+    .history-filter{display:flex;gap:12px;align-items:flex-end;margin-bottom:14px;}
+    .filter-group{flex:1;}
+    .filter-group label{display:block;font-size:12px;margin-bottom:4px;color:#888;}
+    .filter-group input,.filter-group select{width:100%;height:34px;border:1px solid #d1d5db;border-radius:6px;padding:0 8px;box-sizing:border-box;}
+    .search-history-btn{border:none;background:#f3f4f6;border-radius:6px;width:34px;height:34px;cursor:pointer;}
+
+    .btn-cancel{border:1px solid #ddd;background:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;}
+    .btn-confirm{border:none;background:#f79b66;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;}
+  </style>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <a class="back-btn" th:href="@{/hoa-don}"><i class="fa-solid fa-arrow-left"></i></a>
+      <div>
+        <h2 class="page-title">Chi tiết hóa đơn</h2>
+        <span class="invoice-code" th:text="${hoaDon.maHoaDon}"></span>
+      </div>
+    </div>
+    <button class="action-btn" onclick="inHoaDonHienTai()">
+      <i class="fa-solid fa-print"></i> In hóa đơn
+    </button>
+  </div>
+
+  <!-- HÀNG 1: Trạng thái đơn hàng -->
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-truck-fast"></i><span>Trạng thái đơn hàng</span></div>
+
+    <!-- Tại quầy hoặc trạng thái đặc biệt -> banner -->
+    <div th:if="${hoaDon.loaiHoaDon == 0 or hoaDon.trangThai == 6 or hoaDon.trangThai == 7}"
+         class="status-banner">
+
+      <div class="status-icon" th:switch="${hoaDon.trangThai}">
+        <i th:case="0" class="fa-solid fa-hourglass-half"></i>
+        <i th:case="6" class="fa-solid fa-ban"></i>
+        <i th:case="7" class="fa-solid fa-triangle-exclamation"></i>
+        <i th:case="*" class="fa-solid fa-flag-checkered"></i>
+      </div>
+
+      <span th:text="${hoaDon.trangThaiName}"></span>
+    </div>
+
+    <!-- Đơn online bình thường (0-5) -> step bar -->
+    <div class="order-steps" th:unless="${hoaDon.loaiHoaDon == 0 or hoaDon.trangThai == 6 or hoaDon.trangThai == 7}">
+
+      <div class="step" th:each="s : ${#numbers.sequence(0,5)}"
+           th:classappend="${s <= hoaDon.trangThai} ? 'active active-line' : ''">
+
+        <div class="step-icon" th:classappend="${s <= hoaDon.trangThai} ? 'active' : ''">
+          <i th:switch="${s}">
+            <i th:case="0" class="fa-solid fa-hourglass-start"></i>
+            <i th:case="1" class="fa-solid fa-circle-check"></i>
+            <i th:case="2" class="fa-solid fa-box"></i>
+            <i th:case="3" class="fa-solid fa-truck"></i>
+            <i th:case="4" class="fa-solid fa-truck-ramp-box"></i>
+            <i th:case="5" class="fa-solid fa-flag-checkered"></i>
+          </i>
+        </div>
+
+        <div class="step-label" th:classappend="${s <= hoaDon.trangThai} ? 'active' : ''" th:switch="${s}">
+          <span th:case="0">Chờ xác nhận</span>
+          <span th:case="1">Đã xác nhận</span>
+          <span th:case="2">Chờ giao hàng</span>
+          <span th:case="3">Đang giao hàng</span>
+          <span th:case="4">Đã giao hàng</span>
+          <span th:case="5">Đã hoàn thành</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-group">
+      <button class="change-status-btn" onclick="document.getElementById('statusModal').classList.add('open')">
+        <i class="fa-solid fa-arrows-rotate"></i> Chuyển trạng thái
+      </button>
+      <button class="history-btn" onclick="document.getElementById('historyModal').classList.add('open')">
+        <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử thao tác
+      </button>
+    </div>
+  </div>
+
+  <!-- HÀNG 2 -->
+  <div class="middle-row">
+
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-money-bill-wave"></i><span>Tổng kết thanh toán</span></div>
+      <div class="summary-item"><span>Tổng tiền hàng</span>
+        <span th:text="${#numbers.formatDecimal(hoaDon.tongTienHang,0,'COMMA',0,'POINT')} + ' đ'"></span></div>
+      <div class="summary-item">
+        <span>Giảm giá <small th:if="${hoaDon.maPhieuGiamGia}" th:text="'(' + ${hoaDon.maPhieuGiamGia} + ')'"></small></span>
+        <span th:text="${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ'"></span>
+      </div>
+      <div class="summary-item">
+        <span class="shipping-label">Phí vận chuyển <img class="imageVanChuyen" src="/images/image.png" alt=""> </span>
+        <span th:text="${#numbers.formatDecimal(hoaDon.tienVanChuyen,0,'COMMA',0,'POINT')} + ' đ'"></span>
+      </div>
+      <hr>
+      <div class="summary-total"><span>Tổng thanh toán</span>
+        <span th:text="${#numbers.formatDecimal(hoaDon.tongTienThanhToan,0,'COMMA',0,'POINT')} + ' đ'"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-user"></i><span>Thông tin khách hàng</span></div>
+      <div class="info-row"><label>Họ tên:</label><span th:text="${hoaDon.tenKhachHang}"></span></div>
+      <div class="info-row"><label>SĐT:</label><span th:text="${hoaDon.sdtKhachHang}"></span></div>
+      <div class="info-row"><label>Email:</label><span th:text="${hoaDon.email}"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-location-dot"></i><span>Thông tin giao hàng</span></div>
+      <div class="info-row"><label>Địa chỉ:</label><span th:text="${hoaDon.diaChiMacDinhKhachHang}"></span></div>
+      <div class="info-row"><label>Loại đơn:</label>
+        <span th:text="${hoaDon.loaiHoaDon == 0 ? 'Tại quầy' : 'Online'}"></span></div>
+      <div class="info-row"><label>Ghi chú:</label><span th:text="${hoaDon.ghiChu}"></span></div>
+    </div>
+  </div>
+
+  <!-- HÀNG 3: Lịch sử thanh toán -->
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i><span>Lịch sử thanh toán</span></div>
+    <table>
+      <thead>
+      <tr><th>STT</th><th>Số tiền</th><th>Thời gian</th><th>Phương thức</th><th>Ghi chú</th></tr>
+      </thead>
+      <tbody>
+      <tr th:each="item, st : ${lichSuThanhToan}">
+        <td th:text="${st.count}"></td>
+        <td th:text="${#numbers.formatDecimal(item.soTien,0,'COMMA',0,'POINT')} + ' đ'"></td>
+        <td th:text="${#temporals.format(item.ngayThanhToan,'dd/MM/yyyy HH:mm')}"></td>
+        <td th:text="${item.phuongThucThanhToan}"></td>
+        <td th:text="${item.ghiChu}"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- HÀNG 4: Danh sách sản phẩm -->
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-cart-shopping"></i><span>Danh sách sản phẩm</span></div>
+
+    <div class="table-toolbar">
+      <input type="text" id="searchKeyword" placeholder="Tìm mã hoặc tên sản phẩm..." onkeyup="filterProducts()">
+      <select id="filterMauSac" onchange="filterProducts()">
+        <option value="">Tất cả màu sắc</option>
+        <option th:each="mau : ${#sets.toSet(chiTietSanPham.![mauSac])}" th:value="${mau}" th:text="${mau}"></option>
+      </select>
+      <select id="filterTrongLuong" onchange="filterProducts()">
+        <option value="">Tất cả trọng lượng</option>
+        <option th:each="tl : ${#sets.toSet(chiTietSanPham.![trongLuong])}" th:value="${tl}" th:text="${tl}"></option>
+      </select>
+      <button class="reset-btn" onclick="resetProductFilter()"><i class="fa-solid fa-rotate-right"></i></button>
+    </div>
+
+    <table id="productTable">
+      <thead>
+      <tr>
+        <th>STT</th>
+        <th>Mã sản phẩm</th>
+        <th>Hình ảnh</th>
+        <th>Tên sản phẩm</th>
+        <th>Trọng lượng</th>
+        <th>Màu sắc</th>
+        <th>Số lượng</th>
+        <th>Đơn giá</th>
+        <th>Thành tiền</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="item, st : ${chiTietSanPham}"
+          th:attr="data-ma=${item.maSanPham},data-ten=${item.tenSanPham},data-mau=${item.mauSac},data-trongluong=${item.trongLuong}">
+        <td th:text="${st.count}"></td>
+        <td th:text="${item.maSanPham}"></td>
+        <td>
+          <img th:if="${item.anh}" th:src="${item.anh}" alt="Ảnh sản phẩm"
+               style="width:50px;height:50px;object-fit:cover;border-radius:6px;" />
+          <span th:unless="${item.anh}" style="color:#bbb;">—</span>
+        </td>
+        <td th:text="${item.tenSanPham}"></td>
+        <td th:text="${item.trongLuong}"></td>
+        <td th:text="${item.mauSac}"></td>
+        <td th:text="${item.soLuong}"></td>
+        <td th:text="${#numbers.formatDecimal(item.donGia,0,'COMMA',0,'POINT')} + ' đ'"></td>
+        <td th:text="${#numbers.formatDecimal(item.thanhTien,0,'COMMA',0,'POINT')} + ' đ'"></td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="table-footer">
+      <div>Tổng: <strong id="productCount" th:text="${#lists.size(chiTietSanPham)}"></strong> sản phẩm</div>
+    </div>
+  </div>
+  <!-- MODAL: Lịch sử thao tác -->
+  <div id="historyModal" class="modal-overlay" onclick="if(event.target===this) this.classList.remove('open')">
+    <div class="history-modal">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử thao tác</h3>
+        <button class="close-btn" onclick="document.getElementById('historyModal').classList.remove('open')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="history-filter">
+        <div class="filter-group">
+          <label>Người thao tác</label>
+          <input type="text" id="historyKeyword" placeholder="Nhập tên người thao tác" onkeyup="filterHistory()">
+        </div>
+        <div class="filter-group">
+          <label>Hành động</label>
+          <select id="historyAction" onchange="filterHistory()">
+            <option value="">Tất cả</option>
+            <option value="0">Chờ xác nhận</option>
+            <option value="1">Đã xác nhận</option>
+            <option value="2">Chờ giao hàng</option>
+            <option value="3">Đang giao hàng</option>
+            <option value="4">Đã giao hàng</option>
+            <option value="5">Đã hoàn thành</option>
+            <option value="6">Đã hủy</option>
+            <option value="7">Yêu cầu hủy</option>
+          </select>
+        </div>
+        <button class="search-history-btn" onclick="resetHistoryFilter()"><i class="fa-solid fa-rotate-right"></i></button>
+      </div>
+
+      <table id="historyTable">
+        <thead>
+        <tr><th>STT</th><th>Trạng thái</th><th>Người thao tác</th><th>Hành động</th><th>Thời gian</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="item, st : ${lichSuHoaDon}" th:attr="data-ten=${item.tenNhanVien},data-trangthai=${item.trangThaiMoi}">
+          <td th:text="${st.count}"></td>
+          <td th:switch="${item.trangThaiMoi}">
+            <span th:case="0">Chờ xác nhận</span>
+            <span th:case="1">Đã xác nhận</span>
+            <span th:case="2">Chờ giao hàng</span>
+            <span th:case="3">Đang giao hàng</span>
+            <span th:case="4">Đã giao hàng</span>
+            <span th:case="5">Đã hoàn thành</span>
+            <span th:case="6">Đã hủy</span>
+            <span th:case="7">Yêu cầu hủy</span>
+            <span th:case="*">Khởi tạo</span>
+          </td>
+          <td th:text="${item.tenNhanVien}"></td>
+          <td th:text="${item.hanhDong}"></td>
+          <td th:text="${#temporals.format(item.thoiGianHanhDong,'dd/MM/yyyy HH:mm')}"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL: Chuyển trạng thái -->
+  <div id="statusModal" class="modal-overlay" onclick="if(event.target===this) this.classList.remove('open')">
+    <div class="status-modal">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-arrows-rotate"></i> Chuyển trạng thái đơn hàng</h3>
+        <button class="close-btn" onclick="document.getElementById('statusModal').classList.remove('open')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form th:action="@{/hoa-don/{id}/chuyen-trang-thai(id=${hoaDon.id})}" method="post">
+        <div style="display:flex;gap:24px;margin-bottom:16px;">
+          <div>
+            <label style="font-size:12px;color:#888;">Mã hóa đơn</label>
+            <div style="font-weight:600;" th:text="${hoaDon.maHoaDon}"></div>
+          </div>
+          <div>
+            <label style="font-size:12px;color:#888;">Trạng thái hiện tại</label>
+            <div style="font-weight:600;" th:text="${hoaDon.trangThaiName}"></div>
+          </div>
+        </div>
+
+        <div th:if="${hoaDon.loaiHoaDon == 0 and hoaDon.trangThai == 0}" style="margin-bottom:14px;">
+          <label style="font-size:13px;font-weight:600;">Chuyển sang</label>
+          <select name="trangThaiMoi" style="width:100%;height:36px;border-radius:6px;border:1px solid #d1d5db;margin-top:6px;">
+            <option value="5">Đã hoàn thành</option>
+            <option value="6">Đã hủy</option>
+          </select>
+        </div>
+
+        <div th:if="${hoaDon.loaiHoaDon != 0 and hoaDon.trangThai >= 0 and hoaDon.trangThai < 5}" style="margin-bottom:14px;">
+          <label style="font-size:13px;font-weight:600;">Chuyển sang</label>
+          <select name="trangThaiMoi" style="width:100%;height:36px;border-radius:6px;border:1px solid #d1d5db;margin-top:6px;">
+            <option th:value="${hoaDon.trangThai + 1}" th:text="'Bước tiếp theo'"></option>
+            <option value="6">Đã hủy</option>
+          </select>
+        </div>
+
+        <div th:if="${hoaDon.trangThai == 7}" style="margin-bottom:14px;">
+          <label style="font-size:13px;font-weight:600;">Chuyển sang</label>
+          <select name="trangThaiMoi" style="width:100%;height:36px;border-radius:6px;border:1px solid #d1d5db;margin-top:6px;">
+            <option value="6">Đã hủy</option>
+          </select>
+        </div>
+
+        <div th:if="${hoaDon.trangThai == 5 or hoaDon.trangThai == 6}"
+             style="color:#888;font-size:13px;text-align:center;padding:12px;background:#f3f4f6;border-radius:8px;margin-bottom:14px;">
+          Đơn hàng này không thể chuyển trạng thái nữa.
+        </div>
+
+        <div class="form-group" th:unless="${hoaDon.trangThai == 5 or hoaDon.trangThai == 6}">
+        </div>
+
+        <p th:unless="${hoaDon.trangThai == 5 or hoaDon.trangThai == 6}" style="font-size:12px;color:#f59e0b;">
+          Hành động này sẽ cập nhật trạng thái và ghi nhận lịch sử thay đổi.
+        </p>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px;">
+          <button type="button" class="btn-cancel" onclick="document.getElementById('statusModal').classList.remove('open')">Hủy</button>
+          <button type="submit" class="btn-confirm" th:disabled="${hoaDon.trangThai == 5 or hoaDon.trangThai == 6}">Xác nhận</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    function filterProducts() {
+      const kw = document.getElementById('searchKeyword').value.toLowerCase();
+      const mau = document.getElementById('filterMauSac').value;
+      const tl = document.getElementById('filterTrongLuong').value;
+      const rows = document.querySelectorAll('#productTable tbody tr');
+      let count = 0;
+      rows.forEach(r => {
+        const ma = r.dataset.ma.toLowerCase();
+        const ten = r.dataset.ten.toLowerCase();
+        const matchKw = !kw || ma.includes(kw) || ten.includes(kw);
+        const matchMau = !mau || r.dataset.mau === mau;
+        const matchTl = !tl || r.dataset.trongluong === tl;
+        const show = matchKw && matchMau && matchTl;
+        r.style.display = show ? '' : 'none';
+        if (show) count++;
+      });
+      document.getElementById('productCount').textContent = count;
+    }
+    function resetProductFilter() {
+      document.getElementById('searchKeyword').value = '';
+      document.getElementById('filterMauSac').value = '';
+      document.getElementById('filterTrongLuong').value = '';
+      filterProducts();
+    }
+
+    function filterHistory() {
+      const kw = document.getElementById('historyKeyword').value.toLowerCase();
+      const action = document.getElementById('historyAction').value;
+      document.querySelectorAll('#historyTable tbody tr').forEach(r => {
+        const ten = (r.dataset.ten || '').toLowerCase();
+        const matchKw = !kw || ten.includes(kw);
+        const matchAction = !action || r.dataset.trangthai === action;
+        r.style.display = (matchKw && matchAction) ? '' : 'none';
+      });
+    }
+    function resetHistoryFilter() {
+      document.getElementById('historyKeyword').value = '';
+      document.getElementById('historyAction').value = '';
+      filterHistory();
+    }
+  </script>
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function () {
+      var successMsg = /*[[${successMessage}]]*/ null;
+      var errorMsg = /*[[${errorMessage}]]*/ null;
+
+      // Trì hoãn 200ms để giao diện kịp hiển thị hoàn toàn
+      setTimeout(function() {
+        if (successMsg != null && successMsg !== "") {
+          alert(successMsg);
+        }
+        if (errorMsg != null && errorMsg !== "") {
+          alert(errorMsg);
+        }
+      }, 200);
+    });
+    /*]]>*/
+  </script>
+  <script th:inline="javascript">
+    const hoaDonData = /*[[${hoaDon}]]*/ {};
+
+    // Map field cho khớp tên mà printInvoice() yêu cầu:
+    // (trongLuong/mauSac thay vì tenTrongLuong/tenMauSac nếu DTO của bạn đặt tên khác)
+    const danhSachSanPhamData = /*[[${danhSachSanPham}]]*/ [];
+    const lichSuThanhToanData = /*[[${lichSuThanhToan}]]*/ [];
+
+    function inHoaDonHienTai() {
+      printInvoice(hoaDonData, danhSachSanPhamData, lichSuThanhToanData);
+    }
+  </script>
+  <script th:src="@{/hoa-don/qrcode-generator.js}"></script>
+
+  <script th:src="@{/hoa-don/in-hoa-don.js}"></script>
+</div>
+
+
+</body>
+</html>

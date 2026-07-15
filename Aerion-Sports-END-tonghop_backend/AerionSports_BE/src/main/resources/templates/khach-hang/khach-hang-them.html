@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm khách hàng</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: main-layout(~{::#content})}">
+    <div id="content" x-data="themKhachHangPage()" x-init="init()">
+
+        <div class="customer-card">
+            <div class="page-header">
+                <button type="button" class="back-link" onclick="location.href='/khach-hang'">&larr; Quay lại danh sách</button>
+                <p>Nhập thông tin khách hàng mới</p>
+            </div>
+
+            <div class="qr-scan-section mb-4" style="border-bottom:1px solid #eee;padding-bottom:20px;">
+                <button type="button" @click="startScan()" class="btn-scan-qr">
+                    <i class="fas fa-qrcode"></i> Quét QR lấy thông tin nhanh
+                </button>
+                <div x-show="isScanning" id="qr-reader-them-kh" style="max-width:330px;margin:15px 0 10px 0;border:1px solid #ddd;border-radius:6px;overflow:hidden;"></div>
+                <button x-show="isScanning" type="button" class="btn-cancel" @click="stopScan()" style="margin-top:5px;height:34px;padding:0 15px;">Tắt Camera</button>
+            </div>
+
+            <form @submit.prevent="saveKhachHang()">
+                <div class="avatar-upload-section">
+                    <div class="avatar-preview-box">
+                        <img :src="avatarPreviewUrl" alt="Ảnh đại diện khách hàng" @error="$event.target.src = defaultAvatarUrl" />
+                    </div>
+                    <div class="avatar-upload-controls">
+                        <label class="avatar-label">Ảnh đại diện khách hàng</label>
+                        <input type="file" accept="image/*" @change="onAvatarFileChange($event)" />
+                        <span class="avatar-hint">Chọn ảnh JPG/PNG, tối đa 5MB (không bắt buộc)</span>
+                        <button x-show="avatarPreviewUrl !== defaultAvatarUrl" type="button" class="btn-remove-avatar" @click="clearAvatar()">✕ Bỏ ảnh đã chọn</button>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="form-content">
+                        <h3>Thông tin cá nhân</h3>
+                        <div class="form-grid">
+                            <div class="form-group" :class="{ 'has-error': errors.tenKh }">
+                                <label>Họ và tên khách hàng <span>*</span></label>
+                                <input type="text" x-model="khachHang.tenKh" placeholder="Nhập tên khách hàng" @input="errors.tenKh = ''" @blur="validateHoTen()" />
+                                <span x-show="errors.tenKh" class="error-text" x-text="errors.tenKh"></span>
+                            </div>
+
+                            <div class="form-group" :class="{ 'has-error': errors.sdt }">
+                                <label>Số điện thoại liên hệ <span>*</span></label>
+                                <input type="text" x-model="khachHang.sdt" placeholder="Nhập số điện thoại" @input="errors.sdt = ''" @blur="validateSdt()" />
+                                <span x-show="errors.sdt" class="error-text" x-text="errors.sdt"></span>
+                            </div>
+
+                            <div class="form-group" :class="{ 'has-error': errors.email }">
+                                <label>Địa chỉ Email <span>*</span></label>
+                                <input type="text" x-model="khachHang.email" placeholder="Nhập địa chỉ email" @input="errors.email = ''" @blur="validateEmail()" />
+                                <span x-show="errors.email" class="error-text" x-text="errors.email"></span>
+                            </div>
+
+                            <div class="form-group" :class="{ 'has-error': errors.ngaySinh }">
+                                <label>Ngày sinh <span>*</span></label>
+                                <input type="date" x-model="khachHang.ngaySinh" :max="ngayMaxChoPhep" @change="validateNgaySinh()" />
+                                <span x-show="errors.ngaySinh" class="error-text" x-text="errors.ngaySinh"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Giới tính</label>
+                                <div class="radio-group">
+                                    <label class="radio-label"><input type="radio" value="1" x-model="khachHang.gioiTinh" style="accent-color:#f79b66;" /> Nam</label>
+                                    <label class="radio-label"><input type="radio" value="0" x-model="khachHang.gioiTinh" style="accent-color:#f79b66;" /> Nữ</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="address-section-header">
+                    <h3>Sổ địa chỉ giao nhận (Tối đa nhiều nơi)</h3>
+                    <button type="button" class="btn-add-address" @click="themKhoiDiaChiMoi()">➕ Thêm địa chỉ mới</button>
+                </div>
+
+                <div class="address-list-container">
+                    <template x-for="(item, index) in khachHang.listDiaChi" :key="item.uid">
+                        <div class="address-box-item">
+                            <div class="address-box-header">
+                                <span class="badge-title">📍 Khối địa chỉ #<span x-text="index + 1"></span></span>
+                                <button x-show="khachHang.listDiaChi.length > 1" type="button" class="btn-remove-address" @click="xoaKhoiDiaChi(index)">✕ Xóa khối</button>
+                            </div>
+
+                            <div class="form-grid" style="margin-top:15px;margin-bottom:15px;">
+                                <div class="form-group">
+                                    <label>Tên người nhận hàng <span>*</span></label>
+                                    <input type="text" x-model="item.tenNguoiNhan" placeholder="Nhập tên người nhận" required />
+                                </div>
+                                <div class="form-group">
+                                    <label>SĐT người nhận <span>*</span></label>
+                                    <input type="text" x-model="item.sdtNguoiNhan" placeholder="Nhập SĐT nhận hàng" required />
+                                </div>
+                            </div>
+
+                            <div class="form-grid" style="margin-bottom:15px;">
+                                <div class="form-group">
+                                    <label>Tỉnh / Thành phố <span>*</span></label>
+                                    <select x-model="item.tinhThanh" class="form-select-control" @change="handleThayDoiTinhThanh(item)" required>
+                                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                                        <template x-for="tinh in listTinhThanh" :key="tinh.code">
+                                            <option :value="tinh.name" x-text="tinh.name"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quận / Huyện <span>*</span></label>
+                                    <select x-model="item.quanHuyen" class="form-select-control" :disabled="!item.tinhThanh" @change="handleThayDoiQuanHuyen(item)" required>
+                                        <option value="">-- Chọn Quận / Huyện --</option>
+                                        <template x-for="quan in item.listQuanHuyenTmp" :key="quan.code">
+                                            <option :value="quan.name" x-text="quan.name"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-grid" style="margin-bottom:15px;">
+                                <div class="form-group">
+                                    <label>Phường / Xã / Thị trấn <span>*</span></label>
+                                    <select x-model="item.phuongXa" class="form-select-control" :disabled="!item.quanHuyen" required>
+                                        <option value="">-- Chọn Phường / Xã / Thị trấn --</option>
+                                        <template x-for="xa in item.listPhuongXaTmp" :key="xa.code">
+                                            <option :value="xa.name" x-text="xa.name"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Địa chỉ chi tiết (Số nhà, tên đường...) <span>*</span></label>
+                                    <input type="text" x-model="item.chiTietCuThe" placeholder="Ví dụ: Số 20, ngõ 4, đường Trần Phú" required />
+                                </div>
+                            </div>
+
+                            <div class="default-toggle">
+                                <label style="cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;">
+                                    <input type="checkbox" :checked="item.isDefault" @change="datDiaChiMacDinh(index)" style="accent-color:#f79b66;" /> Đặt làm địa chỉ mặc định khi đặt hàng
+                                </label>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="button-group" style="margin-top:30px;">
+                    <button type="submit" class="btn-save">💾 Lưu thông tin khách hàng</button>
+                    <button type="button" class="btn-cancel" onclick="location.href='/khach-hang'">✖ Hủy bỏ</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function themKhachHangPage() {
+        return {
+            listTinhThanh: [],
+            isScanning: false,
+            qrScanner: null,
+
+            defaultAvatarUrl: 'https://placehold.co/120x120?text=Avatar',
+            avatarFile: null,
+            avatarPreviewUrl: 'https://placehold.co/120x120?text=Avatar',
+
+            khachHang: {
+                tenKh: '', sdt: '', email: '', ngaySinh: '', gioiTinh: '1',
+                listDiaChi: [{ uid: 1, tenNguoiNhan: '', sdtNguoiNhan: '', tinhThanh: '', quanHuyen: '', phuongXa: '', chiTietCuThe: '', isDefault: true, listQuanHuyenTmp: [], listPhuongXaTmp: [] }]
+            },
+            errors: { tenKh: '', sdt: '', email: '', ngaySinh: '' },
+
+            get ngayMaxChoPhep() {
+                const today = new Date();
+                const y = today.getFullYear() - 15;
+                const m = String(today.getMonth() + 1).padStart(2, '0');
+                const d = String(today.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            },
+
+            async init() { await this.load63TinhThanh(); },
+
+            async load63TinhThanh() {
+                try {
+                    const res = await axios.get('https://provinces.open-api.vn/api/p/');
+                    this.listTinhThanh = res.data || [];
+                } catch (e) { console.error(e); }
+            },
+
+            onAvatarFileChange(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!file.type.startsWith('image/')) { alert('Vui lòng chọn đúng định dạng file ảnh!'); e.target.value = ''; return; }
+                if (file.size > 5 * 1024 * 1024) { alert('Kích thước ảnh không được vượt quá 5MB!'); e.target.value = ''; return; }
+                this.avatarFile = file;
+                this.avatarPreviewUrl = URL.createObjectURL(file);
+            },
+            clearAvatar() { this.avatarFile = null; this.avatarPreviewUrl = this.defaultAvatarUrl; },
+
+            startScan() {
+                this.isScanning = true;
+                setTimeout(() => {
+                    this.qrScanner = new Html5QrcodeScanner('qr-reader-them-kh', { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+                    this.qrScanner.render((decodedText) => this.onScanSuccess(decodedText), () => {});
+                }, 300);
+            },
+            stopScan() {
+                if (this.qrScanner) this.qrScanner.clear().then(() => { this.isScanning = false; }).catch(err => console.error(err));
+            },
+            onScanSuccess(decodedText) {
+                alert('Quét thông tin căn cước công dân thành công! 🎉');
+                this.stopScan();
+                if (decodedText.includes('|')) {
+                    const parts = decodedText.split('|');
+                    if (parts.length >= 6) {
+                        this.khachHang.tenKh = parts[2];
+                        if (parts[3]?.length === 8) {
+                            this.khachHang.ngaySinh = `${parts[3].substring(4, 8)}-${parts[3].substring(2, 4)}-${parts[3].substring(0, 2)}`;
+                        }
+                        this.khachHang.gioiTinh = parts[4] === 'Nam' ? '1' : '0';
+                        if (this.khachHang.listDiaChi.length > 0) {
+                            this.khachHang.listDiaChi[0].tenNguoiNhan = parts[2];
+                            this.khachHang.listDiaChi[0].chiTietCuThe = parts[5];
+                        }
+                    }
+                }
+            },
+
+            async handleThayDoiTinhThanh(item) {
+                item.quanHuyen = ''; item.phuongXa = ''; item.listQuanHuyenTmp = []; item.listPhuongXaTmp = [];
+                if (!item.tinhThanh) return;
+                const tinh = this.listTinhThanh.find(t => t.name === item.tinhThanh);
+                if (tinh) {
+                    const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
+                    item.listQuanHuyenTmp = res.data.districts || [];
+                }
+            },
+            async handleThayDoiQuanHuyen(item) {
+                item.phuongXa = ''; item.listPhuongXaTmp = [];
+                if (!item.quanHuyen) return;
+                const quan = item.listQuanHuyenTmp.find(q => q.name === item.quanHuyen);
+                if (quan) {
+                    const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
+                    item.listPhuongXaTmp = res.data.wards || [];
+                }
+            },
+
+            themKhoiDiaChiMoi() {
+                this.khachHang.listDiaChi.push({
+                    uid: Date.now(), tenNguoiNhan: this.khachHang.tenKh || '', sdtNguoiNhan: this.khachHang.sdt || '',
+                    tinhThanh: '', quanHuyen: '', phuongXa: '', chiTietCuThe: '', isDefault: this.khachHang.listDiaChi.length === 0,
+                    listQuanHuyenTmp: [], listPhuongXaTmp: []
+                });
+            },
+            xoaKhoiDiaChi(index) {
+                const wasDef = this.khachHang.listDiaChi[index].isDefault;
+                this.khachHang.listDiaChi.splice(index, 1);
+                if (wasDef && this.khachHang.listDiaChi.length > 0) this.khachHang.listDiaChi[0].isDefault = true;
+            },
+            datDiaChiMacDinh(index) { this.khachHang.listDiaChi.forEach((a, idx) => a.isDefault = idx === index); },
+
+            validateSdt() {
+                if (!/^(0[3|5|7|8|9])([0-9]{8})$/.test(this.khachHang.sdt.trim())) { this.errors.sdt = 'SĐT không đúng định dạng nhà mạng VN!'; return false; }
+                this.errors.sdt = ''; return true;
+            },
+            validateEmail() {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.khachHang.email.trim())) { this.errors.email = 'Email sai định dạng!'; return false; }
+                this.errors.email = ''; return true;
+            },
+            validateNgaySinh() {
+                if (!this.khachHang.ngaySinh) { this.errors.ngaySinh = 'Vui lòng chọn ngày sinh!'; return false; }
+                const birthDate = new Date(this.khachHang.ngaySinh); const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                if (age < 15) { this.errors.ngaySinh = `Khách hàng chưa đủ điều kiện (Yêu cầu phải từ 15 tuổi trở lên, hiện tại: ${age} tuổi)!`; return false; }
+                this.errors.ngaySinh = ''; return true;
+            },
+            validateHoTen() {
+                let name = this.khachHang.tenKh.trim();
+                if (!name) { this.errors.tenKh = 'Họ tên khách hàng không được để trống!'; return false; }
+                name = name.replace(/\s+/g, ' ');
+                this.khachHang.tenKh = name;
+                if (name.length < 3 || name.length > 100) { this.errors.tenKh = `Độ dài họ tên phải nằm trong khoảng từ 3 đến 100 ký tự (Hiện tại: ${name.length} ký tự)!`; return false; }
+                if (!/^[\p{L}\s]+$/u.test(name)) { this.errors.tenKh = 'Họ tên không được chứa số hoặc ký tự đặc biệt!'; return false; }
+                this.errors.tenKh = ''; return true;
+            },
+
+            async saveKhachHang() {
+                const hoTenHopLe = this.validateHoTen();
+                const sdtHopLe = this.validateSdt();
+                const emailHopLe = this.validateEmail();
+                const tuoiHopLe = this.validateNgaySinh();
+                if (!hoTenHopLe || !sdtHopLe || !emailHopLe || !tuoiHopLe) return alert('Vui lòng hoàn thiện đúng các trường hiển thị lỗi đỏ!');
+
+                const trong = this.khachHang.listDiaChi.some(a => !a.tenNguoiNhan.trim() || !a.sdtNguoiNhan.trim() || !a.tinhThanh || !a.quanHuyen || !a.phuongXa || !a.chiTietCuThe.trim());
+                if (trong) return alert('Vui lòng không để trống bất kì thông tin nào trong khối sổ địa chỉ!');
+
+                const xacNhan = confirm(`Bạn có chắc chắn muốn thêm khách hàng "${this.khachHang.tenKh.trim()}" không?`);
+                if (!xacNhan) return;
+
+                try {
+                    const checkTrungRes = await axios.get('http://localhost:8080/public/khach-hang/check-trung', {
+                        params: { sdt: this.khachHang.sdt.trim(), email: this.khachHang.email.trim() }
+                    });
+                    const { trungSdt, trungEmail } = checkTrungRes.data;
+                    if (trungSdt) { this.errors.sdt = 'Số điện thoại này đã tồn tại trên hệ thống!'; return alert('Thất bại: Số điện thoại này đã được đăng ký bởi khách hàng khác!'); }
+                    if (trungEmail) { this.errors.email = 'Địa chỉ Email này đã tồn tại trên hệ thống!'; return alert('Thất bại: Địa chỉ email này đã được sử dụng bởi khách hàng khác!'); }
+
+                    const addressesPayload = this.khachHang.listDiaChi.map(addr => ({
+                        nguoiNhan: addr.tenNguoiNhan ? addr.tenNguoiNhan.trim() : '',
+                        sdt: addr.sdtNguoiNhan ? addr.sdtNguoiNhan.trim() : '',
+                        tinhThanh: addr.tinhThanh,
+                        phuongXa: `${addr.phuongXa}, ${addr.quanHuyen}`,
+                        diaChiChiTiet: addr.chiTietCuThe ? addr.chiTietCuThe.trim() : '',
+                        macDinh: addr.isDefault ? 1 : 0
+                    }));
+
+                    const payload = {
+                        hoTen: this.khachHang.tenKh.trim(), sdt: this.khachHang.sdt.trim(), email: this.khachHang.email.trim(),
+                        gioiTinh: parseInt(this.khachHang.gioiTinh, 10), ngaySinh: this.khachHang.ngaySinh, trangThai: 1,
+                        addresses: addressesPayload
+                    };
+
+                    // Gửi multipart/form-data để khớp với Controller đã sửa (nhận avatar file thật)
+                    const formData = new FormData();
+                    formData.append('data', JSON.stringify(payload));
+                    if (this.avatarFile) formData.append('avatar', this.avatarFile);
+
+                    const response = await axios.post('http://localhost:8080/public/khach-hang/add', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    if (response.status === 200 || response.status === 201) {
+                        alert('🎉 Thêm khách hàng và sổ địa chỉ thành công!');
+                        location.href = '/khach-hang';
+                    }
+                } catch (error) {
+                    alert('Thất bại: ' + (error.response?.data?.message || error.response?.data || error.message));
+                }
+            }
+        }
+    }
+</script>
+
+<style>
+    .btn-scan-qr { background-color:#1890ff;color:white;border:none;padding:0 16px;height:38px;border-radius:4px;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:13px; }
+    .btn-scan-qr:hover { background-color:#40a9ff; }
+    .mb-4 { margin-bottom:1.5rem; }
+    .form-group.has-error input { border-color:#ef4444 !important; background-color:#fef2f2; }
+    .form-select-control { width:100%;padding:8px 12px;border:1px solid #cbd5e1;border-radius:4px;height:38px;background-color:#fff;font-size:14px;color:#334155;outline:none;box-sizing:border-box; }
+    .form-select-control:focus { border-color:#f79b66; }
+    .error-text { color:#ef4444;font-size:13px;margin-top:5px;display:block;text-align:left; }
+    .customer-card { background:#ffffff;padding:24px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-align:left; }
+    .page-header { margin-bottom:20px; }
+    .back-link { background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;padding:0;margin-bottom:6px; }
+    .page-header p { font-size:18px;font-weight:600;color:#1e293b;margin:0; }
+    .avatar-upload-section { display:flex;gap:20px;align-items:center;background-color:#fff7ed;padding:16px;border-radius:8px;border:1px dashed #f79b66;margin-bottom:24px; }
+    .avatar-preview-box { width:100px;height:100px;border-radius:50%;overflow:hidden;border:2px solid #f79b66;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center; }
+    .avatar-preview-box img { width:100%;height:100%;object-fit:cover; }
+    .avatar-upload-controls { display:flex;flex-direction:column;gap:6px; }
+    .avatar-label { font-size:13px;font-weight:600;color:#374151; }
+    .avatar-hint { font-size:12px;color:#94a3b8; }
+    .btn-remove-avatar { align-self:flex-start;background:#fef2f2;color:#dc2626;border:1px solid #fee2e2;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-top:4px; }
+    .info-section { display:flex;gap:24px;margin-bottom:24px; }
+    .form-content { flex:1; }
+    .form-content h3, .address-section-header h3 { font-size:15px;font-weight:600;color:#1e293b;margin:0 0 16px 0; }
+    .form-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:16px; }
+    .form-group { display:flex;flex-direction:column;gap:6px; }
+    .form-group label { font-size:13px;font-weight:500;color:#475569; }
+    .form-group label span { color:#ef4444; }
+    .form-group input, .form-group select { height:38px;padding:0 12px;border:1px solid #cbd5e1;border-radius:4px;font-size:14px;color:#334155;outline:none; }
+    .radio-group { display:flex;gap:16px;height:38px;align-items:center; }
+    .radio-label { display:flex;align-items:center;gap:6px;font-size:13px;color:#334155;cursor:pointer; }
+    .address-section-header { display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;padding-top:20px;margin-bottom:15px; }
+    .btn-add-address { background:#eff6ff;color:#1d4ed8;border:1px dashed #1d4ed8;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500; }
+    .address-list-container { display:flex;flex-direction:column;gap:16px; }
+    .address-box-item { border:1px solid #e2e8f0;padding:16px;border-radius:6px;background-color:#fafafa; }
+    .address-box-header { display:flex;justify-content:space-between;align-items:center; }
+    .badge-title { font-size:13px;font-weight:bold;color:#f79b66; }
+    .btn-remove-address { background:#fef2f2;color:#dc2626;border:1px solid #fee2e2;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px; }
+    .button-group { display:flex;justify-content:center;gap:12px; }
+    .btn-save { background:#f79b66;color:white;border:none;padding:10px 24px;border-radius:4px;cursor:pointer;font-weight:500;font-size:14px; }
+    .btn-cancel { background:#cbd5e1;color:#475569;border:none;padding:10px 24px;border-radius:4px;cursor:pointer;font-size:14px; }
+</style>
+</body>
+</html>

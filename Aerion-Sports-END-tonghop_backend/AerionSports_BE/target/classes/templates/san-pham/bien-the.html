@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main-layout(~{::content})}">
+<head>
+</head>
+<body>
+
+<div th:fragment="content">
+    <link rel="stylesheet" th:href="@{/san-pham/bien-the.css}">
+
+    <div class="breadcrumb-container">
+        <span class="breadcrumb-text">Quản lý sản phẩm / <strong style="color: #f97316;">Chi tiết biến thể</strong></span>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn-toggle-filter" onclick="toggleFilterPanel()">Ẩn/Hiện bộ lọc</button>
+            <a class="btn-back-to-product" th:href="@{/san-pham}">Quản lý sản phẩm</a>
+        </div>
+    </div>
+
+    <div class="box-alert-info" th:if="${maSP != null and !maSP.isEmpty()}">
+        Đang hiển thị danh sách biến thể của: <strong>[<span th:text="${maSP}"></span>] - <span th:text="${tenSP}"></span></strong>
+    </div>
+
+    <div class="filter-container-orange" id="filterPanel">
+        <div class="filter-header-title"><i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm biến thể</div>
+        <div class="filter-body-content">
+            <form method="get" th:action="@{/san-pham/bien-the}" class="filter-grid">
+                <input type="hidden" name="idSP" th:value="${idSP}"/>
+                <input type="hidden" name="maSP" th:value="${maSP}"/>
+                <input type="hidden" name="tenSP" th:value="${tenSP}"/>
+                <input type="hidden" name="page" value="0"/>
+                <input type="hidden" name="size" th:value="${pageSize}"/>
+
+                <div class="filter-item">
+                    <label>Từ khóa tìm kiếm</label>
+                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập mã SKU biến thể..."/>
+                </div>
+                <div class="filter-item">
+                    <label>Trạng thái</label>
+                    <select name="trangThai">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="1" th:selected="${trangThai != null and trangThai == 1}">Đang hoạt động</option>
+                        <option value="0" th:selected="${trangThai != null and trangThai == 0}">Ngừng hoạt động</option>
+                    </select>
+                </div>
+                <div class="filter-buttons-group">
+                    <button type="submit" class="btn-trigger-filter">Tìm kiếm</button>
+                    <a class="btn-reset-filter"
+                       th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP})}">Đặt lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="data-table-container">
+        <div class="table-header-flex">
+            <div class="table-summary-title">Danh Sách Biến Thể Chi Tiết</div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn-action-excel" onclick="exportToExcel()">Xuất Excel biến thể</button>
+                <a class="btn-add-new-orange"
+                   th:href="@{/san-pham/bien-the/them-moi(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP})}">Thêm mới biến thể</a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="custom-data-table" id="tblChiTietBienThe">
+                <thead>
+                <tr>
+                    <th style="width: 50px; text-align: center;">STT</th>
+                    <th style="width: 80px; text-align: center;">Hình ảnh</th>
+                    <th>Mã biến thể (SKU)</th>
+                    <th>Màu sắc</th>
+                    <th>Trọng lượng</th>
+                    <th>Danh mục</th>
+                    <th>Chu vi cán</th>
+                    <th>Độ cứng</th>
+                    <th>Điểm cân bằng</th>
+                    <th>Chất liệu thân</th>
+                    <th>Chất liệu khung</th>
+                    <th style="text-align: center; width: 75px;">Tồn kho</th>
+                    <th style="width: 90px; text-align: center;">% Giảm</th>
+                    <th style="width: 130px;">Giá bán lẻ</th>
+                    <th style="width: 120px; text-align: center;">Trạng thái</th>
+                    <th style="text-align: center; width: 140px;">Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(danhSachBienThe)}" class="empty-row">
+                    <td colspan="16" class="empty-table-row">Không tìm thấy chi tiết biến thể nào khớp với bộ lọc!</td>
+                </tr>
+                <tr th:each="bt, iter : ${danhSachBienThe}">
+                    <td style="text-align: center;" th:text="${currentPage * pageSize + iter.count}"></td>
+                    <td style="text-align: center; vertical-align: middle;">
+                        <div class="variant-image-wrapper">
+                            <img th:src="${bt.hinhAnh != null and !bt.hinhAnh.isEmpty()} ? ('http://localhost:8080' + ${bt.hinhAnh}) : 'https://placehold.co/50x50?text=No+Image'"
+                                 alt="Ảnh" class="variant-img-thumb-table"/>
+                            <span th:if="${bt.phanTramGiam != null and bt.phanTramGiam > 0}" class="badge-corner-discount"
+                                  th:text="'-' + ${bt.phanTramGiam} + '%'"></span>
+                        </div>
+                    </td>
+                    <td class="product-code-text" th:text="${bt.maCtsp}"></td>
+                    <td><span class="badge-prop orange" th:text="${bt.tenMauSac} ?: 'Mặc định'"></span></td>
+                    <td><span class="badge-prop cyan" th:text="${bt.tenTrongLuong} ?: 'Mặc định'"></span></td>
+                    <td><span class="badge-prop gray" th:text="${productInfo?.tenDanhMuc}"></span></td>
+                    <td th:text="${productInfo?.tenChuViCanVot}"></td>
+                    <td th:text="${productInfo?.tenDoCung}"></td>
+                    <td th:text="${productInfo?.tenDiemCanBang}"></td>
+                    <td th:text="${productInfo?.tenChatLieuThanVot}"></td>
+                    <td th:text="${productInfo?.tenChatLieuKhungVot}"></td>
+                    <td style="font-weight: bold; text-align: center;" th:text="${bt.soLuong} ?: 0"></td>
+                    <td style="text-align: center;">
+                        <span th:if="${bt.phanTramGiam != null and bt.phanTramGiam > 0}" class="badge-discount-percent"
+                              th:text="'-' + ${bt.phanTramGiam} + '%'"></span>
+                        <span th:unless="${bt.phanTramGiam != null and bt.phanTramGiam > 0}" class="text-muted-dash">-</span>
+                    </td>
+                    <td>
+                        <div th:if="${bt.phanTramGiam != null and bt.phanTramGiam > 0}">
+                            <del class="original-price-strike" th:text="${#numbers.formatDecimal(bt.giaBan, 1, 'POINT', 0, 'NONE')} + ' đ'"></del>
+                            <div class="discounted-price-text" th:text="${#numbers.formatDecimal(bt.giaDaGiam, 1, 'POINT', 0, 'NONE')} + ' đ'"></div>
+                        </div>
+                        <div th:unless="${bt.phanTramGiam != null and bt.phanTramGiam > 0}" class="normal-price-text"
+                             th:text="${#numbers.formatDecimal(bt.giaBan, 1, 'POINT', 0, 'NONE')} + ' đ'"></div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="badge-status-text" th:classappend="${bt.trangThai == 1} ? 'status-active' : 'status-stopped'"
+                              th:text="${bt.trangThai == 1} ? 'Đang hoạt động' : 'Ngừng hoạt động'"></span>
+                    </td>
+                    <td style="text-align: center;">
+                        <div class="action-buttons-flex-group">
+                            <button type="button" class="icon-btn-circle view-eye" title="Xem thông tin & Mã QR"
+                                    th:attr="onclick='moModalXemQr(' + ${bt.id} + ')'">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                            <a class="icon-btn-circle edit-pencil-black" title="Sửa chi tiết biến thể"
+                               th:href="@{/san-pham/bien-the/sua(id=${bt.id}, idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP})}">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </a>
+                            <div class="status-toggle-container" title="Thay đổi trạng thái hoạt động"
+                                 th:attr="onclick='toggleTrangThai(' + ${bt.id} + ',' + ${bt.trangThai} + ', event)'">
+                                <span class="toggle-track" th:classappend="${bt.trangThai == 1} ? 'track-active' : 'track-inactive'">
+                                    <span class="toggle-handle"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+                    <td hidden class="qr-data-holder"
+                        th:data-id="${bt.id}"
+                        th:data-ma="${bt.maCtsp}"
+                        th:data-mau="${bt.tenMauSac} ?: 'Mặc định'"
+                        th:data-trong-luong="${bt.tenTrongLuong} ?: 'Mặc định'"
+                        th:data-anh="${bt.hinhAnh != null and !bt.hinhAnh.isEmpty()} ? ('http://localhost:8080' + ${bt.hinhAnh}) : 'https://placehold.co/120x120?text=No+Image'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="custom-pagination-wrapper">
+            <a class="page-arrow-btn" th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP}, keyword=${keyword}, trangThai=${trangThai}, page=${currentPage - 1}, size=${pageSize})}">&lt;</a>
+            <span class="page-text-indicator" th:text="'Trang ' + (${currentPage} + 1) + ' / ' + (${totalPages} > 0 ? ${totalPages} : 1)"></span>
+            <a class="page-arrow-btn" th:classappend="${currentPage >= totalPages - 1 or totalPages <= 1} ? 'disabled'"
+               th:href="@{/san-pham/bien-the(idSP=${idSP}, maSP=${maSP}, tenSP=${tenSP}, keyword=${keyword}, trangThai=${trangThai}, page=${currentPage + 1}, size=${pageSize})}">&gt;</a>
+        </div>
+    </div>
+
+    <div class="qr-modal-backdrop" id="qrModal" style="display:none;" onclick="if(event.target===this) closeQrModal()">
+        <div class="qr-modal-content">
+            <div class="modal-header-orange">
+                <h4><i class="fa-solid fa-qrcode"></i> Thông tin chi tiết & Mã QR Biến thể</h4>
+                <button type="button" class="btn-close-modal" onclick="closeQrModal()">&times;</button>
+            </div>
+            <div class="modal-body-layout">
+                <div class="info-specs-column">
+                    <div style="text-align: left; margin-bottom: 15px;">
+                        <img id="qrAnhSanPham" src="" alt="Ảnh sản phẩm biến thể" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1;"/>
+                    </div>
+                    <div class="spec-row-item"><span>Mã CTSP (SKU):</span> <strong id="qrMaCtsp"></strong></div>
+                    <div class="spec-row-item"><span>Màu sắc:</span> <strong id="qrMauSac"></strong></div>
+                    <div class="spec-row-item"><span>Trọng lượng:</span> <strong id="qrTrongLuong"></strong></div>
+                </div>
+                <div class="qr-code-column">
+                    <div class="qr-canvas-holder" id="qrCanvasHolder"></div>
+                    <div class="qr-action-footer">
+                        <button type="button" class="btn-print-qr-code" onclick="inMaQRCode()">
+                            <i class="fa-solid fa-print"></i> In mã sản phẩm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script th:src="@{/san-pham/bien-the.js}"></script>
+</div>
+
+</body>
+</html>

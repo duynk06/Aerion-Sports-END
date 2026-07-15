@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: main-layout(~{::#hoa-don-view})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý hóa đơn</title>
+</head>
+<body>
+
+<!-- BẮT ĐẦU PHẦN NỘI DUNG ĐƯỢC NHÚNG VÀO LAYOUT -->
+<div id="hoa-don-view">
+
+    <!-- MANG TOÀN BỘ CSS VÀO ĐÂY ĐỂ KHÔNG BỊ MẤT KHI DÙNG LAYOUT -->
+    <style>
+        .invoice-badge, .status-badge {display: inline-block;padding: 4px 12px;border-radius: 999px;font-size: 11px; font-weight: 600;background: #dcfce7;color: #166534; border: 1px solid #bbf7d0;}
+        .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid #e5e7eb;}
+        .card-header{ background:#f79b66; color:#fff; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-weight:600;font-size:14px;}
+        .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+        .filter-grid label{ display:block; margin-bottom:6px;font-size:12px;font-weight:500;}
+        .filter-grid input,
+        .filter-grid select {width: 100%;height: 38px;border: 1px solid #d1d5db;border-radius: 6px;padding: 0 12px;box-sizing: border-box;outline: none;transition: all 0.2s ease-in-out;color: #374151;font-family: inherit;}
+
+        /* Thêm hiệu ứng focus (sáng viền màu cam) khi click vào ô tìm kiếm */
+        .filter-grid input:focus,
+        .filter-grid select:focus {border-color: #f79b66;box-shadow: 0 0 0 3px rgba(247, 155, 102, 0.2);}
+        .filter-action{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}
+        .btn-reset{border:none;background:#f3f4f6;padding:10px 18px; border-radius:6px;cursor:pointer; text-decoration: none; color: #333;}
+        .btn-export{ border:none;background:#d8f5eb;color:#00875a;padding:10px 18px;border-radius:6px;cursor:pointer;}
+        .list-title{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+        .title-icon{width:28px;height:28px;border-radius:8px;background:#f79b66;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;}
+        .list-title h3{margin:0;font-size:14px;font-weight:600;}
+        .list-title span{font-size:11px;color:#888;}
+        .status-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px;}
+        .status-tabs button, .status-tabs a {height:28px;padding:4px 12px;border-radius:20px;border:1px solid #e5e7eb;background:white;font-size:11px;cursor:pointer; text-decoration: none; color: #333; display: inline-flex; align-items: center;}
+        .status-tabs .active{background:#f79b66;color:white;border-color:#f79b66;}
+        table{width:100%;border-collapse:collapse;font-size:12px;table-layout: fixed;}
+        thead{background:#f79b66;color:white;}
+        th, td {padding: 10px;text-align: center;vertical-align: middle;white-space: nowrap;}
+        tbody tr:hover{background:#fafafa;}
+        .money{color:#d14343;font-weight:600;}
+        .action-btn{width:32px;height:32px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;margin:0 2px; text-decoration: none; display: inline-flex; justify-content: center; align-items: center; color: #333;}
+        .action-btn:hover{background:#f5f5f5;}
+        .pagination{display:flex;align-items:center;font-size:12px;margin-top:0;}
+        .page-center{display:flex;align-items:center;gap:10px;}
+        .page-center a{width:28px;height:28px;border:1px solid #ddd;background:white;border-radius:4px;cursor:pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #333;}
+        .page-center a.disabled {pointer-events: none; opacity: 0.5;}
+        .pagination select{height:32px;border:1px solid #ddd;border-radius:6px;padding:0 8px;}
+        .table-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;}
+        .table-info{font-size:13px;color:#060606;margin:0;}
+        .table-info strong{color:#060606;}
+
+
+        .status-wait-confirm { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .status-confirmed { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .status-wait-delivery { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .status-delivering { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .status-delivered { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .status-completed { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .status-cancel { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .status-request-cancel { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .status-refunded { background: #86efac; color: #14532d; border-color: #4ade80; }
+        .invoice-offline { background: #86efac; color: #14532d; }
+        .invoice-online { background: #86efac; color: #14532d; }
+    </style>
+
+    <div style="padding: 5px 0;"> <!-- Hoặc bỏ luôn thuộc tính style nếu layout đã đủ khoảng cách -->
+
+        <!-- FORM TÌM KIẾM -->
+        <form th:action="@{/hoa-don}" method="GET" id="filterForm">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm
+                </div>
+
+                <div class="filter-grid">
+                    <div>
+                        <label>Tìm kiếm</label>
+                        <input type="text" id="keyword" name="keyword" th:value="${keyword}" placeholder="Nhập mã hóa đơn / tên khách / SDT..."/>
+                    </div>
+                    <div>
+                        <label>Loại hóa đơn</label>
+                        <select name="loaiHoaDonFilter" id="loaiHoaDonFilter">
+                            <option value="">Tất cả</option>
+                            <option value="0" th:selected="${loaiHoaDonFilter == 0}">Tại quầy</option>
+                            <option value="1" th:selected="${loaiHoaDonFilter == 1}">Online</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Từ ngày</label>
+                        <input type="date" id="tuNgay" name="tuNgay"
+                               th:value="${tuNgay != null ? tuNgay : #temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"/>
+                    </div>
+                    <div>
+                        <label>Đến ngày</label>
+                        <input type="date" id="denNgay" name="denNgay"
+                               th:value="${denNgay != null ? denNgay : #temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"/>
+                    </div>
+                    <input type="hidden" name="trangThaiFilter" th:value="${trangThaiFilter}">
+                </div>
+
+                <div class="filter-action">
+                    <a th:href="@{/hoa-don}" class="btn-reset">
+                        <i class="fa-solid fa-rotate-right"></i> Đặt lại
+                    </a>
+                    <button type="submit" class="btn-export" name="export" value="true">
+                        <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- DANH SÁCH HÓA ĐƠN -->
+        <div class="card">
+            <div class="list-title">
+                <div class="title-icon">
+                    <i class="fa-solid fa-file-invoice"></i>
+                </div>
+                <div>
+                    <h3>Danh sách hóa đơn</h3>
+                    <span>Lọc nhanh theo trạng thái</span>
+                </div>
+            </div>
+
+            <div class="status-tabs">
+                <a th:href="@{/hoa-don(trangThaiFilter='', keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == null || trangThaiFilter == ''} ? 'active' : ''">Tất cả</a>
+
+                <a th:href="@{/hoa-don(trangThaiFilter=0, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == 0} ? 'active' : ''">Chờ xác nhận</a>
+
+                <a th:href="@{/hoa-don(trangThaiFilter=1, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == 1} ? 'active' : ''">Đã xác nhận</a>
+
+                <a th:href="@{/hoa-don(trangThaiFilter=2, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == 2} ? 'active' : ''">Chờ giao hàng</a>
+
+                <a th:href="@{/hoa-don(trangThaiFilter=3, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == 3} ? 'active' : ''">Đang giao hàng</a>
+
+                <a th:href="@{/hoa-don(trangThaiFilter=4, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == 4} ? 'active' : ''">Đã giao hàng</a>
+
+                <a th:href="@{/hoa-don(trangThaiFilter=5, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == 5} ? 'active' : ''">Đã hoàn thành</a>
+
+                <a th:href="@{/hoa-don(trangThaiFilter=6, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == 6} ? 'active' : ''">Đã hủy</a>
+
+                <a th:href="@{/hoa-don(trangThaiFilter=7, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                   th:classappend="${trangThaiFilter == 7} ? 'active' : ''">Yêu cầu huỷ</a>
+            </div>
+
+            <table>
+                <colgroup>
+                    <col style="width:5%">
+                    <col style="width:10%">
+                    <col style="width:14%">
+                    <col style="width:12%">
+                    <col style="width:10%">
+                    <col style="width:10%">
+                    <col style="width:10%">
+                    <col style="width:12%">
+                    <col style="width:9%">
+                    <col style="width:8%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th scope="col">STT</th>
+                    <th scope="col">Mã hóa đơn</th>
+                    <th scope="col">Tên nhân viên</th>
+                    <th scope="col">Khách hàng</th>
+                    <th scope="col">Số điện thoại</th>
+                    <th scope="col">Loại hóa đơn</th>
+                    <th scope="col">Tổng tiền</th>
+                    <th scope="col">Ngày tạo</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col">Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="hoaDon, iterStat : ${listHoaDon}">
+                    <td th:text="${(page * size) + iterStat.count}"></td>
+                    <td th:text="${hoaDon.maHoaDon}"></td>
+                    <td th:text="${hoaDon.tenNv}"></td>
+                    <td th:text="${hoaDon.tenKhachHang}"></td>
+                    <td th:text="${hoaDon.sdtKhachHang}"></td>
+                    <td>
+                        <span class="invoice-badge"
+                              th:classappend="${hoaDon.loaiHoaDon == 1 ? 'invoice-online' : 'invoice-offline'}"
+                              th:text="${hoaDon.loaiHoaDon == 1 ? 'Online' : 'Tại quầy'}">
+                        </span>
+                    </td>
+                    <td class="money" th:text="${#numbers.formatDecimal(hoaDon.tongTienThanhToan, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                    <td th:text="${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy')}"></td>
+                    <td>
+                       <span class="status-badge"
+                             th:classappend="${hoaDon.trangThaiClass}"
+                             th:text="${hoaDon.trangThaiName}">
+                       </span>
+                    </td>
+                    <td>
+                        <a th:href="@{/hoa-don/chi-tiet/{id}(id=${hoaDon.id})}" class="action-btn">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        const filterForm = document.getElementById('filterForm');
+                        const selectsAndDates = ['loaiHoaDonFilter', 'tuNgay', 'denNgay'];
+                        selectsAndDates.forEach(id => {
+                            const element = document.getElementById(id);
+                            if(element) {
+                                element.addEventListener('change', function() {
+                                    filterForm.submit();
+                                });
+                            }
+                        });
+                        const keywordInput = document.getElementById('keyword');
+                        let typingTimer;
+                        const doneTypingInterval = 800;
+
+                        if(keywordInput) {
+                            keywordInput.addEventListener('input', function() {
+                                clearTimeout(typingTimer);
+                                typingTimer = setTimeout(function() {
+                                    filterForm.submit();
+                                }, doneTypingInterval);
+                            });
+                        }
+                    });
+                </script>
+                </tbody>
+            </table>
+
+            <div class="table-footer">
+                <div class="table-info">
+                    Tổng: <strong th:text="${totalElements}">0</strong> hóa đơn
+                </div>
+
+                <div class="pagination">
+                    <div class="page-center">
+                        <a th:href="@{/hoa-don(page=${page - 1}, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, trangThaiFilter=${trangThaiFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                           th:classappend="${page == 0} ? 'disabled' : ''">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </a>
+
+                        <span>Trang <span th:text="${page + 1}"></span> / <span th:text="${totalPages}"></span></span>
+
+                        <a th:href="@{/hoa-don(page=${page + 1}, keyword=${keyword}, loaiHoaDonFilter=${loaiHoaDonFilter}, trangThaiFilter=${trangThaiFilter}, tuNgay=${tuNgay}, denNgay=${denNgay})}"
+                           th:classappend="${page + 1 >= totalPages} ? 'disabled' : ''">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
