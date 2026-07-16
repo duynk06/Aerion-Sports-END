@@ -302,6 +302,9 @@
                 const trong = this.khachHang.listDiaChi.some(a => !a.tenNguoiNhan.trim() || !a.sdtNguoiNhan.trim() || !a.tinhThanh || !a.quanHuyen || !a.phuongXa || !a.chiTietCuThe.trim());
                 if (trong) return alert('Vui lòng không để trống bất kì thông tin nào trong khối sổ địa chỉ!');
 
+                const xacNhan = confirm(`Bạn có chắc chắn muốn thêm khách hàng "${this.khachHang.tenKh.trim()}" không?`);
+                if (!xacNhan) return;
+
                 try {
                     const checkTrungRes = await axios.get('http://localhost:8080/public/khach-hang/check-trung', {
                         params: { sdt: this.khachHang.sdt.trim(), email: this.khachHang.email.trim() }

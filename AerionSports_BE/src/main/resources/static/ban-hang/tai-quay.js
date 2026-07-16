@@ -42,7 +42,8 @@
         "đồng tháp", "an giang", "kiên giang", "cần thơ", "hậu giang", "sóc trăng",
         "bạc liêu", "cà mau",
     ];
-
+    const capNhatDiaChiGiaoHangThuCongApi = (idHoaDon, payload) =>
+        apiFetch(`${baseUrl}/${idHoaDon}/dia-chi-giao-hang-thu-cong`, { method: "PUT", ...jsonBody(payload) });
     function xacDinhMien(tinhThanh) {
         const s = (tinhThanh || "").toLowerCase();
         if (MIEN_BAC.some((t) => s.includes(t))) return "BAC";
@@ -121,6 +122,11 @@
         const hd = getActiveHd();
         return hd ? hd.khachHang : null;
     }
+    function layTinhTuChuoiDiaChi(diaChiDayDu) {
+        if (!diaChiDayDu) return "";
+        const parts = diaChiDayDu.split(",");
+        return parts[parts.length - 1].trim();
+    }
     function getTongTienHienTai() {
         return state.chiTietHoaDonHienTai.reduce(
             (sum, sp) => sum + sp.donGia * sp.soLuong,
@@ -140,16 +146,11 @@
     function getPhiVanChuyen() {
         if (getLoaiHoaDonHienTai() !== 1) return 0;
         const kh = getKhachHangDuocChon();
-        if (!kh || kh.id === 999) return 0;
+        if (!kh) return 0;
+        if (kh.id === 999 && !kh.tinhThanh) return 0;   // vãng lai chưa nhập địa chỉ giao hàng
         const tinhThanh = (kh.tinhThanh || "").toLowerCase();
-
-        // Nội tỉnh / nội thành / nội huyện — cùng Hà Nội với shop
         if (tinhThanh.includes("hà nội")) return PHI_NOI_TINH;
-
-        // Liên tỉnh nhưng cùng miền Bắc với shop → nội miền
         if (xacDinhMien(tinhThanh) === "BAC") return PHI_NOI_MIEN;
-
-        // Khác miền (Trung/Nam) → liên miền
         return PHI_LIEN_MIEN;
     }
     function getTongThanhToan() {
@@ -511,6 +512,12 @@
         }
     };
     function mapHoaDon(hd) {
+        const thongTinGiaoChung = {
+            diaChi: hd.diaChiGiaoHang || "",
+            tinhThanh: hd.diaChiGiaoHang ? layTinhTuChuoiDiaChi(hd.diaChiGiaoHang) : "",
+            nguoiNhanGiao: hd.tenNguoiNhanGiao || "",
+            sdtGiao: hd.sdtNguoiNhanGiao || "",
+        };
         return {
             ...hd,
             chiTietHoaDon: hd.sanPham || [],
@@ -519,13 +526,163 @@
                     id: hd.idKhachHang,
                     hoTen: hd.tenKhachHang,
                     sdt: hd.sdt,
-                    diaChi: hd.diaChiKhachHang || "",
-                    tinhThanh: hd.tinhThanhKhachHang || "",
-                    nguoiNhanGiao: hd.tenNguoiNhanGiao || "",   // ✅ lấy đúng từ hóa đơn, không lấy tên khách hàng
-                    sdtGiao: hd.sdtNguoiNhanGiao || "",          // ✅ lấy đúng từ hóa đơn, không lấy SĐT khách hàng
+                    email: hd.email,
+                    ...thongTinGiaoChung,
+                    // Khách đã đăng ký: nếu hóa đơn chưa có địa chỉ giao hàng riêng, fallback về địa chỉ mặc định của khách
+                    diaChi: hd.diaChiGiaoHang || hd.diaChiKhachHang || "",
+                    tinhThanh: hd.diaChiGiaoHang ? layTinhTuChuoiDiaChi(hd.diaChiGiaoHang) : (hd.tinhThanhKhachHang || ""),
                 }
-                : KHACH_HANG_VANG_LAI,
+                : {
+                    ...KHACH_HANG_VANG_LAI,
+                    ...thongTinGiaoChung,
+                },
         };
+    }
+    function renderAddressModalListVangLai() {
+        const el = document.getElementById("addressModalList");
+        if (!el) return;
+        const kh = getKhachHangDuocChon();
+        el.innerHTML = renderDiaChiFormVangLai(kh);
+        khoiTaoDropdownDiaChiVangLai(kh);
+    }
+    function khoiTaoDropdownDiaChiVangLai(kh) {
+        // Parse lại "chi tiết, xã, huyện, tỉnh" đã lưu trong hóa đơn để chọn đúng khi mở lại
+        let phuongXaGop = "";
+        if (kh && kh.diaChi) {
+            const parts = kh.diaChi.split(",").map((s) => s.trim());
+            if (parts.length >= 4) {
+                phuongXaGop = `${parts[1]}, ${parts[2]}`;
+            }
+        }
+        khoiTaoDropdownDiaChi({ tinhThanh: kh?.tinhThanh || "", phuongXa: phuongXaGop });
+    }
+
+    window.luuDiaChiVangLai = async function () {
+        xoaTatCaLoiDiaChi();
+
+        const tinhSelect = document.getElementById("dcTinhThanhSelect");
+        const huyenSelect = document.getElementById("dcQuanHuyenSelect");
+        const xaSelect = document.getElementById("dcPhuongXaSelect");
+
+        const tenTinh = tinhSelect.options[tinhSelect.selectedIndex]?.dataset.name || "";
+        const tenHuyen = huyenSelect.options[huyenSelect.selectedIndex]?.dataset.name || "";
+        const tenXa = xaSelect.options[xaSelect.selectedIndex]?.dataset.name || "";
+
+        const nguoiNhan = document.getElementById("dcNguoiNhan").value.trim();
+        const sdt = document.getElementById("dcSdt").value.trim();
+        const diaChiChiTiet = document.getElementById("dcDiaChiChiTiet").value.trim();
+
+        let coLoi = false;
+        if (!nguoiNhan) { hienThiLoiField("dcNguoiNhanGroup", "dcNguoiNhanError", "Vui lòng nhập tên người nhận!"); coLoi = true; }
+        if (!sdt) { hienThiLoiField("dcSdtGroup", "dcSdtError", "Vui lòng nhập số điện thoại!"); coLoi = true; }
+        else if (!/^(0[3|5|7|8|9])([0-9]{8})$/.test(sdt)) { hienThiLoiField("dcSdtGroup", "dcSdtError", "Số điện thoại không đúng định dạng nhà mạng VN!"); coLoi = true; }
+        if (!tenTinh) { hienThiLoiField("dcTinhThanhGroup", "dcTinhThanhError", "Vui lòng chọn Tỉnh/Thành phố!"); coLoi = true; }
+        if (!tenHuyen) { hienThiLoiField("dcQuanHuyenGroup", "dcQuanHuyenError", "Vui lòng chọn Quận/Huyện!"); coLoi = true; }
+        if (!tenXa) { hienThiLoiField("dcPhuongXaGroup", "dcPhuongXaError", "Vui lòng chọn Phường/Xã!"); coLoi = true; }
+        if (!diaChiChiTiet) { hienThiLoiField("dcDiaChiChiTietGroup", "dcDiaChiChiTietError", "Vui lòng nhập địa chỉ chi tiết!"); coLoi = true; }
+        if (coLoi) return;
+
+        const payload = {
+            nguoiNhan, sdt,
+            tinhThanh: tenTinh,
+            phuongXa: `${tenXa}, ${tenHuyen}`,
+            diaChiChiTiet,
+        };
+
+        try {
+            const response = await capNhatDiaChiGiaoHangThuCongApi(state.activeHoaDon, payload);
+            const index = state.hoaDonCho.findIndex((hd) => hd.id === state.activeHoaDon);
+            if (index !== -1) {
+                state.hoaDonCho[index].khachHang.diaChi = response.diaChiGiaoHang || "";
+                state.hoaDonCho[index].khachHang.tinhThanh = tenTinh;
+                state.hoaDonCho[index].khachHang.nguoiNhanGiao = nguoiNhan;
+                state.hoaDonCho[index].khachHang.sdtGiao = sdt;
+            }
+            closeModal("addressModal");
+            await capNhatPhiVanChuyenHoaDon();
+            renderCustomerCard();
+            renderPaymentBody();
+            showThongBao("Đã lưu địa chỉ giao hàng!", "success");
+        } catch (e) {
+            showThongBao(e.message || "Lỗi lưu địa chỉ!", "error");
+        }
+    };
+    function hienThiLoiField(idGroup, idError, message) {
+        const group = document.getElementById(idGroup);
+        const errorEl = document.getElementById(idError);
+        if (group) group.classList.add("has-error");
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.style.display = "block";
+        }
+    }
+    window.xoaLoiField = function (idGroup, idError) {
+        const group = document.getElementById(idGroup);
+        const errorEl = document.getElementById(idError);
+        if (group) group.classList.remove("has-error");
+        if (errorEl) {
+            errorEl.textContent = "";
+            errorEl.style.display = "none";
+        }
+    };
+    function xoaTatCaLoiDiaChi() {
+        ["dcNguoiNhan", "dcSdt", "dcTinhThanh", "dcQuanHuyen", "dcPhuongXa", "dcDiaChiChiTiet"].forEach((prefix) => {
+            window.xoaLoiField(`${prefix}Group`, `${prefix}Error`);
+        });
+    }
+    function renderDiaChiFormVangLai(kh) {
+        kh = kh || {};
+        return `
+      <div class="address-form" style="border-top:none;padding-top:0;margin-top:0;">
+        <h4 style="margin:0 0 12px 0;">Địa chỉ giao hàng (khách vãng lai)</h4>
+        <div class="filter-row">
+          <div class="filter-group flex-1" id="dcNguoiNhanGroup">
+            <label>Người nhận <span>*</span></label>
+            <input id="dcNguoiNhan" type="text" class="modal-input" value="${kh.nguoiNhanGiao || ""}"
+                   oninput="xoaLoiField('dcNguoiNhanGroup','dcNguoiNhanError')"/>
+            <span class="error-text" id="dcNguoiNhanError" style="display:none;"></span>
+          </div>
+          <div class="filter-group flex-1" id="dcSdtGroup">
+            <label>Số điện thoại <span>*</span></label>
+            <input id="dcSdt" type="text" class="modal-input" value="${kh.sdtGiao || ""}"
+                   oninput="xoaLoiField('dcSdtGroup','dcSdtError')"/>
+            <span class="error-text" id="dcSdtError" style="display:none;"></span>
+          </div>
+        </div>
+        <div class="filter-row" style="margin-top:12px;">
+          <div class="filter-group flex-1" id="dcTinhThanhGroup">
+            <label>Tỉnh/Thành phố <span>*</span></label>
+            <select id="dcTinhThanhSelect" class="modal-select">
+              <option value="">-- Đang tải... --</option>
+            </select>
+            <span class="error-text" id="dcTinhThanhError" style="display:none;"></span>
+          </div>
+          <div class="filter-group flex-1" id="dcQuanHuyenGroup">
+            <label>Quận/Huyện <span>*</span></label>
+            <select id="dcQuanHuyenSelect" class="modal-select" disabled>
+              <option value="">-- Chọn tỉnh/thành trước --</option>
+            </select>
+            <span class="error-text" id="dcQuanHuyenError" style="display:none;"></span>
+          </div>
+          <div class="filter-group flex-1" id="dcPhuongXaGroup">
+            <label>Phường/Xã/Thị trấn <span>*</span></label>
+            <select id="dcPhuongXaSelect" class="modal-select" disabled>
+              <option value="">-- Chọn quận/huyện trước --</option>
+            </select>
+            <span class="error-text" id="dcPhuongXaError" style="display:none;"></span>
+          </div>
+        </div>
+        <div class="filter-group" id="dcDiaChiChiTietGroup" style="margin-top:12px;">
+          <label>Địa chỉ chi tiết (số nhà, tên đường...) <span>*</span></label>
+          <input id="dcDiaChiChiTiet" type="text" class="modal-input" value="${kh.diaChiChiTietCu || ""}"
+                 oninput="xoaLoiField('dcDiaChiChiTietGroup','dcDiaChiChiTietError')"/>
+          <span class="error-text" id="dcDiaChiChiTietError" style="display:none;"></span>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:16px;">
+          <button class="btn-primary" onclick="luuDiaChiVangLai()">Lưu</button>
+          <button class="btn-outline-modal" onclick="closeModal('addressModal')">Hủy</button>
+        </div>
+      </div>`;
     }
     window.capNhatSoLuongSanPham = async function (idChiTiet, soLuongMoi) {
         const sl = parseInt(soLuongMoi, 10);
@@ -616,16 +773,21 @@
             await updateKhachHangHoaDon(state.activeHoaDon, 999);
             const index = state.hoaDonCho.findIndex((hd) => hd.id === state.activeHoaDon);
             if (index !== -1) {
-                state.hoaDonCho[index].khachHang = KHACH_HANG_VANG_LAI;
-                if (state.hoaDonCho[index].loaiHoaDon === 1) {
-                    await capNhatLoaiHoaDon(state.activeHoaDon, 0);
-                    state.hoaDonCho[index].loaiHoaDon = 0;
-                    showThongBao("Đã chuyển về bán tại quầy cho khách vãng lai!", "info");
-                }
+                state.hoaDonCho[index].khachHang = {
+                    ...KHACH_HANG_VANG_LAI,
+                    diaChi: "",
+                    tinhThanh: "",
+                    nguoiNhanGiao: "",
+                    sdtGiao: "",
+                };
             }
             closeCustomerModal();
             renderCustomerCard();
             renderTabs();
+            if (getLoaiHoaDonHienTai() === 1) {
+                await capNhatPhiVanChuyenHoaDon();
+                showThongBao("Vui lòng nhập địa chỉ giao hàng cho khách vãng lai!", "info");
+            }
             await lamMoiPhieuGiamGia();
             renderPaymentBody();
         } catch (e) {
@@ -636,8 +798,8 @@
         if (!state.activeHoaDon) return;
         const loaiMoi = getLoaiHoaDonHienTai() === 0 ? 1 : 0;
         const kh = getKhachHangDuocChon();
-        if (loaiMoi === 1 && (!kh || kh.id === 999)) {
-            return showThongBao("Vui lòng chọn khách cụ thể để giao hàng!", "error");
+        if (loaiMoi === 1 && !kh) {
+            return showThongBao("Vui lòng chọn khách hàng trước!", "error");
         }
         try {
             const response = await capNhatLoaiHoaDon(state.activeHoaDon, loaiMoi);
@@ -647,8 +809,18 @@
                 state.hoaDonCho[index].tienVanChuyen = response.tienVanChuyen;
             }
             if (loaiMoi === 1) {
-                await capNhatPhiVanChuyenHoaDon();
-                await tuDongChonDiaChiMacDinh();   // ✅ luôn lấy địa chỉ mặc định mới nhất từ bảng dia_chi_khach_hang, không phụ thuộc kh.diaChi cũ
+                if (kh.id !== 999) {
+                    await capNhatPhiVanChuyenHoaDon();
+                    await tuDongChonDiaChiMacDinh();
+                } else if (!kh.diaChi) {
+                    await capNhatPhiVanChuyenHoaDon();
+                    renderCustomerCard();
+                    renderPaymentBody();
+                    await window.moModalDiaChi();   // vãng lai chưa có địa chỉ -> mở form nhập tay ngay
+                    return;
+                } else {
+                    await capNhatPhiVanChuyenHoaDon();
+                }
             }
             renderCustomerCard();
             renderPaymentBody();
@@ -681,7 +853,12 @@
     }
     window.moModalDiaChi = async function () {
         const kh = getKhachHangDuocChon();
-        if (!kh || kh.id === 999) return;
+        if (!kh) return;
+        if (kh.id === 999) {
+            openModal("addressModal");
+            renderAddressModalListVangLai();
+            return;
+        }
         try {
             state.dsDiaChi = await getDiaChiKhachHang(kh.id);
             renderAddressModalList();
@@ -785,8 +962,9 @@
         // if (Object.keys(state.sanPhamGiaThayDoi).length > 0)
         //     return showThongBao("Vui lòng cập nhật sản phẩm có giá thay đổi!", "error");
 
+
         const kh = getKhachHangDuocChon();
-        if (getLoaiHoaDonHienTai() === 1 && (!kh || kh.id === 999))
+        if (getLoaiHoaDonHienTai() === 1 && (!kh || !kh.diaChi))
             return showThongBao("Thiếu thông tin người nhận!", "error");
         if (idHinhThuc === 1 && state.soTienKhachDua < getTongThanhToan())
             return showThongBao("Tiền khách đưa không đủ!", "error");
@@ -995,7 +1173,7 @@
         const kh = getKhachHangDuocChon();
         const loaiHd = getLoaiHoaDonHienTai();
 
-        if (!kh || kh.id === 999) {
+        if (!kh) {
             el.innerHTML = `
       <div>
         <span class="text-muted text-sm" style="display:block;">Tên khách hàng</span>
@@ -1003,10 +1181,11 @@
       </div>`;
             return;
         }
+
         let html = `
       <div style="margin-bottom:12px;">
         <span class="text-muted text-sm" style="display:block;">Tên khách hàng</span>
-        <h4 class="mt-1">${kh.hoTen}</h4>
+        <h4 class="mt-1">${kh.id === 999 ? "Khách hàng vãng lai" : kh.hoTen}</h4>
       </div>`;
         if (kh.sdt) {
             html += `
@@ -1016,8 +1195,8 @@
       </div>`;
         }
         if (loaiHd === 1) {
-            const nguoiNhan = kh.nguoiNhanGiao || kh.hoTen || "";
-            const sdtNhan = kh.sdtGiao || kh.sdt || "";
+            const nguoiNhan = kh.nguoiNhanGiao || (kh.id === 999 ? "" : kh.hoTen) || "";
+            const sdtNhan = kh.sdtGiao || (kh.id === 999 ? "" : kh.sdt) || "";
             const diaChiHienThi = kh.diaChi || "Chưa có địa chỉ giao hàng";
 
             html += `
@@ -1037,11 +1216,11 @@
       <div class="shipping-grid">
         <div>
           <span class="text-muted text-sm" style="display:block;">Người nhận</span>
-          <div class="mt-1 font-bold">${nguoiNhan}</div>
+          <div class="mt-1 font-bold">${nguoiNhan || "Chưa có"}</div>
         </div>
         <div>
           <span class="text-muted text-sm" style="display:block;">Số điện thoại</span>
-          <div class="mt-1 font-bold">${sdtNhan}</div>
+          <div class="mt-1 font-bold">${sdtNhan || "Chưa có"}</div>
         </div>
       </div>
       <div style="margin-top:12px;">

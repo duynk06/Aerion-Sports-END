@@ -2,6 +2,7 @@ package com.example.AerionSports_BE.service.impl;
 
 import com.example.AerionSports_BE.dto.ChiTietEmailDTO;
 import com.example.AerionSports_BE.dto.SanPhamPosDTO;
+import com.example.AerionSports_BE.dto.request.DiaChiGiaoHangThuCongRequest;
 import com.example.AerionSports_BE.dto.request.DiaChiRequest;
 import com.example.AerionSports_BE.dto.request.ThanhToanRequest;
 import com.example.AerionSports_BE.dto.request.ThemSanPhamRequest;
@@ -302,6 +303,7 @@ public class BanHangServiceImpl implements BanHangService {
         } else {
             hoaDon.setTrangThai(1);
         }
+        hoaDon.setNgayCapNhat(LocalDateTime.now());
         if (request.getGhiChu() != null && !request.getGhiChu().isBlank()) {
             hoaDon.setGhiChu(request.getGhiChu());
         }
@@ -723,6 +725,19 @@ public class BanHangServiceImpl implements BanHangService {
         );
         hoaDonRepository.save(hoaDon);
 
+        return new BanHangResponse(hoaDonRepository.findByIdWithChiTiet(hoaDon.getId()));
+    }
+    @Override
+    @Transactional
+    public BanHangResponse capNhatDiaChiGiaoHangThuCong(Integer idHoaDon, DiaChiGiaoHangThuCongRequest request) {
+        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn!"));
+        hoaDon.setTenNguoiNhan(request.getNguoiNhan());
+        hoaDon.setSdtNguoiNhan(request.getSdt());
+        hoaDon.setDiaChiNhan(
+                request.getDiaChiChiTiet() + ", " + request.getPhuongXa() + ", " + request.getTinhThanh()
+        );
+        hoaDonRepository.save(hoaDon);
         return new BanHangResponse(hoaDonRepository.findByIdWithChiTiet(hoaDon.getId()));
     }
 }

@@ -1,6 +1,7 @@
 package com.example.AerionSports_BE.service;
 
 import com.example.AerionSports_BE.dto.SanPhamPosDTO;
+import com.example.AerionSports_BE.dto.request.DiaChiGiaoHangThuCongRequest;
 import com.example.AerionSports_BE.dto.request.DiaChiRequest;
 import com.example.AerionSports_BE.dto.request.ThanhToanRequest;
 import com.example.AerionSports_BE.dto.request.ThemSanPhamRequest;
@@ -29,4 +30,5 @@ public interface BanHangService {
     List<DiaChiKhachHangResponse> themDiaChiKhachHang(Integer idKhachHang, DiaChiRequest request);
     List<DiaChiKhachHangResponse> capNhatDiaChiKhachHang(Integer idDiaChi, DiaChiRequest request);
     BanHangResponse capNhatDiaChiGiaoHang(Integer idHoaDon, Integer idDiaChi);
+    BanHangResponse capNhatDiaChiGiaoHangThuCong(Integer idHoaDon, DiaChiGiaoHangThuCongRequest request);
 }

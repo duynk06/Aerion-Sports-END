@@ -1,6 +1,7 @@
 package com.example.AerionSports_BE.controller;
 
 import com.example.AerionSports_BE.dto.SanPhamPosDTO;
+import com.example.AerionSports_BE.dto.request.DiaChiGiaoHangThuCongRequest;
 import com.example.AerionSports_BE.dto.request.DiaChiRequest;
 import com.example.AerionSports_BE.dto.request.ThanhToanRequest;
 import com.example.AerionSports_BE.dto.request.ThemSanPhamRequest;
@@ -60,6 +61,16 @@ public class BanHangController {
         return ResponseEntity.ok(banHangService.getHoaDonCho());
     }
 
+    @PutMapping("/{id}/dia-chi-giao-hang-thu-cong")
+    @ResponseBody
+    public ResponseEntity<?> capNhatDiaChiGiaoHangThuCong(@PathVariable("id") Integer idHoaDon,
+                                                          @RequestBody DiaChiGiaoHangThuCongRequest request) {
+        try {
+            return ResponseEntity.ok(banHangService.capNhatDiaChiGiaoHangThuCong(idHoaDon, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
     @GetMapping("/san-pham")
     @ResponseBody
     public ResponseEntity<Page<SanPhamPosResponse>> locSanPham(

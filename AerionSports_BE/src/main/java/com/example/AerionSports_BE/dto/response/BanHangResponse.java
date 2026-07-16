@@ -27,6 +27,7 @@ public class BanHangResponse {
     private String tenKhachHang;
     private String sdt;
     private String email;
+    private String diaChiGiaoHang;
     // BanHangResponse.java
     private String diaChiKhachHang;
     private String tinhThanhKhachHang;
@@ -66,6 +67,7 @@ public class BanHangResponse {
         this.trangThai = hoaDon.getTrangThai();
         this.tenNguoiNhanGiao = hoaDon.getTenNguoiNhan();
         this.sdtNguoiNhanGiao = hoaDon.getSdtNguoiNhan();
+        this.diaChiGiaoHang = hoaDon.getDiaChiNhan();
 
         // BanHangResponse.java — constructor, sửa phần khách hàng
         if (hoaDon.getKhachHang() != null) {

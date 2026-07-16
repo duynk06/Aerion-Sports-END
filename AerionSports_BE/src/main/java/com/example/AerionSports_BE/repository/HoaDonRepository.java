@@ -28,6 +28,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     """)
     List<HoaDon> search(@Param("keyword") String keyword);
 
+    // ĐÃ SỬA LỖI: Bỏ "ORDER BY hd.id DESC" ở cuối câu lệnh này để Pageable trong Service tự động xử lý Sort
     @Query(value = """
     SELECT hd
     FROM HoaDon hd
@@ -44,7 +45,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
         AND (:trangThai IS NULL OR hd.trangThai = :trangThai)
         AND (:tuNgay IS NULL OR CAST(hd.ngayTao AS date) >= :tuNgay)
         AND (:denNgay IS NULL OR CAST(hd.ngayTao AS date) <= :denNgay)
-    ORDER BY hd.id DESC
 """, countQuery = """
     SELECT COUNT(hd)
     FROM HoaDon hd
@@ -63,15 +63,14 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 """)
     Page<HoaDon> filterHoaDon(
             @Param("keyword") String keyword,
-            @Param("loaiHoaDon") Integer loaiHoaDon, // Sửa thành Integer
+            @Param("loaiHoaDon") Integer loaiHoaDon,
             @Param("trangThai") Integer trangThai,
             @Param("tuNgay") LocalDate tuNgay,
             @Param("denNgay") LocalDate denNgay,
             Pageable pageable
     );
 
-    // ✅ THÊM: giống hệt filterHoaDon ở trên nhưng KHÔNG phân trang — dùng riêng cho xuất Excel
-    // (xuất toàn bộ dữ liệu khớp bộ lọc hiện tại, không giới hạn theo trang đang xem)
+    // ĐÃ CẬP NHẬT: Cho giống với thứ tự sắp xếp trên giao diện (theo ngày cập nhật rồi mới đến id)
     @Query("""
     SELECT hd
     FROM HoaDon hd
@@ -88,7 +87,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
         AND (:trangThai IS NULL OR hd.trangThai = :trangThai)
         AND (:tuNgay IS NULL OR CAST(hd.ngayTao AS date) >= :tuNgay)
         AND (:denNgay IS NULL OR CAST(hd.ngayTao AS date) <= :denNgay)
-    ORDER BY hd.id DESC
+    ORDER BY hd.ngayCapNhat DESC, hd.id DESC
 """)
     List<HoaDon> filterHoaDonKhongPhanTrang(
             @Param("keyword") String keyword,
@@ -97,8 +96,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
             @Param("tuNgay") LocalDate tuNgay,
             @Param("denNgay") LocalDate denNgay
     );
-
-    // HoaDonRepository.java
 
     @Query("""
     SELECT hd FROM HoaDon hd
@@ -192,6 +189,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
             "  AND YEAR(CONVERT(DATE, hd.ngay_tao)) = :nam " +
             "GROUP BY DATEPART(QUARTER, CONVERT(DATE, hd.ngay_tao))", nativeQuery = true)
     List<Object[]> queryDoanhThu4QuyTheoNam(@Param("nam") Integer nam);
+
     List<HoaDon> findByTrangThai(Integer trangThai);
     long countByTrangThai(Integer trangThai);
 }
