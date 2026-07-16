@@ -44,7 +44,8 @@ public class BanHangResponse {
     private String maPhieuGiamGia;
     private String tenPhieuGiamGia;
     private String ghiChu;
-
+    private String tenNguoiNhanGiao;
+    private String sdtNguoiNhanGiao;
     private Integer trangThai;
 
     private List<ChiTietHoaDonResponse> sanPham;
@@ -63,6 +64,8 @@ public class BanHangResponse {
         this.loaiHoaDon = hoaDon.getLoaiHoaDon();
         this.ghiChu = hoaDon.getGhiChu();
         this.trangThai = hoaDon.getTrangThai();
+        this.tenNguoiNhanGiao = hoaDon.getTenNguoiNhan();
+        this.sdtNguoiNhanGiao = hoaDon.getSdtNguoiNhan();
 
         // BanHangResponse.java — constructor, sửa phần khách hàng
         if (hoaDon.getKhachHang() != null) {

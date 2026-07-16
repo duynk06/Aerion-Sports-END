@@ -54,13 +54,19 @@ public class PhieuGiamGiaController {
         }
 
         if (trangThai != null) {
-            if (trangThai == 1) {
+            if (trangThai == 1) { // Lọc Hoạt động
                 list = list.stream().filter(p -> p.getTrangThai() != null && p.getTrangThai() == 1
                         && (p.getNgayKetThuc() == null || !p.getNgayKetThuc().toLocalDate().isBefore(homNay))
+                        && (p.getNgayBatDau() == null || !homNay.isBefore(p.getNgayBatDau().toLocalDate())) // ngày bắt đầu <= hôm nay
                         && p.getSoLuong() > (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0)).toList();
-            } else if (trangThai == 0) {
+            } else if (trangThai == 2) { // Lọc Sắp diễn ra
+                list = list.stream().filter(p -> p.getTrangThai() != null && p.getTrangThai() == 1
+                        && (p.getNgayKetThuc() == null || !p.getNgayKetThuc().toLocalDate().isBefore(homNay))
+                        && p.getNgayBatDau() != null && homNay.isBefore(p.getNgayBatDau().toLocalDate()) // ngày bắt đầu > hôm nay
+                        && p.getSoLuong() > (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0)).toList();
+            } else if (trangThai == 0) { // Lọc Ngừng hoạt động
                 list = list.stream().filter(p -> p.getTrangThai() != null && (p.getTrangThai() == 0
-                        || (p.getTrangThai() == 1 && p.getNgayKetThuc() != null && p.getNgayKetThuc().toLocalDate().isBefore(homNay))
+                        || (p.getNgayKetThuc() != null && p.getNgayKetThuc().toLocalDate().isBefore(homNay))
                         || p.getSoLuong() <= (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0))).toList();
             }
         }

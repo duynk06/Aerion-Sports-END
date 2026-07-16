@@ -77,7 +77,6 @@
                                 <div class="form-cell">
                                     <label>Vai trò hệ thống</label>
                                     <select x-model.number="nhanVienForm.vaiTro" class="select-box">
-                                        <option :value="1">Quản trị viên</option>
                                         <option :value="2">Quản lý</option>
                                         <option :value="3">Nhân viên</option>
                                     </select>
@@ -159,6 +158,8 @@
             avatarFile: null,
 
             async init() {
+                if (this._initialized) return;
+                this._initialized = true;
                 const parts = window.location.pathname.split('/').filter(Boolean);
                 this.nhanVienId = parts[parts.length - 1];
                 await this.load63TinhThanh();
@@ -169,69 +170,112 @@
                 try {
                     const res = await axios.get('https://provinces.open-api.vn/api/p/');
                     this.listTinhThanhAPI = res.data || [];
-                } catch (e) { console.error('Lỗi tải 63 tỉnh thành: ', e); }
+                    console.log("Đã load", this.listTinhThanhAPI.length, "tỉnh/thành");
+                } catch (e) {
+                    console.error('Lỗi tải danh sách tỉnh:', e);
+                }
             },
 
             async loadDuLieuNhanVienCu() {
                 try {
                     const res = await axios.get('http://localhost:8080/nhan-vien/' + this.nhanVienId);
                     const nv = res.data;
-                    if (!nv) { this.loaded = true; return; }
+                    console.log("Dữ liệu nhân viên từ DB:", nv);
 
-                    let role = 3;
-                    if (nv.vaiTro && typeof nv.vaiTro === 'object' && nv.vaiTro.id !== undefined) role = Number(nv.vaiTro.id);
-                    else if (nv.vaiTro !== undefined && nv.vaiTro !== null) role = Number(nv.vaiTro);
-
+                    // === Gán thông tin cơ bản ===
                     this.nhanVienForm = {
-                        id: nv.id, hoTen: nv.tenNv || '', sdt: nv.sdt || '', email: nv.email || '', ngaySinh: nv.ngaySinh || '',
-                        gioiTinh: String(nv.gioiTinh), trangThai: (nv.trangThai === 1 || nv.trangThai === true) ? 1 : 0,
-                        vaiTro: role, avatarUrlCu: nv.avatar || '', avatarPreview: nv.avatar || ''
+                        id: nv.id,
+                        hoTen: nv.tenNv || '',
+                        sdt: nv.sdt || '',
+                        email: nv.email || '',
+                        ngaySinh: nv.ngaySinh ? nv.ngaySinh.split('T')[0] : '',
+                        gioiTinh: String(nv.gioiTinh || 0),
+                        trangThai: nv.trangThai === 1 ? 1 : 0,
+                        vaiTro: nv.vaiTro?.id || 3,
+                        avatarUrlCu: nv.avatar || '',
+                        avatarPreview: nv.avatar || ''
                     };
 
-                    this.diaChiGoc = nv.diaChi || '';
-
-                    let pXa = nv.phuongXa || '';
-                    let qHuyen = '';
-                    if (pXa.includes(', ')) {
-                        const parts = pXa.split(', ');
-                        pXa = (parts[0] || '').trim();
-                        qHuyen = (parts[1] || '').trim();
-                    }
+                    // === Gán địa chỉ ===
+                    this.diaChi.tinhThanh = (nv.tinhThanh || '').trim();
+                    this.diaChi.quanHuyen = (nv.quanHuyen || '').trim();
+                    this.diaChi.phuongXa = (nv.phuongXa || '').trim();
                     this.diaChi.chiTietCuThe = nv.diaChiChiTiet || '';
-                    this.diaChi.tinhThanh = nv.tinhThanh || '';
-
-                    if (this.diaChi.tinhThanh) {
-                        await this.handleThayDoiTinhThanh(qHuyen, pXa);
-                    }
 
                     this.loaded = true;
+
+                    // Fill cascade sau khi loaded = true và DOM render
+                    await this.$nextTick();
+                    if (this.diaChi.tinhThanh) {
+                        await this.fillCascadeDiaChi();
+                    }
+
                 } catch (e) {
-                    console.error('Lỗi nạp hồ sơ nhân viên cũ: ', e);
+                    console.error(e);
                     this.loaded = true;
                 }
             },
+            async fillCascadeDiaChi() {
+                await this.handleThayDoiTinhThanh(true);
+                await this.$nextTick();
 
-            async handleThayDoiTinhThanh(giuQuanHuyen, giuPhuongXa) {
-                this.diaChi.quanHuyen = ''; this.diaChi.phuongXa = ''; this.listQuanHuyenTmp = []; this.listPhuongXaTmp = [];
+                // 🌟 Ép Alpine "chọn lại" tỉnh sau khi options đã render xong
+                if (this.diaChi.tinhThanh) {
+                    const tinhVal = this.diaChi.tinhThanh;
+                    this.diaChi.tinhThanh = '';
+                    await this.$nextTick();
+                    this.diaChi.tinhThanh = tinhVal;
+                }
+
+                if (this.diaChi.quanHuyen) {
+                    await this.handleThayDoiQuanHuyen(true);
+                }
+            },
+
+            async handleThayDoiTinhThanh(isInitial = false) {
+                this.listQuanHuyenTmp = [];
+                this.listPhuongXaTmp = [];
                 if (!this.diaChi.tinhThanh) return;
-                const tinh = this.listTinhThanhAPI.find(t => t.name.trim() === this.diaChi.tinhThanh.trim());
+
+                const tinh = this.listTinhThanhAPI.find(t =>
+                    t.name.trim().toLowerCase() === this.diaChi.tinhThanh.trim().toLowerCase()
+                );
+
                 if (tinh) {
                     const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
                     this.listQuanHuyenTmp = res.data.districts || [];
-                    if (giuQuanHuyen) {
-                        this.diaChi.quanHuyen = giuQuanHuyen;
-                        await this.handleThayDoiQuanHuyen(giuPhuongXa);
+
+                    // 🌟 Ép reactivity cho quận/huyện sau khi options mới render
+                    if (isInitial && this.diaChi.quanHuyen) {
+                        await this.$nextTick();
+                        const qhVal = this.diaChi.quanHuyen;
+                        this.diaChi.quanHuyen = '';
+                        await this.$nextTick();
+                        this.diaChi.quanHuyen = qhVal;
+                        await this.handleThayDoiQuanHuyen(true);
                     }
                 }
             },
-            async handleThayDoiQuanHuyen(giuPhuongXa) {
-                this.diaChi.phuongXa = ''; this.listPhuongXaTmp = [];
+
+            async handleThayDoiQuanHuyen(isInitial = false) {
+                this.listPhuongXaTmp = [];
                 if (!this.diaChi.quanHuyen) return;
-                const quan = this.listQuanHuyenTmp.find(q => q.name.trim() === this.diaChi.quanHuyen.trim());
+
+                const quan = this.listQuanHuyenTmp.find(q =>
+                    q.name.trim().toLowerCase() === this.diaChi.quanHuyen.trim().toLowerCase()
+                );
+
                 if (quan) {
                     const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
                     this.listPhuongXaTmp = res.data.wards || [];
-                    if (giuPhuongXa) this.diaChi.phuongXa = giuPhuongXa;
+
+                    if (isInitial && this.diaChi.phuongXa) {
+                        await this.$nextTick();
+                        const pxVal = this.diaChi.phuongXa;
+                        this.diaChi.phuongXa = '';
+                        await this.$nextTick();
+                        this.diaChi.phuongXa = pxVal;
+                    }
                 }
             },
 
@@ -271,18 +315,29 @@
                     })).data;
                     if (isDuplicate) return alert('⚠️ Cảnh báo: SĐT hoặc Email đã được sử dụng bởi nhân viên khác!');
 
+                    const xacNhan = confirm(`Bạn có chắc chắn muốn lưu thay đổi thông tin nhân viên "${name}" không?`);
+                    if (!xacNhan) return;
+
                     // 🌟 KHÔNG gửi avatar base64 trong payload. Nếu không đổi ảnh, để trống
                     // để backend tự giữ nguyên avatar cũ (chỉ set khi có file mới).
                     const payload = {
-                        tenNv: name, sdt: this.nhanVienForm.sdt.trim(), email: this.nhanVienForm.email.trim(),
-                        ngaySinh: this.nhanVienForm.ngaySinh || null, gioiTinh: Number(this.nhanVienForm.gioiTinh),
-                        trangThai: Number(this.nhanVienForm.trangThai), diaChi: diaChiMoi,
-                        tinhThanh: d.tinhThanh, phuongXa: d.quanHuyen ? `${d.phuongXa}, ${d.quanHuyen}` : d.phuongXa,
-                        diaChiChiTiet: d.chiTietCuThe.trim(), vaiTro: { id: Number(this.nhanVienForm.vaiTro) }
+                        tenNv: name,
+                        sdt: this.nhanVienForm.sdt.trim(),
+                        email: this.nhanVienForm.email.trim(),
+                        ngaySinh: this.nhanVienForm.ngaySinh || null,
+                        gioiTinh: Number(this.nhanVienForm.gioiTinh),
+                        trangThai: Number(this.nhanVienForm.trangThai),
+                        diaChi: diaChiMoi, // Chuỗi gộp nếu bạn vẫn cần lưu
+                        tinhThanh: d.tinhThanh, // Gửi trực tiếp
+                        quanHuyen: d.quanHuyen, // Gửi trực tiếp
+                        phuongXa: d.phuongXa,   // Gửi trực tiếp
+                        diaChiChiTiet: d.chiTietCuThe.trim(), // Gửi trực tiếp
+                        vaiTro: { id: Number(this.nhanVienForm.vaiTro) }
                     };
 
                     // 🌟 Gửi multipart để khớp với endpoint updateMultipart mới thêm trong
                     // NhanVienController — avatar là file thật, không phải base64.
+                    console.log("Địa chỉ:", diaChiMoi);
                     const formData = new FormData();
                     formData.append('data', JSON.stringify(payload));
                     if (this.avatarFile) formData.append('avatar', this.avatarFile);

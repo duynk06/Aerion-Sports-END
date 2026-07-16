@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,20 +40,6 @@ public class AuthController {
         String matKhau = loginRequest.getMatKhau();
 
         // 🌟 BẬC THẦY BÝ PASS TUYỆT ĐỐI: Bất chấp trình duyệt tự điền mật khẩu gì, cứ nhập tài khoản admin_an là cho VÀO!
-        if ("admin_an".equals(tenDangNhap)) {
-            String token = tokenProvider.generateToken("admin_an", "NHAN_VIEN", "ADMIN", 1);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Đăng nhập thành công!",
-                    "token", token,
-                    "user", Map.of(
-                            "tenDangNhap", "admin_an",
-                            "ten_nv", "Quản trị viên hệ thống",
-                            "loai", "NHAN_VIEN",
-                            "ma_vai_tro", "ADMIN",
-                            "idChuTaiKhoan", 1
-                    )
-            ));
-        }
 
         // 1. Kiểm tra tài khoản thông thường cho các user khác
         Optional<TaiKhoan> taiKhoanOpt = taiKhoanRepository.findByTenDangNhapAndTrangThai(tenDangNhap, 1);
@@ -113,11 +100,7 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản hợp lệ!"));
 
         // Nếu là tài khoản test hệ thống, cho phép đổi trực tiếp luôn
-        if ("admin_an".equals(currentUsername)) {
-            taiKhoan.setMatKhauHash(passwordEncoder.encode(request.getMatKhauMoi()));
-            taiKhoanRepository.save(taiKhoan);
-            return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công! 🎉"));
-        }
+
 
         boolean isOldPasswordValid = passwordEncoder.matches(request.getMatKhauCu(), taiKhoan.getMatKhauHash());
 
@@ -131,9 +114,14 @@ public class AuthController {
 
         taiKhoan.setMatKhauHash(passwordEncoder.encode(request.getMatKhauMoi()));
         taiKhoanRepository.save(taiKhoan);
+        // PasswordHashGenerator.java — chạy để lấy hash mới
+        System.out.println(new BCryptPasswordEncoder().encode("123456"));
 
         return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công! 🎉"));
+
+
     }
+
 }
 
 @Data

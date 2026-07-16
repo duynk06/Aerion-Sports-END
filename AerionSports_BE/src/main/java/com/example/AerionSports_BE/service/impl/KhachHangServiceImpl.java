@@ -27,9 +27,8 @@ public class KhachHangServiceImpl implements KhachHangService {
 
     @Override
     public KhachHang getById(Integer id) {
-        return khachHangRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Không tìm thấy khách hàng với id: " + id));
+        return khachHangRepository.findByIdWithAddresses(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng có id = " + id));
     }
 
     @Override

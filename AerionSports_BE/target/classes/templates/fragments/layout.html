@@ -4,118 +4,291 @@
   <meta charset="UTF-8">
   <title>Aerion Sports - Quản trị</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
+
   <style>
-    body {
+    * {
       margin: 0;
-      background-color: #f3f4f6;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+    }
+
+    .main-layout-shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .main-layout-sidebar {
+      flex: 0 0 250px;
+      width: 250px;
+      min-width: 250px;
+    }
+
+    /* Phần nội dung bên phải */
+    .main-layout-content-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Header */
+    .main-layout-header {
+      height: 65px;
+      background: #fff;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    .main-layout-title {
+      margin: 0;
+      font-size: 20px;
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .header-user-box {
+      position: relative;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+
+    .header-user:hover {
+      background: #f9fafb;
+    }
+
+    .main-layout-avatar {
+      width: 36px;
+      height: 36px;
+      background: #f79b66;
+      border-radius: 50%;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-user-text {
+      line-height: 1.2;
+    }
+
+    .header-user-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #111827;
+    }
+
+    .header-user-role {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    /* Dropdown */
+    .header-user-dropdown {
+      position: absolute;
+      top: 55px;
+      right: 10px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      min-width: 180px;
+      overflow: hidden;
+      z-index: 1000;
+      display: none;
+    }
+
+    .header-user-dropdown.open {
+      display: block;
+    }
+
+    .header-user-dropdown button {
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #374151;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-user-dropdown button:hover {
+      background: #f9fafb;
+    }
+
+    .header-user-dropdown button.logout-btn {
+      color: #dc2626;
+    }
+
+    /* Content */
+    .main-layout-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: #f3f4f6;
+    }
+
+    /* Tab style (dùng chung cho các trang con) */
+    .nav-tabs {
+      display: flex;
+      border-bottom: 2px solid #e5e7eb;
+      margin-bottom: 24px;
+      gap: 2px;
+    }
+
+    .nav-tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      color: #6b7280;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .nav-tab.active {
+      color: #1e40af;
+      border-bottom: 3px solid #1e40af;
+      background: white;
     }
   </style>
 </head>
 <body>
+
+<script>
+  (function () {
+    const currentPath = window.location.pathname;
+    const isLoginPage = currentPath.includes('/login');
+
+    // Kiểm tra token
+    const token = sessionStorage.getItem('token');
+    if (!token && !isLoginPage) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Gắn token vào axios
+    axios.interceptors.request.use(config => {
+      const t = sessionStorage.getItem('token');
+      if (t) config.headers.Authorization = 'Bearer ' + t;
+      return config;
+    });
+
+    // Xử lý lỗi 401
+    axios.interceptors.response.use(
+            res => res,
+            err => {
+              if (err.response && err.response.status === 401 && !isLoginPage) {
+                sessionStorage.clear();
+                window.location.href = '/login';
+              }
+              return Promise.reject(err);
+            }
+    );
+
+    // Đăng xuất
+    window.aerionLogout = function () {
+      sessionStorage.clear();
+      document.cookie = 'jwt_token=; path=/; max-age=0';
+      window.location.href = '/login';
+    };
+
+    // Toggle dropdown
+    window.aerionToggleUserMenu = function (e) {
+      e.stopPropagation();
+      const dropdown = document.getElementById('header-user-dropdown');
+      if (dropdown) dropdown.classList.toggle('open');
+    };
+
+    // Click ngoài để đóng dropdown
+    document.addEventListener('click', () => {
+      const dropdown = document.getElementById('header-user-dropdown');
+      if (dropdown) dropdown.classList.remove('open');
+    });
+
+    // Hiển thị thông tin user
+    document.addEventListener('DOMContentLoaded', () => {
+      const nameEl = document.getElementById('header-user-name');
+      const roleEl = document.getElementById('header-user-role');
+
+      if (!nameEl || !roleEl) return;
+
+      try {
+        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+        nameEl.textContent = user.ten_nv || user.tenDangNhap || 'Người dùng';
+
+        const roleMap = {
+          'ADMIN': 'Quản trị viên',
+          'QL': 'Quản lý',
+          'NV': 'Nhân viên'
+        };
+        roleEl.textContent = roleMap[user.ma_vai_tro] || user.ma_vai_tro || '';
+      } catch (e) {
+        console.error('Lỗi đọc thông tin user:', e);
+      }
+    });
+  })();
+</script>
+
+<!-- Layout chính -->
 <div class="main-layout-shell">
+  <!-- Sidebar -->
   <div class="main-layout-sidebar" th:replace="~{fragments/sidebar :: menu-sidebar}"></div>
 
+  <!-- Nội dung chính -->
   <div class="main-layout-content-shell">
+    <!-- Header -->
     <div class="main-layout-header">
       <h2 class="main-layout-title">Quản lý hệ thống</h2>
 
-      <div class="main-layout-user">
-        <div class="main-layout-avatar">
-          <i class="fa-solid fa-user"></i>
+      <div class="header-user-box">
+        <div class="header-user" onclick="aerionToggleUserMenu(event)">
+          <div class="main-layout-avatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="header-user-text">
+            <div id="header-user-name" class="header-user-name">Đang tải...</div>
+            <div id="header-user-role" class="header-user-role"></div>
+          </div>
+          <i class="fa-solid fa-chevron-down" style="font-size: 13px; color: #9ca3af;"></i>
         </div>
-        <div class="main-layout-user-text">
-          <div class="main-layout-user-name">Admin</div>
-          <div class="main-layout-user-role">Quản trị viên</div>
+
+        <div id="header-user-dropdown" class="header-user-dropdown">
+          <button type="button" class="logout-btn" onclick="aerionLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Đăng xuất
+          </button>
         </div>
       </div>
     </div>
 
+    <!-- Nội dung động (nơi các tab sẽ được đặt) -->
     <div class="main-layout-content">
       <div th:replace="${dynamicContent}"></div>
     </div>
   </div>
 </div>
 
-<style>
-  .main-layout-shell {
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  .main-layout-sidebar {
-    flex: 0 0 250px;
-    width: 250px;
-    min-width: 250px;
-    max-width: 250px;
-  }
-
-  .main-layout-content-shell {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .main-layout-header {
-    height: 65px;
-    background: #fff;
-    padding: 0 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #e5e7eb;
-    flex: 0 0 auto;
-  }
-
-  .main-layout-title {
-    margin: 0;
-    font-size: 20px;
-    color: #1f2937;
-  }
-
-  .main-layout-user {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    flex: 0 0 auto;
-  }
-
-  .main-layout-avatar {
-    width: 36px;
-    height: 36px;
-    background: #f79b66;
-    border-radius: 50%;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-  }
-
-  .main-layout-user-text {
-    line-height: 1.2;
-  }
-
-  .main-layout-user-name {
-    font-weight: 600;
-    font-size: 14px;
-    color: #111827;
-  }
-
-  .main-layout-user-role {
-    font-size: 12px;
-    color: #6b7280;
-  }
-
-  .main-layout-content {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 24px;
-    overflow: auto;
-  }
-</style>
 </body>
 </html>

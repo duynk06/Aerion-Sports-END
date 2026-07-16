@@ -95,7 +95,19 @@ async function submitFullEdit(event) {
     const file = document.getElementById('modalFileAnh').files[0];
     if (file) formData.append("fileAnh", file);
 
-    const res = await fetch(`/san-pham/api/bien-the/${id}/cap-nhat-day-du`, { method: 'POST', body: formData });
-    if (res.ok) { alert('Cập nhật thành công!'); window.location.reload(); }
-    else alert('Lỗi cập nhật!');
+    try {
+        const res = await fetch(`/api/chi-tiet-san-pham/${id}/cap-nhat-day-du`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            alert(data.message || 'Cập nhật thành công!');
+            window.location.reload();
+        } else {
+            alert('Lỗi cập nhật: ' + (data.message || 'Không xác định'));
+        }
+    } catch (e) {
+        alert('Lỗi kết nối máy chủ!');
+    }
 }

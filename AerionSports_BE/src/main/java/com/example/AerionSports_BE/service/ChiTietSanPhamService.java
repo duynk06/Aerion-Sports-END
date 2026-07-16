@@ -7,6 +7,8 @@ import com.example.AerionSports_BE.dto.response.SanPhamResponse;
 import com.example.AerionSports_BE.entity.*;
 import com.example.AerionSports_BE.repository.ChiTietSanPhamRepository;
 import com.example.AerionSports_BE.repository.ChiTietDotGiamGiaRepository;
+import com.example.AerionSports_BE.repository.MauSacRepository;
+import com.example.AerionSports_BE.repository.TrongLuongRepository;
 import com.example.AerionSports_BE.service.impl.IChiTietSanPhamService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +33,8 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
     @Autowired
     private ChiTietSanPhamRepository repo;
 
+    @Autowired private MauSacRepository mauSacRepo;
+    @Autowired private TrongLuongRepository trongLuongRepo;
     @Autowired
     private ChiTietDotGiamGiaRepository chiTietDotGiamGiaRepository;
 
@@ -128,6 +132,8 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
         e.setNgayTao(Instant.now());
         e.setNgayCapNhat(Instant.now());
 
+        dongBoTrangThaiTheoTonKho(e);
+
         ChiTietSanPham savedEntity = repo.save(e);
 
         // 🌟 XỬ LÝ LƯU FILE ẢNH VẬT LÝ KHI THÊM MỚI
@@ -142,7 +148,8 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
         mapFields(e, r);
         e.setNgayCapNhat(Instant.now());
 
-        // 🌟 XỬ LÝ LƯU FILE ẢNH VẬT LÝ KHI CẬP NHẬT
+        dongBoTrangThaiTheoTonKho(e);
+
         handleFileUpload(e, r);
 
         return toRes(repo.save(e));
@@ -205,6 +212,10 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
     @Override
     public void updateTrangThai(Integer id, Integer trangThai) {
         ChiTietSanPham e = repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể sản phẩm!"));
+        if (trangThai == 1 && (e.getSoLuong() == null || e.getSoLuong() <= 0)) {
+            throw new RuntimeException("Không thể kích hoạt biến thể đang hết hàng (số lượng tồn = 0)!");
+        }
+
         e.setTrangThai(trangThai);
         repo.save(e);
     }
@@ -262,23 +273,29 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
         ChiTietSanPham e = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể sản phẩm có ID: " + id));
 
-        // 2. Đồng bộ các trường dữ liệu chữ và số từ Request vào Entity
-        e.setIdMauSac(r.getIdMauSac() != null ? repo.findMauSacById(r.getIdMauSac()) : e.getIdMauSac());
-        e.setIdTrongLuong(r.getIdTrongLuong() != null ? repo.findTrongLuongById(r.getIdTrongLuong()) : e.getIdTrongLuong());
+        // 🟢 Dùng findById an toàn thay vì query JPQL cũ dễ ném NoResultException
+        if (r.getIdMauSac() != null) {
+            e.setIdMauSac(mauSacRepo.findById(r.getIdMauSac())
+                    .orElseThrow(() -> new RuntimeException("Màu sắc không tồn tại (ID: " + r.getIdMauSac() + ")")));
+        }
+        if (r.getIdTrongLuong() != null) {
+            e.setIdTrongLuong(trongLuongRepo.findById(r.getIdTrongLuong())
+                    .orElseThrow(() -> new RuntimeException("Trọng lượng không tồn tại (ID: " + r.getIdTrongLuong() + ")")));
+        }
+
         e.setGiaBan(r.getGiaBan());
         e.setSoLuong(r.getSoLuong());
         e.setNgayCapNhat(Instant.now());
 
-        // 3. Gán file ảnh nhận về vào Request để hàm `handleFileUpload` của bạn tự động xử lý ghi đè tệp vật lý
+        dongBoTrangThaiTheoTonKho(e);
+
         if (fileAnh != null && !fileAnh.isEmpty()) {
             r.setFileAnh(fileAnh);
             handleFileUpload(e, r);
         }
 
-        // 4. Lưu lại vào DB và trả về DTO Response chuẩn hóa dữ liệu hiển thị realtime
         return toRes(repo.save(e));
     }
-
     @Transactional
     public void saveVariantsToExistingProduct(Integer idSanPhamChaCu, String bienTheJson) {
         try {
@@ -297,6 +314,16 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
             throw new RuntimeException("Lỗi xử lý gộp danh sách biến thể vào sản phẩm cũ: " + e.getMessage());
         }
     }
-
-
+    private void dongBoTrangThaiTheoTonKho(ChiTietSanPham e) {
+        if (e.getSoLuong() == null) {
+            return;
+        }
+        if (e.getSoLuong() <= 0) {
+            e.setTrangThai(0);
+        } else {
+            if (e.getTrangThai() == null || e.getTrangThai() == 0) {
+                e.setTrangThai(1);
+            }
+        }
+    }
 }

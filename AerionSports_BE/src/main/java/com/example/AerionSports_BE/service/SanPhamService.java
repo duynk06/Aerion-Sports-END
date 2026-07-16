@@ -180,7 +180,7 @@ public class SanPhamService implements ISanPhamService {
                 f.getIdDiemCanBang(),
                 f.getTrangThai(),
                 f.getSoLuongMin(),
-                f.getGiaMax(),                  
+                f.getGiaMax(),
                 PageRequest.of(f.getPage(), f.getSize(), Sort.by("ngayTao").descending())
         ).map(this::toRes);
     }
@@ -191,10 +191,10 @@ public class SanPhamService implements ISanPhamService {
         // 1. Cập nhật trạng thái cho sản phẩm cha
         SanPham sp = sanPhamRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm yêu cầu"));
+
         sp.setTrangThai(trangThai);
         sanPhamRepo.save(sp);
 
-        // 2. 🟢 Gọi hàm Repository vừa bổ sung để ép toàn bộ biến thể con đổi trạng thái theo cha
         sanPhamRepo.updateTrangThaiBienTheTheoSanPhamCha(id, trangThai);
     }
 

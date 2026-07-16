@@ -29,6 +29,9 @@ public class SecurityConfig {
     @Autowired
     private CustomAuthEntryPoint customAuthEntryPoint;
 
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -57,60 +60,34 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
 
-                // 🟢 ĐÃ SỬA: Chuyển policy thành IF_REQUIRED để Spring Security cho phép tạo Session
-                // phục vụ lưu vết phiên làm việc tĩnh cho Thymeleaf Monolith.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                )
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // 🔓 PHÂN HỆ CÔNG KHAI TỰ DO
+                        // =========================================================
+                        // 🔓 NHÓM 1: PUBLIC — KHÔNG CẦN ĐĂNG NHẬP (permitAll)
+                        // =========================================================
                         .requestMatchers("/api/auth/**", "/auth/**").permitAll()
+                        .requestMatchers("/login", "/login/**", "/logout", "/access-denied").permitAll()
                         .requestMatchers("/public/client-auth/**", "/api/public/client-auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
 
-                        .requestMatchers("/ban-hang", "/ban-hang/**").permitAll()
-                        .requestMatchers("/hoa-don", "/hoa-don/**").permitAll()
-                        .requestMatchers("/dot-giam-gia", "/dot-giam-gia/**").permitAll()
-                        .requestMatchers("/chi-tiet-hoa-don/**").permitAll()
-                        .requestMatchers("/lich-su-hoa-don/**").permitAll()
-                        .requestMatchers("/lich-su-thanh-toan/**").permitAll()
-                        .requestMatchers("/phieu-giam-gia/**").permitAll()
-                        .requestMatchers("/public/khach-hang/**").permitAll()
-                        .requestMatchers("/public/online-orders/**").permitAll()
-                        .requestMatchers("/api/public/online-orders/**").permitAll()
-
-                        .requestMatchers("/api/san-pham/search").permitAll()
-                        .requestMatchers("/api/chi-tiet-san-pham/**", "/api/hinh-anh-sp/**").permitAll()
-                        .requestMatchers("/api/chat-lieu-khung-vot/all", "/api/chat-lieu-khung-vot/search").permitAll()
-                        .requestMatchers("/api/chat-lieu-than-vot/all", "/api/chat-lieu-than-vot/search").permitAll()
-                        .requestMatchers("/api/chu-vi-can-vot/active", "/api/chu-vi-can-vot/search", "/api/chu-vi-can-vot/*").permitAll()
-                        .requestMatchers("/api/danh-muc/all", "/api/danh-muc/search").permitAll()
-                        .requestMatchers("/api/diem-can-bang/all", "/api/diem-can-bang/search").permitAll()
-                        .requestMatchers("/api/do-cung/all", "/api/do-cung/search").permitAll()
-                        .requestMatchers("/api/mau-sac/all", "/api/mau-sac/search").permitAll()
-                        .requestMatchers("/api/thuong-hieu/all", "/api/thuong-hieu/search", "/api/thuong-hieu/detail/*").permitAll()
-                        .requestMatchers("/api/trong-luong/all", "/api/trong-luong/search").permitAll()
-                        .requestMatchers("/api/xuat-xu/all", "/api/xuat-xu/search").permitAll()
-                        .requestMatchers("/api/auth/doi-mat-khau").permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/api/realtime/**").permitAll()
-
-                        // 🔓 TẠM MỞ TOÀN BỘ GIAO DIỆN QUẢN TRỊ THYMELEAF
+                        // =========================================================
+                        // 🔒 NHÓM 2: CẦN ĐĂNG NHẬP — DÙNG CHUNG CHO ADMIN, QL, NV
+                        // =========================================================
                         .requestMatchers(
-                                "/trang-chu",
-                                "/thong-ke",
+                                "/phieu-giam-gia/**",
                                 "/san-pham", "/san-pham/**",
                                 "/thuoc-tinh/**",
-                                "/dot-giam-gia", "/dot-giam-gia/**",
-                                "/nhan-vien", "/nhan-vien/**",
-                                "/giao-ca", "/giao-ca/**",
                                 "/lich-lam-viec", "/lich-lam-viec/**",
-                                "/khach-hang", "/khach-hang/**"
-                        ).permitAll()
-
-                        // 🔓 TẠM MỞ LUÔN CÁC API TƯƠNG ỨNG ĐỂ NÚT BẤM TRONG TRANG HOẠT ĐỘNG ĐƯỢC
-                        .requestMatchers(
+                                "/khach-hang", "/khach-hang/**",
+                                "/ban-hang", "/ban-hang/**",          // 🌟 CHUYỂN xuống đây, cho phép NV bán hàng
+                                "/hoa-don", "/hoa-don/**",             // 🌟 CHUYỂN xuống đây, cho phép NV xem/tạo hoá đơn
                                 "/api/san-pham/**",
                                 "/api/thong-ke/**",
                                 "/api/chat-lieu-khung-vot/**",
@@ -122,13 +99,27 @@ public class SecurityConfig {
                                 "/api/mau-sac/**",
                                 "/api/thuong-hieu/**",
                                 "/api/trong-luong/**",
-                                "/api/xuat-xu/**",
-                                "/api/giao-ca/**", "/api/lich-lam-viec/**",
+                                "/api/xuat-xu/**"
+                        ).hasAnyRole("ADMIN", "QL", "NV")
+
+                        // =========================================================
+                        // 🔒 NHÓM 3: CHỈ ADMIN MỚI ĐƯỢC VÀO
+                        // =========================================================
+                        .requestMatchers(
+                                "/thong-ke",
+                                "/nhan-vien", "/nhan-vien/**",
+                                "/dot-giam-gia", "/dot-giam-gia/**",
+                                "/phieu-giam-gia/**",
+                                "/lich-su-thanh-toan/**",
+                                "/lich-su-hoa-don/**",
+                                "/public/online-orders/**",
+                                "/api/public/online-orders/**",
                                 "/api/dot-giam-gia/**"
+                        ).hasAnyRole("ADMIN", "QL")
 
-
-                        ).permitAll()
-
+                        // =========================================================
+                        // 🔒 NHÓM 4: MẶC ĐỊNH — CÒN LẠI PHẢI ĐĂNG NHẬP
+                        // =========================================================
                         .anyRequest().authenticated()
                 );
 

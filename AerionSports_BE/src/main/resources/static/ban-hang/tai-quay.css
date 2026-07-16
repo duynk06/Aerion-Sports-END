@@ -80,8 +80,32 @@
 
 .input-full { width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fafafa; margin-top: 4px; }
 .divider { border: 0; height: 1px; background: #f0f0f0; margin: 0; }
-.summary-list { display: flex; flex-direction: column; gap: 14px; }
-.summary-row { display: flex; justify-content: space-between; font-size: 14px; }
+.summary-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e8e8e8;
+    font-size: 14px;
+}
+.summary-row:last-child {
+    border-bottom: none;
+}
+.summary-row.total-row {
+    background: #fafafa;
+}
+.shipping-fee-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 .summary-row.align-center { align-items: center; }
 .input-right { width: 120px; text-align: right; padding: 4px 12px; border: 1px solid #d9d9d9; border-radius: 6px; line-height: 20px; }
 .payment-actions { display: flex; flex-direction: column; gap: 12px; }
@@ -135,7 +159,12 @@
 .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .page-info { font-size: 14px; color: #333; }
 .modal-select-sm { padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; outline: none; }
-.imageVanChuyen{width: 45px;height: 20px;object-fit: contain;}
+.imageVanChuyen {
+    width: 45px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
+}
 .single-slider { position: relative; width: 100%; height: 30px; display: flex; align-items: center; }
 .range-input { position: absolute; width: 100%; appearance: none; background: transparent; pointer-events: none; z-index: 2; }
 .range-input::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: white; border: 3px solid #f79b66; cursor: pointer; pointer-events: auto; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
@@ -150,3 +179,7 @@
 .shipping-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .shipping-address-box { background:#fafafa; border:1px solid #f0f0f0; border-radius:6px; padding:10px 12px; font-size:14px; color:#333; min-height:20px; }
 .address-form { border-top:1px solid #f0f0f0; padding-top:16px; margin-top:8px; }
+.filter-group label span { color: #ef4444; margin-left: 2px; }
+.filter-group.has-error input,
+.filter-group.has-error select { border-color: #ef4444 !important; background-color: #fef2f2; }
+.error-text { color: #ef4444; font-size: 12px; margin-top: 4px; display: block; }

@@ -251,7 +251,7 @@ public class ChiTietSanPhamController {
             req.setGiaBan(giaBan);
             req.setSoLuong(soLuong);
             req.setGiaNhap(java.math.BigDecimal.ZERO);
-            req.setTrangThai(1); // Mặc định giữ nguyên trạng thái hoạt động khi cập nhật nhanh
+            req.setTrangThai(soLuong <= 0 ? 0 : 1);
 
             // Gọi hàm xử lý tập trung trực tiếp của ChiTietSanPhamService
             chiTietSanPhamService.updateFullDetailsFromModal(id, req, fileAnh);

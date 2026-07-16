@@ -473,14 +473,7 @@ public class BanHangServiceImpl implements BanHangService {
             BigDecimal toiThieu = p.getGiaTriDonToiThieu() != null
                     ? p.getGiaTriDonToiThieu() : BigDecimal.ZERO;
             if (tongTienHang.compareTo(toiThieu) >= 0) {
-                BigDecimal soTienGiam;
-                if ("VAN_CHUYEN".equalsIgnoreCase(p.getLoaiPhieuGiamGia())) {
-                    if (tienVanChuyen.compareTo(BigDecimal.ZERO) > 0) {
-                        soTienGiam = p.getGiaTriGiam().min(tienVanChuyen);
-                    } else continue;
-                } else {
-                    soTienGiam = tinhTienGiam(p, tongTienHang);
-                }
+                BigDecimal soTienGiam = tinhTienGiam(p, tongTienHang);
                 if (soTienGiam.compareTo(soTienGiamMax) > 0) {
                     soTienGiamMax = soTienGiam;
                     phieuTotNhat = p;
@@ -553,8 +546,6 @@ public class BanHangServiceImpl implements BanHangService {
                 giam = p.getGiaTriGiamToiDa();
             }
             return giam;
-        } else if ("VAN_CHUYEN".equalsIgnoreCase(loai)) {
-            return p.getGiaTriGiam();
 
         } else {
             BigDecimal giam = p.getGiaTriGiam();
@@ -588,26 +579,13 @@ public class BanHangServiceImpl implements BanHangService {
         BigDecimal tienVanChuyen = hoaDon.getTienVanChuyen() != null
                 ? hoaDon.getTienVanChuyen() : BigDecimal.ZERO;
 
-        String loai = phieu.getLoaiPhieuGiamGia();
-
-        if ("VAN_CHUYEN".equalsIgnoreCase(loai)) {
-
-            BigDecimal giamShip = phieu.getGiaTriGiam().min(tienVanChuyen);
-            hoaDon.setTienGiam(giamShip);
-            hoaDon.setTongTienThanhToan(
-                    hoaDon.getTongTienHang()
-                            .subtract(BigDecimal.ZERO)
-                            .add(tienVanChuyen.subtract(giamShip))
-            );
-        } else {
-            BigDecimal soTienGiam = tinhTienGiam(phieu, hoaDon.getTongTienHang());
-            hoaDon.setTienGiam(soTienGiam);
-            hoaDon.setTongTienThanhToan(
-                    hoaDon.getTongTienHang()
-                            .subtract(soTienGiam)
-                            .add(tienVanChuyen)
-            );
-        }
+        BigDecimal soTienGiam = tinhTienGiam(phieu, hoaDon.getTongTienHang());
+        hoaDon.setTienGiam(soTienGiam);
+        hoaDon.setTongTienThanhToan(
+                hoaDon.getTongTienHang()
+                        .subtract(soTienGiam)
+                        .add(tienVanChuyen)
+        );
 
         hoaDonRepository.save(hoaDon);
         return new BanHangResponse(hoaDonRepository.findByIdWithChiTiet(hoaDon.getId()));

@@ -3,6 +3,7 @@ package com.example.AerionSports_BE.security;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,10 +62,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
+        // 1. Ưu tiên header Authorization (dùng cho các request gọi bằng axios/AJAX)
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
+
+        // 2. 🌟 Fallback: đọc từ cookie — bắt buộc cần cho các request điều hướng
+        //    trang Thymeleaf (location.href = '/trang-chu'), vì trình duyệt
+        //    KHÔNG THỂ gắn custom header khi load trang theo URL thông thường.
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
         return null;
     }
 }

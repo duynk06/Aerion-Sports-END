@@ -20,8 +20,36 @@
         email: null,
         diaChi: null,
     };
-    const PHI_HN = 20000;
-    const PHI_TINH_KHAC = 45000;
+    const PHI_NOI_TINH = 22000;   // cùng tỉnh/thành với shop (Hà Nội)
+    const PHI_NOI_MIEN = 30000;   // khác tỉnh nhưng cùng miền Bắc
+    const PHI_LIEN_MIEN = 32000;  // khác miền (Trung/Nam)
+
+// Danh sách tỉnh/thành theo miền (tên rút gọn, dùng để so khớp bằng includes — không phân biệt tiền tố "Tỉnh"/"Thành phố")
+    const MIEN_BAC = [
+        "hà nội", "hà giang", "cao bằng", "bắc kạn", "tuyên quang", "lào cai",
+        "điện biên", "lai châu", "sơn la", "yên bái", "hòa bình", "thái nguyên",
+        "lạng sơn", "quảng ninh", "bắc giang", "phú thọ", "vĩnh phúc", "bắc ninh",
+        "hải dương", "hải phòng", "hưng yên", "thái bình", "hà nam", "nam định", "ninh bình",
+    ];
+    const MIEN_TRUNG = [
+        "thanh hóa", "nghệ an", "hà tĩnh", "quảng bình", "quảng trị", "thừa thiên huế", "huế",
+        "đà nẵng", "quảng nam", "quảng ngãi", "bình định", "phú yên", "khánh hòa",
+        "ninh thuận", "bình thuận", "kon tum", "gia lai", "đắk lắk", "đắk nông", "lâm đồng",
+    ];
+    const MIEN_NAM = [
+        "hồ chí minh", "bà rịa", "vũng tàu", "bình dương", "bình phước", "đồng nai",
+        "tây ninh", "long an", "tiền giang", "bến tre", "vĩnh long", "trà vinh",
+        "đồng tháp", "an giang", "kiên giang", "cần thơ", "hậu giang", "sóc trăng",
+        "bạc liêu", "cà mau",
+    ];
+
+    function xacDinhMien(tinhThanh) {
+        const s = (tinhThanh || "").toLowerCase();
+        if (MIEN_BAC.some((t) => s.includes(t))) return "BAC";
+        if (MIEN_TRUNG.some((t) => s.includes(t))) return "TRUNG";
+        if (MIEN_NAM.some((t) => s.includes(t))) return "NAM";
+        return null;
+    }
     /* ============================ STATE (thay cho ref/reactive) =========== */
     const state = {
         hoaDonCho: [],
@@ -114,9 +142,15 @@
         const kh = getKhachHangDuocChon();
         if (!kh || kh.id === 999) return 0;
         const tinhThanh = (kh.tinhThanh || "").toLowerCase();
-        return tinhThanh.includes("hà nội") || tinhThanh.includes("ha noi")
-            ? PHI_HN
-            : PHI_TINH_KHAC;
+
+        // Nội tỉnh / nội thành / nội huyện — cùng Hà Nội với shop
+        if (tinhThanh.includes("hà nội")) return PHI_NOI_TINH;
+
+        // Liên tỉnh nhưng cùng miền Bắc với shop → nội miền
+        if (xacDinhMien(tinhThanh) === "BAC") return PHI_NOI_MIEN;
+
+        // Khác miền (Trung/Nam) → liên miền
+        return PHI_LIEN_MIEN;
     }
     function getTongThanhToan() {
         return Math.max(
@@ -487,6 +521,8 @@
                     sdt: hd.sdt,
                     diaChi: hd.diaChiKhachHang || "",
                     tinhThanh: hd.tinhThanhKhachHang || "",
+                    nguoiNhanGiao: hd.tenNguoiNhanGiao || "",   // ✅ lấy đúng từ hóa đơn, không lấy tên khách hàng
+                    sdtGiao: hd.sdtNguoiNhanGiao || "",          // ✅ lấy đúng từ hóa đơn, không lấy SĐT khách hàng
                 }
                 : KHACH_HANG_VANG_LAI,
         };
@@ -557,12 +593,17 @@
                     email: kh.email,
                     diaChi: kh.diaChi,
                     tinhThanh: kh.tinhThanh,
+                    nguoiNhanGiao: "",   // ✅ reset tạm, sẽ được điền lại đúng bên dưới nếu đang giao hàng
+                    sdtGiao: "",
                 };
             }
             closeCustomerModal();
             renderCustomerCard();
             renderTabs();
-            if (getLoaiHoaDonHienTai() === 1) await capNhatPhiVanChuyenHoaDon();
+            if (getLoaiHoaDonHienTai() === 1) {
+                await capNhatPhiVanChuyenHoaDon();
+                await tuDongChonDiaChiMacDinh();   // ✅ lấy đúng người nhận/SĐT từ bảng dia_chi_khach_hang của khách MỚI
+            }
             await lamMoiPhieuGiamGia();
             renderPaymentBody();
         } catch (e) {
@@ -607,7 +648,7 @@
             }
             if (loaiMoi === 1) {
                 await capNhatPhiVanChuyenHoaDon();
-                if (!kh.diaChi) await tuDongChonDiaChiMacDinh();
+                await tuDongChonDiaChiMacDinh();   // ✅ luôn lấy địa chỉ mặc định mới nhất từ bảng dia_chi_khach_hang, không phụ thuộc kh.diaChi cũ
             }
             renderCustomerCard();
             renderPaymentBody();
@@ -662,6 +703,7 @@
             await capNhatDiaChiGiaoHangHoaDon(state.activeHoaDon, dc.id);
         } catch (e) {
             console.error("Lỗi lưu địa chỉ giao hàng:", e);
+            showThongBao("Lỗi lưu địa chỉ giao hàng: " + (e.message || ""), "error");   // ✅ báo lỗi rõ ràng
         }
         if (getLoaiHoaDonHienTai() === 1) await capNhatPhiVanChuyenHoaDon();
         renderCustomerCard();
@@ -738,8 +780,11 @@
     window.xuLyThanhToan = async function (idHinhThuc) {
         if (!state.activeHoaDon || state.chiTietHoaDonHienTai.length === 0)
             return showThongBao("Đơn hàng trống!", "error");
-        if (Object.keys(state.sanPhamGiaThayDoi).length > 0)
-            return showThongBao("Vui lòng cập nhật sản phẩm có giá thay đổi!", "error");
+
+        // ❌ XÓA đoạn này — đây chính là nguyên nhân không thể thanh toán được sau khi giá đổi:
+        // if (Object.keys(state.sanPhamGiaThayDoi).length > 0)
+        //     return showThongBao("Vui lòng cập nhật sản phẩm có giá thay đổi!", "error");
+
         const kh = getKhachHangDuocChon();
         if (getLoaiHoaDonHienTai() === 1 && (!kh || kh.id === 999))
             return showThongBao("Thiếu thông tin người nhận!", "error");
@@ -790,7 +835,8 @@
             renderTabs();
             await loadData();
         } catch (e) {
-            showThongBao("Thanh toán thất bại!", "error");
+            console.error("Chi tiết lỗi thanh toán:", e);
+            showThongBao(e.message || "Thanh toán thất bại!", "error");   // ✅ hiện lỗi thật
         }
     }
     async function kiemTraSanPhamNgungHoatDong() {
@@ -860,20 +906,55 @@
             body.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">Chưa có sản phẩm nào trong đơn hàng</td></tr>`;
             return;
         }
+
+        // ✅ Nhóm các dòng theo cùng 1 sản phẩm (tên + màu + trọng lượng) để
+        // phát hiện trường hợp: cùng 1 sản phẩm nhưng có 2 dòng khác giá
+        // (dòng cũ thêm trước khi đổi giá + dòng mới thêm sau khi đổi giá,
+        // vì backend không gộp 2 dòng khác đơn giá lại với nhau)
+        const nhomTheoSanPham = {};
+        state.chiTietHoaDonHienTai.forEach((sp) => {
+            const key = `${sp.tenSanPham}|${sp.mauSac}|${sp.trongLuong}`;
+            if (!nhomTheoSanPham[key]) nhomTheoSanPham[key] = [];
+            nhomTheoSanPham[key].push(sp);
+        });
+
         body.innerHTML = state.chiTietHoaDonHienTai
             .map((sp) => {
-                const gtd = state.sanPhamGiaThayDoi[sp.id];
-                const coGiam = sp.giaGoc && Number(sp.giaGoc) > Number(sp.donGia);   // ✅ thêm dòng này
-                const giaChangedHtml = gtd
-                    ? `<p style="color:#cf1322;font-size:12px;margin-top:4px;">
+                const key = `${sp.tenSanPham}|${sp.mauSac}|${sp.trongLuong}`;
+                const nhom = nhomTheoSanPham[key];
+                const coNhieuDong = nhom.length > 1;
+
+                let laDongCu = false;      // dòng cũ -> khoá tăng SL, không hiện thông báo
+                let giaChangedHtml = "";   // chỉ dòng mới mới hiện thông báo này
+
+                if (coNhieuDong) {
+                    // Dòng có id nhỏ nhất trong nhóm = dòng được thêm trước = dòng cũ
+                    const idDongCuNhat = Math.min(...nhom.map((x) => x.id));
+                    laDongCu = sp.id === idDongCuNhat;
+
+                    if (!laDongCu) {
+                        // Dòng này được thêm sau khi giá đã đổi -> hiện thông báo
+                        const dongCu = nhom.find((x) => x.id === idDongCuNhat);
+                        giaChangedHtml = `<p style="color:#cf1322;font-size:12px;margin-top:4px;">
                Giá sản phẩm đã thay đổi
-               <span style="text-decoration:line-through;color:#999;">${formatVND(gtd.giaCu)} đ</span>
-               → <strong>${formatVND(gtd.giaMoi)} đ</strong>
-             </p>`
-                    : "";
-                const donGiaStyle = (gtd || coGiam) ? "color:#cf1322;" : "";
-                const disabledPlus = gtd ? "disabled style=\"opacity:0.4;cursor:not-allowed;\"" : "";
-                const disabledInput = gtd ? "disabled" : "";
+               <span style="text-decoration:line-through;color:#999;">${formatVND(dongCu.donGia)} đ</span>
+               → <strong>${formatVND(sp.donGia)} đ</strong>
+             </p>`;
+                    }
+                    // Dòng cũ: giaChangedHtml giữ nguyên rỗng, không hiện gì cả
+                } else {
+                    // Chỉ có 1 dòng cho sản phẩm này -> dựa vào cờ giá trôi lấy từ server (polling)
+                    const gtd = state.sanPhamGiaThayDoi[sp.id];
+                    if (gtd) {
+                        laDongCu = true; // giá đã trôi so với lúc thêm -> khoá tăng SL, không hiện thông báo
+                    }
+                }
+
+
+                const donGiaStyle = laDongCu ? "color:#cf1322;" : "";
+                const disabledPlus = laDongCu ? "disabled style=\"opacity:0.4;cursor:not-allowed;\"" : "";
+                const disabledInput = laDongCu ? "disabled" : "";
+
                 return `
           <tr>
             <td class="text-center"><div class="img-placeholder"><img src="${sp.anh}" alt="Ảnh SP" style="width:100%;height:auto;"></div></td>
@@ -884,8 +965,7 @@
                 ${giaChangedHtml}
               </div>
             </td>
-            <td class="text-right font-bold" style="${donGiaStyle}">
-  ${coGiam ? `<div style="text-decoration:line-through;color:#999;font-size:11px;">${formatVND(sp.giaGoc)} đ</div>` : ""}
+          <td class="text-right font-bold" style="${donGiaStyle}">
   ${formatVND(sp.donGia)} đ
 </td>
             <td class="text-center">
@@ -933,13 +1013,6 @@
       <div style="margin-bottom:12px;">
         <span class="text-muted text-sm" style="display:block;">Số điện thoại</span>
         <div class="mt-1 font-bold">${kh.sdt}</div>
-      </div>`;
-        }
-        if (kh.email) {
-            html += `
-      <div${loaiHd === 1 ? ' style="margin-bottom:12px;"' : ""}>
-        <span class="text-muted text-sm" style="display:block;">Email</span>
-        <div class="mt-1">${kh.email}</div>
       </div>`;
         }
         if (loaiHd === 1) {
@@ -1015,8 +1088,6 @@
                 let dongGiam;
                 if (isPercent) {
                     dongGiam = `Giảm ${phieu.giaTriGiam}% (tối đa ${formatVND(phieu.giaTriGiamToiDa)} đ)`;
-                } else if (phieu.loaiPhieuGiamGia === "VAN_CHUYEN") {
-                    dongGiam = `Miễn phí vận chuyển tối đa ${formatVND(phieu.giaTriGiam)} đ`;
                 } else {
                     dongGiam = `Giảm ${formatVND(phieu.giaTriGiam)} đ`;
                 }
@@ -1062,22 +1133,20 @@
       <span class="font-bold">Tiền hàng</span>
       <span class="font-bold">${formatVND(getTongTienHienTai())} đ</span>
     </div>
-    ${
-                tienGiam > 0
-                    ? `<div class="summary-row">
-                 <span class="font-bold">Giảm giá</span>
-                 <span class="text-danger font-bold">- ${formatVND(tienGiam)} đ</span>
-               </div>`
-                    : ""
-            }
-    ${
-                loaiHd === 1
-                    ? `<div class="summary-row">
-                 <span class="font-bold">Phí vận chuyển <img class="imageVanChuyen" src="/images/image.png" alt=""></span>
-                 <span class="font-bold" style="color:#52c41a;">+ ${formatVND(phiVC)} đ</span>
-               </div>`
-                    : ""
-            }
+    <div class="summary-row">
+      <span class="font-bold shipping-fee-label">
+        Phí vận chuyển <img class="imageVanChuyen" src="/images/image.png" alt="">
+      </span>
+      <span class="font-bold" style="color:${phiVC > 0 ? "#52c41a" : "#333"};">
+        ${phiVC > 0 ? "+ " : ""}${formatVND(phiVC)} đ
+      </span>
+    </div>
+    <div class="summary-row">
+      <span class="font-bold">Giảm giá</span>
+      <span class="font-bold" style="color:${tienGiam > 0 ? "#cf1322" : "#333"};">
+        ${tienGiam > 0 ? "- " : ""}${formatVND(tienGiam)} đ
+      </span>
+    </div>
     <div class="summary-row total-row">
       <span class="font-bold">Tổng phải trả</span>
       <span class="text-danger font-bold text-lg">${formatVND(getTongThanhToan())} đ</span>
@@ -1092,11 +1161,11 @@
       </span>
     </div>
     <div class="summary-row">
-  <span class="font-bold">Tiền thừa trả khách</span>
-  <span class="font-bold" id="tienThuaValue" style="color:${getTienThua() > 0 ? "#16a34a" : "#333"};">
-    ${formatVND(getTienThua())} đ
-  </span>
-</div>`;
+      <span class="font-bold">Tiền thừa trả khách</span>
+      <span class="font-bold" id="tienThuaValue" style="color:${getTienThua() > 0 ? "#16a34a" : "#333"};">
+        ${formatVND(getTienThua())} đ
+      </span>
+    </div>`;
         }
     }
 
@@ -1170,10 +1239,11 @@
                 })
                 .join("");
         }
+
+        const countInfo = document.getElementById("productCountInfo");
+        if (countInfo) countInfo.textContent = `Tổng:${state.danhSach.length} sản phẩm `;
         const pageInfo = document.getElementById("productPageInfo");
         if (pageInfo) pageInfo.textContent = `Trang ${state.page + 1}/${state.totalPages || 1}`;
-        const countInfo = document.getElementById("productCountInfo");
-        if (countInfo) countInfo.textContent = `Hiển thị ${state.danhSach.length} / tổng ${state.totalElements} bản ghi`;
         const prevBtn = document.getElementById("productPrevBtn");
         const nextBtn = document.getElementById("productNextBtn");
         if (prevBtn) prevBtn.disabled = state.page === 0;
@@ -1252,10 +1322,8 @@
                 )
                 .join("");
         }
-        const total = document.getElementById("customerTotalInfo");
-        if (total) total.textContent = "Tổng: " + state.totalElementsKh;
         const countInfo = document.getElementById("customerCountInfo");
-        if (countInfo) countInfo.textContent = `Hiển thị ${state.dsKhachHang.length} / tổng ${state.totalElementsKh} bản ghi`;
+        if (countInfo) countInfo.textContent = `Tổng:${state.dsKhachHang.length} khách hàng`;
         const pageInfo = document.getElementById("customerPageInfo");
         if (pageInfo) pageInfo.textContent = `Trang ${state.pageKh + 1} / ${state.totalPagesKh === 0 ? 1 : state.totalPagesKh}`;
         const prevBtn = document.getElementById("customerPrevBtn");
@@ -1321,36 +1389,36 @@
         <h4 style="margin:0 0 12px 0;">${mode === "edit" ? "Sửa địa chỉ" : "Thêm địa chỉ mới"}</h4>
         <div class="filter-row">
           <div class="filter-group flex-1">
-            <label>Người nhận</label>
+            <label>Người nhận <span>*</span></label>
             <input id="dcNguoiNhan" type="text" class="modal-input" value="${dc.nguoiNhan || ""}"/>
           </div>
           <div class="filter-group flex-1">
-            <label>Số điện thoại</label>
+            <label>Số điện thoại <span>*</span></label>
             <input id="dcSdt" type="text" class="modal-input" value="${dc.sdt || ""}"/>
           </div>
         </div>
         <div class="filter-row" style="margin-top:12px;">
           <div class="filter-group flex-1">
-            <label>Tỉnh/Thành phố</label>
+            <label>Tỉnh/Thành phố <span>*</span></label>
             <select id="dcTinhThanhSelect" class="modal-select">
               <option value="">-- Đang tải... --</option>
             </select>
           </div>
           <div class="filter-group flex-1">
-            <label>Quận/Huyện</label>
+            <label>Quận/Huyện <span>*</span></label>
             <select id="dcQuanHuyenSelect" class="modal-select" disabled>
               <option value="">-- Chọn tỉnh/thành trước --</option>
             </select>
           </div>
           <div class="filter-group flex-1">
-            <label>Phường/Xã/Thị trấn</label>
+            <label>Phường/Xã/Thị trấn <span>*</span></label>
             <select id="dcPhuongXaSelect" class="modal-select" disabled>
               <option value="">-- Chọn quận/huyện trước --</option>
             </select>
           </div>
         </div>
         <div class="filter-group" style="margin-top:12px;">
-          <label>Địa chỉ chi tiết (số nhà, tên đường...)</label>
+          <label>Địa chỉ chi tiết (số nhà, tên đường...) <span>*</span></label>
           <input id="dcDiaChiChiTiet" type="text" class="modal-input" value="${dc.diaChiChiTiet || ""}"/>
         </div>
         <label class="radio-label" style="margin-top:12px;">
@@ -1500,7 +1568,7 @@
     };
     window.openCustomerModal = function () {
         openModal("customerModal");
-        if (state.dsKhachHang.length === 0) loadKhachHang();
+        loadKhachHang();   // ✅ luôn tải lại để đồng bộ địa chỉ/thông tin mới nhất
     };
     function closeCustomerModal() {
         closeModal("customerModal");

@@ -57,8 +57,23 @@ public class NhanVien {
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao = LocalDateTime.now();
 
+    // 🌟 Giữ lại cột cũ: chuỗi địa chỉ đầy đủ để hiển thị nhanh ở bảng danh sách
     @Column(name = "dia_chi", length = 500)
     private String diaChi;
+
+    // 🌟 THÊM MỚI: tách riêng từng phần địa chỉ để load lại form Sửa chính xác,
+    // không phải parse ngược chuỗi diaChi nữa
+    @Column(name = "tinh_thanh", length = 100)
+    private String tinhThanh;
+
+    @Column(name = "quan_huyen", length = 100)
+    private String quanHuyen;
+
+    @Column(name = "phuong_xa", length = 100)
+    private String phuongXa;
+
+    @Column(name = "dia_chi_chi_tiet", length = 255)
+    private String diaChiChiTiet;
 
     @Column(name = "ngay_sua")
     private LocalDateTime ngaySua = LocalDateTime.now();

@@ -143,6 +143,10 @@ public class NhanVienServiceImpl implements NhanVienService {
         nv.setAvatar(nhanVien.getAvatar());
         nv.setNgaySinh(nhanVien.getNgaySinh());
         nv.setDiaChi(nhanVien.getDiaChi());
+        nv.setTinhThanh(nhanVien.getTinhThanh());
+        nv.setQuanHuyen(nhanVien.getQuanHuyen());
+        nv.setPhuongXa(nhanVien.getPhuongXa());
+        nv.setDiaChiChiTiet(nhanVien.getDiaChiChiTiet());
         nv.setTrangThai(nhanVien.getTrangThai());
         nv.setNgaySua(LocalDateTime.now());
 

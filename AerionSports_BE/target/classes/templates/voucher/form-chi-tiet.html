@@ -1,139 +1,564 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: main-layout(~{::#phieu-giam-gia-detail})}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chi Tiết Phiếu Giảm Giá</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <th:block th:fragment="extraHead"></th:block>
 </head>
 <body>
 
-<div class="layout">
-    <div class="sidebar">
-        <div class="logo">
-            <img th:src="@{/assets/logo/Logo_Da.jpg}" alt="logo" class="logo-full" />
-        </div>
-
-        <div class="menu-list">
-            <a th:href="@{/trang-chu}" class="item">
-                <i class="fa-solid fa-house"></i>
-                <span>Trang chủ</span>
-            </a>
-            <a th:href="@{/thong-ke}" class="item">
-                <i class="fa-solid fa-chart-line"></i>
-                <span>Thống kê</span>
-            </a>
-            <a th:href="@{/ban-hang}" class="item">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <span>Bán hàng</span>
-            </a>
-            <a th:href="@{/hoa-don}" class="item">
-                <i class="fa-solid fa-receipt"></i>
-                <span>Hóa đơn</span>
-            </a>
-
-            <div class="dropdown-menu-group">
-                <div class="item-toggle-header" onclick="toggleDropdown(this)">
-                    <i class="fa-solid fa-box-open"></i>
-                    <span>Sản phẩm</span>
-                    <i class="fa-solid fa-chevron-right arrow-nested"></i>
-                </div>
-                <div class="submenu-container" style="display: none;">
-                    <a th:href="@{/san-pham}" class="sub-item">Danh sách sản phẩm</a>
-                    <a th:href="@{/san-pham/danh-sach-bien-the}" class="sub-item">Danh sách biến thể tổng</a>
-                </div>
-            </div>
-
-            <div class="dropdown-menu-group">
-                <div class="item-toggle-header" onclick="toggleDropdown(this)">
-                    <i class="fa-solid fa-list-check"></i>
-                    <span>Thuộc tính</span>
-                    <i class="fa-solid fa-chevron-right arrow-nested"></i>
-                </div>
-                <div class="submenu-container" style="display: none;">
-                    <a th:href="@{/thuoc-tinh/mau-sac}" class="sub-item">Màu sắc</a>
-                    <a th:href="@{/thuoc-tinh/trong-luong}" class="sub-item">Trọng lượng</a>
-                    <a th:href="@{/thuoc-tinh/do-cung}" class="sub-item">Độ cứng thân</a>
-                    <a th:href="@{/thuoc-tinh/diem-can-bang}" class="sub-item">Điểm cân bằng</a>
-                    <a th:href="@{/thuoc-tinh/chu-vi-can}" class="sub-item">Chu vi cán</a>
-                    <a th:href="@{/thuoc-tinh/chat-lieu-than}" class="sub-item">Chất liệu thân</a>
-                    <a th:href="@{/thuoc-tinh/chat-lieu-khung}" class="sub-item">Chất liệu khung</a>
-                </div>
-            </div>
-
-            <a th:href="@{/phieu-giam-gia/hien-thi}" class="item">
-                <i class="fa-solid fa-ticket"></i>
-                <span>Phiếu giảm giá</span>
-            </a>
-            <a th:href="@{/dot-giam-gia}" class="item">
-                <i class="fa-solid fa-percent"></i>
-                <span>Đợt giảm giá</span>
-            </a>
-            <a th:href="@{/nhan-vien}" class="item">
-                <i class="fa-solid fa-user-tie"></i>
-                <span>Nhân viên</span>
-            </a>
-            <a th:href="@{/giao-ca/hien-thi}" class="item">
-                <i class="fa-solid fa-business-time"></i>
-                <span>Giao ca</span>
-            </a>
-            <a th:href="@{/lich-lam-viec/hien-thi}" class="item">
-                <i class="fa-solid fa-calendar-days"></i>
-                <span>Lịch làm việc</span>
-            </a>
-            <a th:href="@{/cham-cong/hien-thi}" class="item">
-                <i class="fa-solid fa-fingerprint"></i>
-                <span>Chấm công</span>
-            </a>
-            <a th:href="@{/khach-hang}" class="item">
-                <i class="fa-solid fa-users"></i>
-                <span>Khách hàng</span>
-            </a>
-        </div>
-
-        <div class="bottom-menu">
-            <div class="bottom-item logout">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Đăng xuất</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="main">
-        <div class="header">
-            <div class="page-title">
-                <h2>Chi Tiết Phiếu Giảm Giá</h2>
-            </div>
-
-            <div class="user-wrapper">
-                <div class="user" onclick="toggleUserMenu()">
-                    <div class="avatar">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <div class="user-info">
-                        <h4>Admin</h4>
-                        <p>Quản trị viên</p>
-                    </div>
-                    <i class="fa-solid fa-chevron-down arrow"></i>
-                </div>
-
-                <div id="userDropdown" class="dropdown" style="display: none;">
-                    <div class="dropdown-item">
-                        <i class="fa-solid fa-user"></i>
-                        <span>Thông tin</span>
-                    </div>
-                    <div class="dropdown-item">
-                        <i class="fa-solid fa-key"></i>
-                        <span>Đổi mật khẩu</span>
-                    </div>
-                    <div class="dropdown-item logout-item">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Đăng xuất</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+<div id="phieu-giam-gia-detail">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .layout {
+            display: flex !important;
+            min-height: 100vh;
+            width: 100%;
+            background: #f5f5f5;
+        }
+        .sidebar {
+            width: 220px !important;
+            min-width: 220px !important;
+            background: white;
+            padding: 20px 14px;
+            border-right: 1px solid #e5e5e5;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0 !important;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 35px;
+            padding: 0 10px;
+        }
+        .logo img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .item,
+        .item-toggle-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #4b5563;
+            transition: 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+        .item i,
+        .item-toggle-header i {
+            width: 20px;
+            font-size: 15px;
+        }
+        .item:hover,
+        .item-toggle-header:hover {
+            background: #fff8f3;
+        }
+        .item.router-link-active {
+            background: #fff4ed;
+            color: #d87d4a;
+        }
+        .active-parent {
+            color: #d87d4a;
+            background: #fffbf7;
+        }
+        .arrow-nested {
+            margin-left: auto;
+            font-size: 11px !important;
+            color: #9ca3af;
+        }
+        .submenu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-left: 20px;
+            margin: 4px 0;
+            border-left: 1.5px dashed #fed7aa;
+            margin-left: 23px;
+        }
+        .sub-item {
+            display: block;
+            padding: 8px 12px;
+            font-size: 12.5px;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .sub-item:hover {
+            background-color: #fff8f3;
+            color: #d87d4a;
+        }
+        .sub-item.router-link-active {
+            background-color: #fff4ed;
+            color: #d87d4a;
+            font-weight: 600;
+        }
+        .bottom-menu {
+            margin-top: auto;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .bottom-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #4b5563;
+        }
+        .bottom-item:hover {
+            background: #f3f4f6;
+        }
+        .bottom-item i {
+            width: 20px;
+        }
+        .logout {
+            color: red;
+        }
+        .main {
+            flex: 1 !important;
+            display: flex;
+            flex-direction: column;
+            min-width: 0 !important;
+        }
+        .header {
+            height: 75px;
+            background: white;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+        }
+        .page-title h2 {
+            font-size: 24px;
+            color: #333;
+        }
+        .user-wrapper {
+            position: relative;
+        }
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: 0.2s;
+        }
+        .user:hover {
+            background: #f5f5f5;
+        }
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #e6925e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .user-info h4 {
+            font-size: 14px;
+        }
+        .user-info p {
+            color: #888;
+            font-size: 12px;
+        }
+        .arrow {
+            font-size: 12px;
+            color: #777;
+        }
+        .dropdown {
+            position: absolute;
+            top: 65px;
+            right: 0;
+            width: 210px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            z-index: 999;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .dropdown-item:hover {
+            background: #f5f5f5;
+        }
+        .dropdown-item i {
+            width: 18px;
+        }
+        .logout-item {
+            color: red;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .split-layout {
+            display: flex !important;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 20px;
+            width: 100%;
+        }
+        .left-panel {
+            width: 42% !important;
+            flex-shrink: 0 !important;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-panel {
+            width: calc(58% - 20px) !important;
+            flex-shrink: 0 !important;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-container {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #edf2f7;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .list-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .title-icon {
+            width: 38px;
+            height: 38px;
+            background: #f79b66;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(247, 155, 102, 0.2);
+        }
+        .list-title h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+        .list-title span {
+            color: #718096;
+            font-size: 13px;
+            margin-top: 2px;
+            display: block;
+        }
+        .flex-form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            box-sizing: border-box;
+            height: 40px;
+            padding: 0 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #2d3748;
+            outline: none;
+            background-color: #fff;
+            transition: all 0.2s;
+        }
+        .disabled-input {
+            background-color: #f8fafc !important;
+            color: #4a5568 !important;
+            cursor: not-allowed;
+            border-color: #e2e8f0 !important;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .form-group textarea {
+            height: auto;
+            padding: 12px 14px;
+            resize: vertical;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #f79b66;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .hidden-placeholder {
+            display: none;
+        }
+        @media (min-width: 768px) {
+            .hidden-placeholder {
+                display: block;
+            }
+        }
+        .target-group {
+            margin-bottom: 5px;
+        }
+        .target-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .radio-group {
+            display: flex;
+            gap: 30px;
+            margin-top: 4px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #2d3748;
+        }
+        .radio-label input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #f79b66;
+            cursor: pointer;
+        }
+        .divider {
+            border-top: 1px solid #edf2f7;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        .mt-auto {
+            margin-top: auto;
+        }
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 20px;
+            border-top: 1px solid #edf2f7;
+        }
+        .btn-cancel,
+        .btn-save {
+            height: 40px;
+            padding: 0 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+        .btn-save {
+            background: #f79b66;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #e08553;
+        }
+        .table-animated-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .table-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .table-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .mb-15 {
+            margin-bottom: 15px;
+        }
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+        .search-box input {
+            width: 100%;
+            height: 40px;
+            box-sizing: border-box;
+            padding: 0 14px 0 36px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13.5px;
+            outline: none;
+            color: #2d3748;
+            transition: border-color 0.2s;
+        }
+        .search-box input:focus {
+            border-color: #f79b66;
+        }
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        .customer-table-container {
+            border: 1px solid #edf2f7;
+            border-radius: 8px;
+            overflow-x: auto;
+            overflow-y: auto;
+            flex: 1;
+            max-height: 480px !important;
+            min-height: 250px;
+        }
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .customer-table thead {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            z-index: 1;
+        }
+        .customer-table th {
+            padding: 12px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 1px solid #edf2f7;
+            white-space: nowrap;
+        }
+        .customer-table td {
+            padding: 12px;
+            font-size: 12.5px;
+            color: #2d3748;
+            border-bottom: 1px solid #f1f5f9;
+            white-space: nowrap;
+        }
+        .font-medium {
+            font-weight: 600;
+            color: #1a202c !important;
+        }
+        .badge-count {
+            background-color: #e6fffa;
+            color: #319795;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 12px;
+            border: 1px solid #b2f5ea;
+        }
+        .date-time-text {
+            color: #718096;
+            font-size: 12px;
+        }
+        .no-data {
+            text-align: center;
+            color: #a0aec0;
+            padding: 24px !important;
+            font-style: italic;
+        }
+        .disabled-area {
+            opacity: 0.5;
+            pointer-events: none;
+            user-select: none;
+        }
+        .overlay-msg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.5;
+            z-index: 10;
+        }
+        @media (max-width: 1024px) {
+            .split-layout {
+                flex-direction: column;
+            }
+            .left-panel,
+            .right-panel {
+                width: 100%;
+            }
+        }
+    </style>
         <div class="content">
             <div id="voucherForm" class="split-layout" th:object="${phieuGiamGia}">
 
@@ -172,17 +597,17 @@
 
                             <div class="form-group">
                                 <label th:text="*{loaiPhieuGiamGia == 'Sale %' ? 'Giá trị giảm (%)' : 'Giá trị giảm (đ)'}"></label>
-                                <input type="text" class="disabled-input" th:value="*{loaiPhieuGiamGia == 'Sale %' ? (giaTriGiam + ' %') : (#numbers.formatInteger(giaTriGiam, 0, 'POINT') + ' đ')}" readonly />
+                                <input type="text" class="disabled-input" th:value="*{loaiPhieuGiamGia == 'Sale %' ? (#numbers.formatDecimal(giaTriGiam, 1, 'POINT', 0, 'POINT') + ' %') : (#numbers.formatDecimal(giaTriGiam, 1, 'POINT', 0, 'POINT') + ' đ')}" readonly />
                             </div>
 
                             <div class="form-group">
                                 <label>Đơn tối thiểu (đ)</label>
-                                <input type="text" class="disabled-input" th:value="|*{giaTriDonToiThieu != null ? #numbers.formatInteger(giaTriDonToiThieu, 0, 'POINT') : '0'} đ|" readonly />
+                                <input type="text" class="disabled-input" th:value="*{giaTriDonToiThieu != null ? #numbers.formatDecimal(giaTriDonToiThieu, 1, 'POINT', 0, 'POINT') + ' đ' : '0 đ'}" readonly />
                             </div>
 
                             <div class="form-group" id="giamToiDaGroup">
                                 <label>Giảm tối đa (đ)</label>
-                                <input type="text" class="disabled-input" th:value="|*{giaTriGiamToiDa != null ? #numbers.formatInteger(giaTriGiamToiDa, 0, 'POINT') : '0'} đ|" readonly />
+                                <input type="text" class="disabled-input" th:value="*{giaTriGiamToiDa != null ? #numbers.formatDecimal(giaTriGiamToiDa, 1, 'POINT', 0, 'POINT') + ' đ' : '0 đ'}" readonly />
                             </div>
 
                             <div class="form-group">
@@ -290,614 +715,60 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    <script>
+        function toggleDropdown(element) {
+            element.classList.toggle('active-parent');
+            const submenu = element.nextElementSibling;
+            const arrow = element.querySelector('.arrow-nested');
 
-<script>
-    function toggleDropdown(element) {
-        element.classList.toggle('active-parent');
-        const submenu = element.nextElementSibling;
-        const arrow = element.querySelector('.arrow-nested');
-
-        if (submenu.style.display === 'none') {
-            submenu.style.display = 'flex';
-            arrow.classList.replace('fa-chevron-right', 'fa-chevron-down');
-        } else {
-            submenu.style.display = 'none';
-            arrow.classList.replace('fa-chevron-down', 'fa-chevron-right');
-        }
-    }
-
-    function toggleUserMenu() {
-        const dropdown = document.getElementById('userDropdown');
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function checkLoaiPhieuDauVao() {
-        const selectBox = document.getElementById('loaiPhieuSelect');
-        const giamToiDaGroup = document.getElementById('giamToiDaGroup');
-        const placeholderGroup = document.getElementById('placeholderGroup');
-
-        if (selectBox && selectBox.value === 'Giam Tien') {
-            if (giamToiDaGroup) giamToiDaGroup.style.display = "none";
-            if (placeholderGroup) placeholderGroup.style.display = "block";
-        } else {
-            if (giamToiDaGroup) giamToiDaGroup.style.display = "flex";
-            if (placeholderGroup) placeholderGroup.style.display = "none";
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const currentUrl = "/phieu-giam-gia/hien-thi";
-        const menuItems = document.querySelectorAll('.menu-list .item, .submenu-container .sub-item');
-
-        menuItems.forEach(item => {
-            if (item.getAttribute('href') === currentUrl) {
-                item.classList.add('router-link-active');
-                const parentContainer = item.closest('.submenu-container');
-                if (parentContainer) {
-                    parentContainer.style.display = 'flex';
-                    const header = parentContainer.previousElementSibling;
-                    header.classList.add('active-parent');
-                    header.querySelector('.arrow-nested').classList.replace('fa-chevron-right', 'fa-chevron-down');
-                }
+            if (submenu.style.display === 'none') {
+                submenu.style.display = 'flex';
+                arrow.classList.replace('fa-chevron-right', 'fa-chevron-down');
+            } else {
+                submenu.style.display = 'none';
+                arrow.classList.replace('fa-chevron-down', 'fa-chevron-right');
             }
+        }
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function checkLoaiPhieuDauVao() {
+            const selectBox = document.getElementById('loaiPhieuSelect');
+            const giamToiDaGroup = document.getElementById('giamToiDaGroup');
+            const placeholderGroup = document.getElementById('placeholderGroup');
+
+            if (selectBox && selectBox.value === 'Giam Tien') {
+                if (giamToiDaGroup) giamToiDaGroup.style.display = "none";
+                if (placeholderGroup) placeholderGroup.style.display = "block";
+            } else {
+                if (giamToiDaGroup) giamToiDaGroup.style.display = "flex";
+                if (placeholderGroup) placeholderGroup.style.display = "none";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const currentUrl = "/phieu-giam-gia/hien-thi";
+            const menuItems = document.querySelectorAll('.menu-list .item, .submenu-container .sub-item');
+
+            menuItems.forEach(item => {
+                if (item.getAttribute('href') === currentUrl) {
+                    item.classList.add('router-link-active');
+                    const parentContainer = item.closest('.submenu-container');
+                    if (parentContainer) {
+                        parentContainer.style.display = 'flex';
+                        const header = parentContainer.previousElementSibling;
+                        header.classList.add('active-parent');
+                        header.querySelector('.arrow-nested').classList.replace('fa-chevron-right', 'fa-chevron-down');
+                    }
+                }
+            });
+
+            checkLoaiPhieuDauVao();
         });
-
-        checkLoaiPhieuDauVao();
-    });
-</script>
-
-<style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-    body {
-        background-color: #f8fafc;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        margin: 0;
-        padding: 0;
-    }
-    .layout {
-        display: flex !important;
-        min-height: 100vh;
-        width: 100%;
-        background: #f5f5f5;
-    }
-    .sidebar {
-        width: 220px !important;
-        min-width: 220px !important;
-        background: white;
-        padding: 20px 14px;
-        border-right: 1px solid #e5e5e5;
-        display: flex;
-        flex-direction: column;
-        flex-shrink: 0 !important;
-    }
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 35px;
-        padding: 0 10px;
-    }
-    .logo img {
-        width: 100%;
-        height: auto;
-        object-fit: contain;
-    }
-    .menu-list {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-    .item,
-    .item-toggle-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 14px;
-        border-radius: 12px;
-        text-decoration: none;
-        color: #4b5563;
-        transition: 0.2s;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        user-select: none;
-    }
-    .item i,
-    .item-toggle-header i {
-        width: 20px;
-        font-size: 15px;
-    }
-    .item:hover,
-    .item-toggle-header:hover {
-        background: #fff8f3;
-    }
-    .item.router-link-active {
-        background: #fff4ed;
-        color: #d87d4a;
-    }
-    .active-parent {
-        color: #d87d4a;
-        background: #fffbf7;
-    }
-    .arrow-nested {
-        margin-left: auto;
-        font-size: 11px !important;
-        color: #9ca3af;
-    }
-    .submenu-container {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        padding-left: 20px;
-        margin: 4px 0;
-        border-left: 1.5px dashed #fed7aa;
-        margin-left: 23px;
-    }
-    .sub-item {
-        display: block;
-        padding: 8px 12px;
-        font-size: 12.5px;
-        color: #6b7280;
-        text-decoration: none;
-        border-radius: 8px;
-        transition: all 0.2s;
-        text-align: left;
-    }
-    .sub-item:hover {
-        background-color: #fff8f3;
-        color: #d87d4a;
-    }
-    .sub-item.router-link-active {
-        background-color: #fff4ed;
-        color: #d87d4a;
-        font-weight: 600;
-    }
-    .bottom-menu {
-        margin-top: auto;
-        border-top: 1px solid #eee;
-        padding-top: 15px;
-    }
-    .bottom-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 14px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: 0.2s;
-        color: #4b5563;
-    }
-    .bottom-item:hover {
-        background: #f3f4f6;
-    }
-    .bottom-item i {
-        width: 20px;
-    }
-    .logout {
-        color: red;
-    }
-    .main {
-        flex: 1 !important;
-        display: flex;
-        flex-direction: column;
-        min-width: 0 !important;
-    }
-    .header {
-        height: 75px;
-        background: white;
-        border-bottom: 1px solid #e5e5e5;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 25px;
-    }
-    .page-title h2 {
-        font-size: 24px;
-        color: #333;
-    }
-    .user-wrapper {
-        position: relative;
-    }
-    .user {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        cursor: pointer;
-        padding: 8px 12px;
-        border-radius: 12px;
-        transition: 0.2s;
-    }
-    .user:hover {
-        background: #f5f5f5;
-    }
-    .avatar {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        background: #e6925e;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .user-info h4 {
-        font-size: 14px;
-    }
-    .user-info p {
-        color: #888;
-        font-size: 12px;
-    }
-    .arrow {
-        font-size: 12px;
-        color: #777;
-    }
-    .dropdown {
-        position: absolute;
-        top: 65px;
-        right: 0;
-        width: 210px;
-        background: white;
-        border-radius: 14px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        z-index: 999;
-    }
-    .dropdown-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 15px 16px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-    .dropdown-item:hover {
-        background: #f5f5f5;
-    }
-    .dropdown-item i {
-        width: 18px;
-    }
-    .logout-item {
-        color: red;
-    }
-    .content {
-        flex: 1;
-        padding: 20px;
-    }
-    .split-layout {
-        display: flex !important;
-        flex-direction: row;
-        align-items: stretch;
-        gap: 20px;
-        width: 100%;
-    }
-    .left-panel {
-        width: 42% !important;
-        flex-shrink: 0 !important;
-        display: flex;
-        flex-direction: column;
-    }
-    .right-panel {
-        width: calc(58% - 20px) !important;
-        flex-shrink: 0 !important;
-        display: flex;
-        flex-direction: column;
-    }
-    .form-container {
-        background: #ffffff;
-        padding: 24px;
-        border-radius: 12px;
-        border: 1px solid #edf2f7;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-    .list-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #edf2f7;
-    }
-    .list-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    .title-icon {
-        width: 38px;
-        height: 38px;
-        background: #f79b66;
-        color: white;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        box-shadow: 0 2px 4px rgba(247, 155, 102, 0.2);
-    }
-    .list-title h3 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 700;
-        color: #1a202c;
-    }
-    .list-title span {
-        color: #718096;
-        font-size: 13px;
-        margin-top: 2px;
-        display: block;
-    }
-    .flex-form {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-    .form-group {
-        display: flex;
-        flex-direction: column;
-    }
-    .form-group label {
-        margin-bottom: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #4a5568;
-    }
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-        width: 100%;
-        box-sizing: border-box;
-        height: 40px;
-        padding: 0 14px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-size: 14px;
-        color: #2d3748;
-        outline: none;
-        background-color: #fff;
-        transition: all 0.2s;
-    }
-    .disabled-input {
-        background-color: #f8fafc !important;
-        color: #4a5568 !important;
-        cursor: not-allowed;
-        border-color: #e2e8f0 !important;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-    .form-group textarea {
-        height: auto;
-        padding: 12px 14px;
-        resize: vertical;
-    }
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-        border-color: #f79b66;
-    }
-    .full-width {
-        grid-column: 1 / -1;
-    }
-    .hidden-placeholder {
-        display: none;
-    }
-    @media (min-width: 768px) {
-        .hidden-placeholder {
-            display: block;
-        }
-    }
-    .target-group {
-        margin-bottom: 5px;
-    }
-    .target-label {
-        font-size: 15px;
-        font-weight: 700;
-        color: #1a202c;
-        margin-bottom: 12px;
-        display: block;
-    }
-    .radio-group {
-        display: flex;
-        gap: 30px;
-        margin-top: 4px;
-    }
-    .radio-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        cursor: pointer;
-        color: #2d3748;
-    }
-    .radio-label input[type="radio"] {
-        width: 16px;
-        height: 16px;
-        accent-color: #f79b66;
-        cursor: pointer;
-    }
-    .divider {
-        border-top: 1px solid #edf2f7;
-        margin-bottom: 20px;
-        margin-top: 20px;
-    }
-    .mt-auto {
-        margin-top: auto;
-    }
-    .button-group {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        padding-top: 20px;
-        border-top: 1px solid #edf2f7;
-    }
-    .btn-cancel,
-    .btn-save {
-        height: 40px;
-        padding: 0 24px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        border: none;
-        transition: background-color 0.2s ease;
-    }
-    .btn-cancel {
-        background: #f3f4f6;
-        color: #4b5563;
-    }
-    .btn-cancel:hover {
-        background: #e5e7eb;
-    }
-    .btn-save {
-        background: #f79b66;
-        color: white;
-    }
-    .btn-save:hover {
-        background: #e08553;
-    }
-    .table-animated-wrapper {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    .table-area {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    .table-content {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    .mb-15 {
-        margin-bottom: 15px;
-    }
-    .search-box {
-        position: relative;
-        width: 100%;
-    }
-    .search-box input {
-        width: 100%;
-        height: 40px;
-        box-sizing: border-box;
-        padding: 0 14px 0 36px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-size: 13.5px;
-        outline: none;
-        color: #2d3748;
-        transition: border-color 0.2s;
-    }
-    .search-box input:focus {
-        border-color: #f79b66;
-    }
-    .search-box i {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #9ca3af;
-        font-size: 14px;
-    }
-    .customer-table-container {
-        border: 1px solid #edf2f7;
-        border-radius: 8px;
-        overflow-x: auto;
-        overflow-y: auto;
-        flex: 1;
-        max-height: 480px !important;
-        min-height: 250px;
-    }
-    .customer-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-    }
-    .customer-table thead {
-        position: sticky;
-        top: 0;
-        background: #f8fafc;
-        z-index: 1;
-    }
-    .customer-table th {
-        padding: 12px;
-        font-size: 12.5px;
-        font-weight: 600;
-        color: #4a5568;
-        border-bottom: 1px solid #edf2f7;
-        white-space: nowrap;
-    }
-    .customer-table td {
-        padding: 12px;
-        font-size: 12.5px;
-        color: #2d3748;
-        border-bottom: 1px solid #f1f5f9;
-        white-space: nowrap;
-    }
-    .font-medium {
-        font-weight: 600;
-        color: #1a202c !important;
-    }
-    .badge-count {
-        background-color: #e6fffa;
-        color: #319795;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-weight: bold;
-        font-size: 12px;
-        border: 1px solid #b2f5ea;
-    }
-    .date-time-text {
-        color: #718096;
-        font-size: 12px;
-    }
-    .no-data {
-        text-align: center;
-        color: #a0aec0;
-        padding: 24px !important;
-        font-style: italic;
-    }
-    .disabled-area {
-        opacity: 0.5;
-        pointer-events: none;
-        user-select: none;
-    }
-    .overlay-msg {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-size: 13px;
-        text-align: center;
-        line-height: 1.5;
-        z-index: 10;
-    }
-    @media (max-width: 1024px) {
-        .split-layout {
-            flex-direction: column;
-        }
-        .left-panel,
-        .right-panel {
-            width: 100%;
-        }
-    }
-</style>
-
+    </script>
+    </div>
 </body>
 </html>
