@@ -48,13 +48,13 @@ public class ThongKeService {
 
         ThongKeCardResponse card = new ThongKeCardResponse();
         card.setDoanhThu(hoaDonRepo.sumDoanhThuThucTe(startDateTime, endDateTime));
+        card.setDoanhThuTienMat(hoaDonRepo.sumDoanhThuTienMat(startDateTime, endDateTime));
+        card.setDoanhThuChuyenKhoan(hoaDonRepo.sumDoanhThuChuyenKhoan(startDateTime, endDateTime));
         card.setSoSanPhamDaBan(hoaDonRepo.countSanPhamDaBanThucTe(startDateTime, endDateTime));
         card.setTongDonHang(hoaDonRepo.countTongDonHangPhatSinh(startDateTime, endDateTime));
-
         card.setDonHoanThanh(hoaDonRepo.countDonHangTheoTrangThaiCucBo(5, startDateTime, endDateTime));
         card.setDonHuy(hoaDonRepo.countDonHangTheoTrangThaiCucBo(0, startDateTime, endDateTime));
         card.setDonDangXuLy(hoaDonRepo.countDonHangTheoTrangThaiCucBo(1, startDateTime, endDateTime));
-
         return card;
     }
 
@@ -108,6 +108,23 @@ public class ThongKeService {
                 Integer ngayKey = ((Number) obj[0]).intValue();
                 BigDecimal doanhThuVal = BigDecimal.valueOf(((Number) obj[1]).doubleValue());
                 mapData.put(ngayKey, doanhThuVal);
+            }
+        }
+        return mapData;
+    }
+
+    public Map<String, Object> getDoanhThuDoThiBieuDoTachPhuongThuc(int thang, int nam) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("tienMat", toMap(hoaDonRepo.queryDoanhThuTheoNgayTienMat(thang, nam)));
+        result.put("chuyenKhoan", toMap(hoaDonRepo.queryDoanhThuTheoNgayChuyenKhoan(thang, nam)));
+        return result;
+    }
+
+    private Map<Integer, BigDecimal> toMap(List<Object[]> rawList) {
+        Map<Integer, BigDecimal> mapData = new HashMap<>();
+        for (Object[] obj : rawList) {
+            if (obj[0] != null && obj[1] != null) {
+                mapData.put(((Number) obj[0]).intValue(), BigDecimal.valueOf(((Number) obj[1]).doubleValue()));
             }
         }
         return mapData;

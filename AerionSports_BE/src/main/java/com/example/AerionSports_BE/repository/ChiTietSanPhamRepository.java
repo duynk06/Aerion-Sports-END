@@ -20,6 +20,8 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
 
     List<ChiTietSanPham> findByTrangThai(Integer trangThai);
     boolean existsByMaCtsp(String maCtsp);
+    boolean existsByIdSanPham_IdAndIdMauSac_IdAndIdTrongLuong_Id(
+            Integer idSanPham, Integer idMauSac, Integer idTrongLuong);
 
     // 🟢 BỔ SUNG: Lấy nhanh thực thể Màu Sắc bằng ID
     @Query("SELECT m FROM MauSac m WHERE m.id = :id")

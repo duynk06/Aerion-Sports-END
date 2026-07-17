@@ -208,7 +208,7 @@
               th:text="${#numbers.formatDecimal(hoaDon.tienGiam,0,'COMMA',0,'POINT')} + ' đ'">
   </span>
       </div>
-      <div class="summary-item">
+      <div class="summary-item" th:if="${hoaDon.loaiHoaDon != 0}">
         <span class="shipping-label">Phí vận chuyển <img class="imageVanChuyen" src="/images/image.png" alt=""> </span>
         <span th:text="${'+'+#numbers.formatDecimal(hoaDon.tienVanChuyen,0,'COMMA',0,'POINT')} + ' đ'"></span>
       </div>
@@ -226,9 +226,13 @@
 
     <div class="card">
       <div class="card-title"><i class="fa-solid fa-location-dot"></i><span>Thông tin giao hàng</span></div>
-      <div class="info-row"><label>Địa chỉ:</label><span th:text="${hoaDon.diaChiMacDinhKhachHang}"></span></div>
       <div class="info-row"><label>Loại đơn:</label>
         <span th:text="${hoaDon.loaiHoaDon == 0 ? 'Tại quầy' : 'Trực tuyến'}"></span></div>
+      <th:block th:if="${hoaDon.loaiHoaDon != 0}">
+        <div class="info-row"><label>Người nhận:</label><span th:text="${hoaDon.tenNguoiNhan}"></span></div>
+        <div class="info-row"><label>SĐT nhận:</label><span th:text="${hoaDon.sdtNguoiNhan}"></span></div>
+        <div class="info-row"><label>Địa chỉ:</label><span th:text="${hoaDon.diaChiNhan}"></span></div>
+      </th:block>
       <div class="info-row"><label>Ghi chú:</label><span th:text="${hoaDon.ghiChu}"></span></div>
     </div>
   </div>

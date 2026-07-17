@@ -126,7 +126,17 @@ public class ChiTietSanPhamService implements IChiTietSanPhamService {
 
     @Override
     public ChiTietSanPhamResponse save(ChiTietSanPhamRequest r) {
-        if (repo.existsByMaCtsp(r.getMaCtsp())) throw new RuntimeException("Mã CTSP này đã tồn tại!");
+        if (repo.existsByMaCtsp(r.getMaCtsp()))
+            throw new RuntimeException("Mã CTSP này đã tồn tại!");
+
+        if (r.getIdMauSac() != null && r.getIdTrongLuong() != null) {
+            boolean daTonTai = repo.existsByIdSanPham_IdAndIdMauSac_IdAndIdTrongLuong_Id(
+                    r.getIdSanPham(), r.getIdMauSac(), r.getIdTrongLuong());
+            if (daTonTai) {
+                throw new RuntimeException(
+                        "Biến thể với Màu sắc và Trọng lượng này đã tồn tại cho sản phẩm này!");
+            }
+        }
         ChiTietSanPham e = new ChiTietSanPham();
         mapFields(e, r);
         e.setNgayTao(Instant.now());

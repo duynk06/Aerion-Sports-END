@@ -50,6 +50,7 @@ AND (:giaMax IS NULL OR EXISTS (
     WHERE c2.idSanPham.id = s.id
     AND c2.giaBan <= :giaMax
 ))
+ORDER BY s.id DESC
 """,
             countQuery = """
 SELECT COUNT(s)
@@ -86,9 +87,8 @@ AND (:giaMax IS NULL OR EXISTS (
             @Param("dcb") Integer idDiemCanBang,
             @Param("t") Integer trangThai,
             @Param("soLuongMin") Integer soLuongMin,
-            @Param("giaMax") Long giaMax,      // 🟢 thêm
+            @Param("giaMax") Long giaMax,
             Pageable pageable);
-
     @Modifying
     @Transactional
     @Query("UPDATE ChiTietSanPham c SET c.trangThai = :trangThaiMoi WHERE c.idSanPham.id = :sanPhamId")

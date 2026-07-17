@@ -18,4 +18,6 @@ public class ThongKeCardResponse {
     private Integer donHoanThanh;
     private Integer donHuy;
     private Integer donDangXuLy;
+    private BigDecimal doanhThuTienMat;
+    private BigDecimal doanhThuChuyenKhoan;
 }

@@ -168,6 +168,12 @@
     </form>
 
     <script th:inline="javascript">
+        /*<![CDATA[*/
+        const thongBaoLoi = /*[[${param.error}]]*/ null;
+        /*]]>*/
+        if (thongBaoLoi) {
+            alert('Lỗi khi thêm biến thể:\n\n' + thongBaoLoi);
+        }
         function dinhDangSoTien(input) {
             let chiSo = input.value.replace(/\D/g, '');
             if (chiSo === '') {

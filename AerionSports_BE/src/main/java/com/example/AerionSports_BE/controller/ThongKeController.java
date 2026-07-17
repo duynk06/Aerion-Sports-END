@@ -81,9 +81,8 @@ public class ThongKeController {
             @RequestParam(value = "namGoc", required = false, defaultValue = "2026") int namGoc,
             @RequestParam(value = "namSoSanh", required = false, defaultValue = "2025") int namSoSanh) {
 
-        // 🌟 LUỒNG 1: Nếu FE đang tắt nút so sánh (Chế độ xem thông thường)
         if (!isCompare) {
-            return ResponseEntity.ok(thongKeService.getDoanhThuDoThiBieuDo(thang, nam));
+            return ResponseEntity.ok(thongKeService.getDoanhThuDoThiBieuDoTachPhuongThuc(thang, nam));
         }
 
         // 🌟 LUỒNG 2: Nếu FE đang bật chế độ so sánh nâng cao

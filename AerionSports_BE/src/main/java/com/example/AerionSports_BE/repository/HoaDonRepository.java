@@ -192,4 +192,69 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     List<HoaDon> findByTrangThai(Integer trangThai);
     long countByTrangThai(Integer trangThai);
+    // ================= THÊM: BIỂU ĐỒ THEO NGÀY TÁCH THEO PHƯƠNG THỨC THANH TOÁN =================
+    @Query(value = """
+        SELECT DAY(CONVERT(DATE, hd.ngay_tao)) as ngay, SUM(hd.tong_tien_thanh_toan)
+        FROM hoa_don hd
+        OUTER APPLY (
+            SELECT TOP 1 lst.phuong_thuc_thanh_toan
+            FROM lich_su_thanh_toan lst
+            WHERE lst.id_hoa_don = hd.id
+            ORDER BY lst.ngay_thanh_toan DESC
+        ) latest
+        WHERE hd.trang_thai = 5
+          AND MONTH(CONVERT(DATE, hd.ngay_tao)) = :thang
+          AND YEAR(CONVERT(DATE, hd.ngay_tao)) = :nam
+          AND LOWER(latest.phuong_thuc_thanh_toan) LIKE N'%tiền mặt%'
+        GROUP BY DAY(CONVERT(DATE, hd.ngay_tao))
+    """, nativeQuery = true)
+    List<Object[]> queryDoanhThuTheoNgayTienMat(@Param("thang") Integer thang, @Param("nam") Integer nam);
+
+        @Query(value = """
+        SELECT DAY(CONVERT(DATE, hd.ngay_tao)) as ngay, SUM(hd.tong_tien_thanh_toan)
+        FROM hoa_don hd
+        OUTER APPLY (
+            SELECT TOP 1 lst.phuong_thuc_thanh_toan
+            FROM lich_su_thanh_toan lst
+            WHERE lst.id_hoa_don = hd.id
+            ORDER BY lst.ngay_thanh_toan DESC
+        ) latest
+        WHERE hd.trang_thai = 5
+          AND MONTH(CONVERT(DATE, hd.ngay_tao)) = :thang
+          AND YEAR(CONVERT(DATE, hd.ngay_tao)) = :nam
+          AND (latest.phuong_thuc_thanh_toan IS NULL OR LOWER(latest.phuong_thuc_thanh_toan) NOT LIKE N'%tiền mặt%')
+        GROUP BY DAY(CONVERT(DATE, hd.ngay_tao))
+    """, nativeQuery = true)
+    List<Object[]> queryDoanhThuTheoNgayChuyenKhoan(@Param("thang") Integer thang, @Param("nam") Integer nam);
+    //    // Lấy phương thức thanh toán MỚI NHẤT của mỗi hóa đơn để phân loại Tiền mặt / Chuyển khoản
+    @Query(value = """
+        SELECT COALESCE(SUM(hd.tong_tien_thanh_toan), 0)
+        FROM hoa_don hd
+        OUTER APPLY (
+            SELECT TOP 1 lst.phuong_thuc_thanh_toan
+            FROM lich_su_thanh_toan lst
+            WHERE lst.id_hoa_don = hd.id
+            ORDER BY lst.ngay_thanh_toan DESC
+        ) latest
+        WHERE hd.trang_thai = 5
+          AND hd.ngay_tao BETWEEN :start AND :end
+          AND LOWER(latest.phuong_thuc_thanh_toan) LIKE N'%tiền mặt%'
+    """, nativeQuery = true)
+    BigDecimal sumDoanhThuTienMat(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+        @Query(value = """
+        SELECT COALESCE(SUM(hd.tong_tien_thanh_toan), 0)
+        FROM hoa_don hd
+        OUTER APPLY (
+            SELECT TOP 1 lst.phuong_thuc_thanh_toan
+            FROM lich_su_thanh_toan lst
+            WHERE lst.id_hoa_don = hd.id
+            ORDER BY lst.ngay_thanh_toan DESC
+        ) latest
+        WHERE hd.trang_thai = 5
+          AND hd.ngay_tao BETWEEN :start AND :end
+          AND (latest.phuong_thuc_thanh_toan IS NULL OR LOWER(latest.phuong_thuc_thanh_toan) NOT LIKE N'%tiền mặt%')
+    """, nativeQuery = true)
+    BigDecimal sumDoanhThuChuyenKhoan(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
 }
