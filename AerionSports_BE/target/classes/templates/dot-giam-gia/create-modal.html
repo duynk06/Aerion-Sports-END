@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="createModal(form, groupedProducts, selectedProductIds, selectedProducts, errorMessage, formAction)"
+     th:with="createForm=${form},
+              createGroups=${groupedProducts != null ? groupedProducts : T(java.util.Collections).emptyList()},
+              createSelectedIds=${selectedProductIds != null ? selectedProductIds : T(java.util.Collections).emptyList()},
+              createSelectedProducts=${selectedProducts != null ? selectedProducts : T(java.util.Collections).emptyList()}">
+  <form class="page-shell create-shell" th:action="${formAction}" method="post" novalidate>
+    <div class="create-header">
+      <div class="list-title">
+        <div class="title-icon">
+          <i class="fa-solid fa-plus"></i>
+        </div>
+        <div>
+          <h3>Thêm đợt giảm giá</h3>
+          <span>Chọn sản phẩm áp dụng ở khung bên phải</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="card create-card">
+      <div class="create-grid">
+        <!-- Cột trái: form nhập thông tin đợt giảm giá và nút lưu/quay lại. -->
+        <div class="create-form-panel">
+          <div class="create-form">
+            <!-- Tên campaign: đây là tên hiển thị ở danh sách và trang chi tiết. -->
+            <div class="create-field">
+              <label for="create-name">Tên đợt giảm giá</label>
+              <input id="create-name" name="tenDotGiamGia" type="text"
+                     th:value="${createForm != null ? createForm.tenDotGiamGia : ''}"
+                     placeholder="Nhập tên đợt giảm giá">
+              <small class="field-error" data-error-for="name" aria-live="polite"></small>
+            </div>
+
+            <!-- Giá trị giảm theo phần trăm, service sẽ kiểm tra 0 < x <= 100. -->
+            <div class="create-field">
+              <label for="create-value">Giá trị (%)</label>
+              <input id="create-value" name="giaTriGiam" type="number" min="1" max="100" step="1"
+                     th:value="${createForm != null ? createForm.giaTriGiam : ''}"
+                     placeholder="Nhập giá trị giảm">
+              <small class="field-error" data-error-for="value" aria-live="polite"></small>
+            </div>
+
+            <!-- Khoảng thời gian áp dụng campaign. -->
+            <div class="create-field">
+              <label for="create-start">Ngày bắt đầu</label>
+              <input id="create-start" name="ngayBatDau" type="datetime-local"
+                     th:value="${createForm != null and createForm.ngayBatDau != null ? #temporals.format(createForm.ngayBatDau, 'yyyy-MM-dd''T''HH:mm') : ''}">
+              <small class="field-error" data-error-for="start" aria-live="polite"></small>
+            </div>
+
+            <!-- Ngày kết thúc phải lớn hơn ngày bắt đầu và không ở quá khứ. -->
+            <div class="create-field">
+              <label for="create-end">Ngày kết thúc</label>
+              <input id="create-end" name="ngayKetThuc" type="datetime-local"
+                     th:value="${createForm != null and createForm.ngayKetThuc != null ? #temporals.format(createForm.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm') : ''}">
+              <small class="field-error" data-error-for="end" aria-live="polite"></small>
+            </div>
+
+            <!-- Mô tả là field phụ, không bắt buộc. -->
+            <div class="create-field">
+              <label for="create-note">Mô tả</label>
+              <textarea id="create-note" name="moTa" rows="5" placeholder="Nhập mô tả"
+                        th:text="${createForm != null ? createForm.moTa : ''}"></textarea>
+            </div>
+
+            <p th:if="${errorMessage}" class="create-error" th:text="${errorMessage}"></p>
+
+            <div class="modal-actions">
+              <a class="btn-cancel" th:href="@{/dot-giam-gia}">Quay lại</a>
+              <button type="submit" class="btn-save">Thêm mới</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột phải: tìm kiếm và chọn các sản phẩm/biến thể được áp dụng vào campaign. -->
+        <div class="create-product-panel">
+          <div class="product-search-row">
+            <div class="product-search">
+              <input id="product-filter-create" type="text" placeholder="Tìm kiếm theo tên sản phẩm"
+                     oninput="filterModalProducts('create')">
+              <button type="button" aria-label="Tìm kiếm sản phẩm">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="product-meta">
+            <span th:text="${'Hiển thị ' + #lists.size(createGroups) + ' dòng sản phẩm cha'}">Hiển thị 0 dòng sản phẩm cha</span>
+          </div>
+
+          <div class="group-list">
+            <!-- Nếu không có sản phẩm nào phù hợp thì hiển thị state rỗng. -->
+            <div th:if="${#lists.isEmpty(createGroups)}" class="state-cell">Không có sản phẩm phù hợp</div>
+
+            <!-- Mỗi thẻ details là một sản phẩm cha, bên trong là các biến thể con. -->
+            <details th:each="group, iterStat : ${createGroups}"
+                     class="product-group create-product-group"
+                     th:attr="data-search=${(group.maSanPham != null ? group.maSanPham : '') + ' ' + (group.tenSanPham != null ? group.tenSanPham : '') + ' ' + (group.tenThuongHieu != null ? group.tenThuongHieu : '') + ' ' + (group.tenXuatXu != null ? group.tenXuatXu : '')}">
+              <summary class="product-group-summary">
+                <div class="product-group-summary-left">
+                  <button type="button" class="group-toggle-button" aria-hidden="true">
+                    <i class="fa-solid fa-plus group-toggle-plus"></i>
+                    <i class="fa-solid fa-minus group-toggle-minus"></i>
+                  </button>
+                  <input type="checkbox" class="group-checkbox" onchange="toggleGroupChildren(this)">
+                  <div>
+                    <strong th:text="${group.tenSanPham != null ? group.tenSanPham : '-'}"></strong>
+                    <span th:text="${group.maSanPham != null ? group.maSanPham : '-'}"></span>
+                  </div>
+                </div>
+              </summary>
+
+              <div class="product-group-body">
+                <table class="product-table group-table">
+                  <colgroup>
+                    <col style="width: 32px">
+                    <col style="width: 32px">
+                    <col style="width: 70px">
+                    <col style="width: 130px">
+                    <col style="width: 60px">
+                    <col style="width: 60px">
+                    <col style="width: 60px">
+                    <col style="width: 80px">
+                  </colgroup>
+                  <thead>
+                  <tr>
+                    <th>Chọn</th>
+                    <th>STT</th>
+                    <th>Mã CTSP</th>
+                    <th>Tên biến thể</th>
+                    <th>Màu sắc</th>
+                    <th>Trọng lượng</th>
+                    <th>Hãng</th>
+                    <th>Giá bán</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr th:if="${#lists.isEmpty(group.mangBienTheCon)}">
+                    <td class="state-cell" colspan="8">Không có biến thể</td>
+                  </tr>
+                  <tr th:each="variant, variantStat : ${group.mangBienTheCon}"
+                      class="create-product-row"
+                      th:attr="data-search=${(variant.maCtsp != null ? variant.maCtsp : '') + ' ' + (variant.tenSanPham != null ? variant.tenSanPham : '') + ' ' + (variant.tenThuongHieu != null ? variant.tenThuongHieu : '') + ' ' + (variant.tenMauSac != null ? variant.tenMauSac : '') + ' ' + (variant.tenTrongLuong != null ? variant.tenTrongLuong : '') + ' ' + (variant.tenXuatXu != null ? variant.tenXuatXu : '')}"
+                      th:data-id="${variant.idChiTietSanPham}"
+                      th:data-ma-ctsp="${variant.maCtsp != null ? variant.maCtsp : '-'}"
+                      th:data-ten-sp="${variant.tenSanPham != null ? variant.tenSanPham : '-'}"
+                      th:data-hang="${variant.tenThuongHieu != null ? variant.tenThuongHieu : '-'}"
+                      th:data-mau-sac="${variant.tenMauSac != null ? variant.tenMauSac : '-'}"
+                      th:data-trong-luong="${variant.tenTrongLuong != null ? variant.tenTrongLuong : '-'}"
+                      th:data-do-cung="${variant.tenDoCung != null ? variant.tenDoCung : '-'}"
+                      th:data-diem-can-bang="${variant.tenDiemCanBang != null ? variant.tenDiemCanBang : '-'}"
+                      th:data-chat-lieu-than="${variant.tenChatLieuThanVot != null ? variant.tenChatLieuThanVot : '-'}"
+                      th:data-chat-lieu-khung="${variant.tenChatLieuKhungVot != null ? variant.tenChatLieuKhungVot : '-'}"
+                      th:data-chu-vi="${variant.tenChuViCanVot != null ? variant.tenChuViCanVot : (variant.chuViCanVot != null ? variant.chuViCanVot : '-')}"
+                      th:data-xuat-xu="${variant.tenXuatXu != null ? variant.tenXuatXu : '-'}"
+                      th:data-ton-kho="${variant.soLuongTon != null ? variant.soLuongTon : '-'}"
+                      th:data-gia-ban="${variant.giaBan != null ? #numbers.formatDecimal(variant.giaBan, 0, 'COMMA', 0, 'POINT') + ' đ' : '-'}">
+                    <td>
+                      <input type="checkbox"
+                             data-role="child-checkbox"
+                             name="selectedProductIds"
+                             th:value="${variant.idChiTietSanPham}"
+                             th:checked="${createSelectedIds.contains(variant.idChiTietSanPham)}">
+                    </td>
+                    <td th:text="${variantStat.count}"></td>
+                    <td th:text="${variant.maCtsp != null ? variant.maCtsp : '-'}"></td>
+                    <td th:text="${variant.tenSanPham != null ? variant.tenSanPham : '-'}"></td>
+                    <td th:text="${variant.tenMauSac != null ? variant.tenMauSac : '-'}"></td>
+                    <td th:text="${variant.tenTrongLuong != null ? variant.tenTrongLuong : '-'}"></td>
+                    <td th:text="${variant.tenThuongHieu != null ? variant.tenThuongHieu : '-'}"></td>
+                    <td th:text="${variant.giaBan != null ? #numbers.formatDecimal(variant.giaBan, 0, 'COMMA', 0, 'POINT') + ' đ' : '-'}"></td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phần dưới: tổng hợp các biến thể đã tick ở cột phải để người dùng kiểm tra lại. -->
+      <section class="selected-details">
+        <div class="selected-details-header">
+          <h4>Chi tiết sản phẩm đã chọn áp dụng (<span class="selected-count-badge">0 biến thể</span>)</h4>
+        </div>
+
+        <!-- Thanh lọc chỉ hiện khi đã chọn ít nhất 1 biến thể. -->
+        <div class="selected-filter-bar" style="display: none;">
+          <div class="selected-search">
+            <input id="create-selected-search" type="text" placeholder="Tìm theo tên hoặc mã..."
+                   oninput="filterSelectedProducts('create')">
+            <button type="button" aria-label="Tìm kiếm sản phẩm đã chọn">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
+
+          <div class="selected-filter">
+            <label for="create-selected-brand">Hãng</label>
+            <select id="create-selected-brand" onchange="filterSelectedProducts('create')">
+              <option value="">Tất cả</option>
+            </select>
+          </div>
+
+          <div class="selected-filter">
+            <label for="create-selected-color">Màu sắc</label>
+            <select id="create-selected-color" onchange="filterSelectedProducts('create')">
+              <option value="">Tất cả</option>
+            </select>
+          </div>
+
+          <div class="selected-filter">
+            <label for="create-selected-hardness">Độ cứng</label>
+            <select id="create-selected-hardness" onchange="filterSelectedProducts('create')">
+              <option value="">Tất cả</option>
+            </select>
+          </div>
+
+          <div class="selected-filter">
+            <label for="create-selected-price">Giá bán</label>
+            <select id="create-selected-price" onchange="filterSelectedProducts('create')">
+              <option value="">Tất cả</option>
+              <option value="lt500">Dưới 500.000</option>
+              <option value="500to1000">500.000 - 1.000.000</option>
+              <option value="gt1000">Trên 1.000.000</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bảng chi tiết các biến thể đã chọn, cũng chỉ hiện khi có dữ liệu. -->
+        <div class="selected-list" style="display: none;">
+          <div class="selected-group-table-wrap">
+            <table class="selected-group-table" data-selected-table="create">
+              <colgroup>
+                <col style="width: 35px">
+                <col style="width: 35px">
+                <col style="width: 75px">
+                <col style="width: 120px">
+                <col style="width: 65px">
+                <col style="width: 65px">
+                <col style="width: 65px">
+                <col style="width: 65px">
+                <col style="width: 75px">
+                <col style="width: 85px">
+                <col style="width: 85px">
+                <col style="width: 55px">
+                <col style="width: 75px">
+                <col style="width: 55px">
+                <col style="width: 85px">
+              </colgroup>
+              <thead>
+              <tr>
+                <th scope="col">
+                  <input type="checkbox" id="select-all-selected-create" onchange="toggleSelectAllSelected('create', this)" checked>
+                </th>
+                <th scope="col">STT</th>
+                <th scope="col">Mã CTSP</th>
+                <th scope="col">Tên SP</th>
+                <th scope="col">Hãng</th>
+                <th scope="col">Màu sắc</th>
+                <th scope="col">Trọng lượng</th>
+                <th scope="col">Độ cứng</th>
+                <th scope="col">Điểm cân bằng</th>
+                <th scope="col">Chất liệu thân</th>
+                <th scope="col">Chất liệu khung</th>
+                <th scope="col">Chu vi</th>
+                <th scope="col">Xuất xứ</th>
+                <th scope="col">Tồn kho</th>
+                <th scope="col">Giá bán</th>
+              </tr>
+              </thead>
+              <tbody>
+              <!-- Dynamic rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="state-cell empty-selected-state">Chưa có sản phẩm nào được chọn</div>
+      </section>
+    </section>
+  </form>
+</div>
+
+</body>
+</html>

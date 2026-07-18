@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm nhân viên</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: main-layout(~{::#content})}">
+    <div id="content" x-data="themNhanVienPage()" x-init="init()">
+
+        <div class="customer-card">
+            <div class="page-header">
+                <button type="button" class="back-link" onclick="location.href='/nhan-vien'">&larr; Quay lại danh sách</button>
+                <p>Nhập thông tin nhân viên mới</p>
+            </div>
+
+            <div class="qr-scan-section mb-4" style="border-bottom:1px solid #eee;padding-bottom:20px;">
+                <button type="button" @click="startScan()" class="btn-scan-qr">
+                    <i class="fas fa-qrcode"></i> Quét QR lấy thông tin nhanh
+                </button>
+                <div x-show="isScanning" id="qr-reader-them-nv" style="max-width:330px;margin:15px 0 10px 0;border:1px solid #ddd;border-radius:6px;overflow:hidden;"></div>
+                <button x-show="isScanning" type="button" class="btn-cancel" @click="stopScan()" style="margin-top:5px;height:34px;padding:0 15px;">Tắt Camera</button>
+            </div>
+
+            <form @submit.prevent="saveNhanVien()">
+                <div class="avatar-upload-section">
+                    <div class="avatar-preview-box">
+                        <img :src="avatarPreviewUrl" alt="Ảnh đại diện nhân viên" @error="$event.target.src = defaultAvatarUrl" />
+                    </div>
+                    <div class="avatar-upload-controls">
+                        <label class="avatar-label">Ảnh đại diện nhân viên</label>
+                        <input type="file" accept="image/*" @change="onAvatarFileChange($event)" />
+                        <span class="avatar-hint">Chọn ảnh JPG/PNG, tối đa 5MB (không bắt buộc)</span>
+                        <button x-show="avatarPreviewUrl !== defaultAvatarUrl" type="button" class="btn-remove-avatar" @click="clearAvatar()">✕ Bỏ ảnh đã chọn</button>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="form-content">
+                        <h3>Thông tin cá nhân</h3>
+                        <div class="form-grid">
+                            <div class="form-group" :class="{ 'has-error': errors.tenNv }">
+                                <label>Họ và tên nhân viên <span>*</span></label>
+                                <input type="text" x-model="nhanVien.tenNv" placeholder="Nhập tên nhân viên" @input="errors.tenNv = ''" @blur="validateHoTen()" />
+                                <span x-show="errors.tenNv" class="error-text" x-text="errors.tenNv"></span>
+                            </div>
+
+                            <div class="form-group" :class="{ 'has-error': errors.sdt }">
+                                <label>Số điện thoại liên hệ <span>*</span></label>
+                                <input type="text" x-model="nhanVien.sdt" placeholder="Nhập số điện thoại" @input="errors.sdt = ''" @blur="validateSdt()" />
+                                <span x-show="errors.sdt" class="error-text" x-text="errors.sdt"></span>
+                            </div>
+
+                            <div class="form-group" :class="{ 'has-error': errors.email }">
+                                <label>Địa chỉ Email <span>*</span></label>
+                                <input type="text" x-model="nhanVien.email" placeholder="Nhập địa chỉ email" @input="errors.email = ''" @blur="validateEmail()" />
+                                <span x-show="errors.email" class="error-text" x-text="errors.email"></span>
+                            </div>
+
+                            <div class="form-group" :class="{ 'has-error': errors.ngaySinh }">
+                                <label>Ngày sinh <span>*</span></label>
+                                <input type="date" x-model="nhanVien.ngaySinh" :max="ngayMaxChoPhep" @change="validateNgaySinh()" />
+                                <span x-show="errors.ngaySinh" class="error-text" x-text="errors.ngaySinh"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Giới tính</label>
+                                <div class="radio-group">
+                                    <label class="radio-label"><input type="radio" value="1" x-model="nhanVien.gioiTinh" style="accent-color:#f79b66;" /> Nam</label>
+                                    <label class="radio-label"><input type="radio" value="0" x-model="nhanVien.gioiTinh" style="accent-color:#f79b66;" /> Nữ</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Vai trò hệ thống</label>
+                                <select x-model="nhanVien.vaiTro">
+                                    <option value="2">Quản lý</option>
+                                    <option value="3">Nhân viên</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="address-section-header">
+                    <h3>Địa chỉ nhân viên liên hệ</h3>
+                </div>
+
+                <div class="address-box-item">
+                    <div class="form-grid" style="margin-bottom:15px;">
+                        <div class="form-group">
+                            <label>Tỉnh / Thành phố <span>*</span></label>
+                            <select x-model="diaChi.tinhThanh" class="form-select-control" @change="handleThayDoiTinhThanh()" required>
+                                <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                                <template x-for="tinh in listTinhThanh" :key="tinh.code">
+                                    <option :value="tinh.name" x-text="tinh.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quận / Huyện <span>*</span></label>
+                            <select x-model="diaChi.quanHuyen" class="form-select-control" :disabled="!diaChi.tinhThanh" @change="handleThayDoiQuanHuyen()" required>
+                                <option value="">-- Chọn Quận / Huyện --</option>
+                                <template x-for="quan in listQuanHuyenTmp" :key="quan.code">
+                                    <option :value="quan.name" x-text="quan.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid" style="margin-bottom:15px;">
+                        <div class="form-group">
+                            <label>Phường / Xã / Thị trấn <span>*</span></label>
+                            <select x-model="diaChi.phuongXa" class="form-select-control" :disabled="!diaChi.quanHuyen" required>
+                                <option value="">-- Chọn Phường / Xã / Thị trấn --</option>
+                                <template x-for="xa in listPhuongXaTmp" :key="xa.code">
+                                    <option :value="xa.name" x-text="xa.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Địa chỉ chi tiết (Số nhà, tên đường...) <span>*</span></label>
+                            <input type="text" x-model="diaChi.chiTietCuThe" placeholder="Ví dụ: Số 20, ngõ 4, đường Trần Phú" required />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group" style="margin-top:30px;">
+                    <button type="submit" class="btn-save">Lưu thông tin nhân viên</button>
+                    <button type="button" class="btn-cancel" onclick="location.href='/nhan-vien'">✖ Hủy bỏ</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function themNhanVienPage() {
+        return {
+            listTinhThanh: [],
+            listQuanHuyenTmp: [],
+            listPhuongXaTmp: [],
+            isScanning: false,
+            qrScanner: null,
+
+            defaultAvatarUrl: 'https://placehold.co/120x120?text=Avatar',
+            avatarFile: null,
+            avatarPreviewUrl: 'https://placehold.co/120x120?text=Avatar',
+
+            nhanVien: { tenNv: '', sdt: '', email: '', ngaySinh: '', gioiTinh: '1', vaiTro: '3' },
+            diaChi: { tinhThanh: '', quanHuyen: '', phuongXa: '', chiTietCuThe: '' },
+            errors: { tenNv: '', sdt: '', email: '', ngaySinh: '' },
+
+            get ngayMaxChoPhep() {
+                const today = new Date();
+                const y = today.getFullYear() - 18;
+                const m = String(today.getMonth() + 1).padStart(2, '0');
+                const d = String(today.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            },
+
+            async init() { await this.load63TinhThanh(); },
+
+            async load63TinhThanh() {
+                try {
+                    const res = await axios.get('/data/vn-provinces.json');   // 🌟 SỬA: dùng file tĩnh local
+                    this.listTinhThanh = res.data || [];
+                } catch (e) { console.error(e); }
+            },
+
+// 🌟 Không còn async/gọi API — chỉ lọc từ dữ liệu đã có sẵn
+            handleThayDoiTinhThanh() {
+                this.diaChi.quanHuyen = ''; this.diaChi.phuongXa = '';
+                this.listQuanHuyenTmp = []; this.listPhuongXaTmp = [];
+                if (!this.diaChi.tinhThanh) return;
+                const tinh = this.listTinhThanh.find(t => t.name === this.diaChi.tinhThanh);
+                this.listQuanHuyenTmp = tinh ? (tinh.districts || []) : [];
+            },
+
+            handleThayDoiQuanHuyen() {
+                this.diaChi.phuongXa = ''; this.listPhuongXaTmp = [];
+                if (!this.diaChi.quanHuyen) return;
+                const quan = this.listQuanHuyenTmp.find(q => q.name === this.diaChi.quanHuyen);
+                this.listPhuongXaTmp = quan ? (quan.wards || []) : [];
+            },
+
+            onAvatarFileChange(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!file.type.startsWith('image/')) { alert('Vui lòng chọn đúng định dạng file ảnh!'); e.target.value = ''; return; }
+                if (file.size > 5 * 1024 * 1024) { alert('Kích thước ảnh không được vượt quá 5MB!'); e.target.value = ''; return; }
+                this.avatarFile = file;
+                this.avatarPreviewUrl = URL.createObjectURL(file);
+            },
+            clearAvatar() { this.avatarFile = null; this.avatarPreviewUrl = this.defaultAvatarUrl; },
+
+            startScan() {
+                this.isScanning = true;
+                setTimeout(() => {
+                    this.qrScanner = new Html5QrcodeScanner('qr-reader-them-nv', { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+                    this.qrScanner.render((decodedText) => this.onScanSuccess(decodedText), () => {});
+                }, 300);
+            },
+            stopScan() {
+                if (this.qrScanner) this.qrScanner.clear().then(() => { this.isScanning = false; }).catch(err => console.error(err));
+            },
+            onScanSuccess(decodedText) {
+                alert('Quét thông tin căn cước công dân thành công! 🎉');
+                this.stopScan();
+                if (decodedText.includes('|')) {
+                    const parts = decodedText.split('|');
+                    if (parts.length >= 6) {
+                        this.nhanVien.tenNv = parts[2];
+                        if (parts[3]?.length === 8) {
+                            this.nhanVien.ngaySinh = `${parts[3].substring(4, 8)}-${parts[3].substring(2, 4)}-${parts[3].substring(0, 2)}`;
+                        }
+                        this.nhanVien.gioiTinh = parts[4] === 'Nam' ? '1' : '0';
+                        this.diaChi.chiTietCuThe = parts[5];
+                    }
+                }
+            },
+            validateSdt() {
+                if (!/^(0[3|5|7|8|9])([0-9]{8})$/.test(this.nhanVien.sdt.trim())) { this.errors.sdt = 'SĐT không đúng định dạng nhà mạng VN!'; return false; }
+                this.errors.sdt = ''; return true;
+            },
+            validateEmail() {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.nhanVien.email.trim())) { this.errors.email = 'Email sai định dạng!'; return false; }
+                this.errors.email = ''; return true;
+            },
+            validateNgaySinh() {
+                if (!this.nhanVien.ngaySinh) { this.errors.ngaySinh = 'Vui lòng chọn ngày sinh!'; return false; }
+                const birthDate = new Date(this.nhanVien.ngaySinh); const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                if (age < 18) { this.errors.ngaySinh = `Nhân viên phải đủ 18 tuổi trở lên (hiện tại: ${age} tuổi)!`; return false; }
+                this.errors.ngaySinh = ''; return true;
+            },
+            validateHoTen() {
+                let name = this.nhanVien.tenNv.trim();
+                if (!name) { this.errors.tenNv = 'Họ tên nhân viên không được để trống!'; return false; }
+                name = name.replace(/\s+/g, ' ');
+                this.nhanVien.tenNv = name;
+                if (name.length < 3 || name.length > 100) { this.errors.tenNv = `Độ dài họ tên phải từ 3 đến 100 ký tự (Hiện tại: ${name.length} ký tự)!`; return false; }
+                if (!/^[\p{L}\s]+$/u.test(name)) { this.errors.tenNv = 'Họ tên không được chứa số hoặc ký tự đặc biệt!'; return false; }
+                this.errors.tenNv = ''; return true;
+            },
+
+            async saveNhanVien() {
+                const hoTenHopLe = this.validateHoTen();
+                const sdtHopLe = this.validateSdt();
+                const emailHopLe = this.validateEmail();
+                const tuoiHopLe = this.validateNgaySinh();
+                if (!hoTenHopLe || !sdtHopLe || !emailHopLe || !tuoiHopLe) return alert('Vui lòng hoàn thiện đúng các trường hiển thị lỗi đỏ!');
+
+                const d = this.diaChi;
+                if (!d.tinhThanh || !d.quanHuyen || !d.phuongXa || !d.chiTietCuThe.trim()) {
+                    return alert('Vui lòng điền đầy đủ thông tin địa chỉ!');
+                }
+
+                const xacNhan = confirm(`Bạn có chắc chắn muốn thêm nhân viên "${this.nhanVien.tenNv.trim()}" không?`);
+                if (!xacNhan) return;
+
+                try {
+                    const isDuplicate = (await axios.get('http://localhost:8080/nhan-vien/check-duplicate', {
+                        params: { sdt: this.nhanVien.sdt.trim(), email: this.nhanVien.email.trim() }
+                    })).data;
+                    if (isDuplicate) return alert('⚠️ Cảnh báo: Số điện thoại hoặc Email đã tồn tại trong hệ thống!');
+
+                    const diaChiFull = `${d.chiTietCuThe.trim()}, ${d.phuongXa}, ${d.quanHuyen}, ${d.tinhThanh}`;
+                    const payload = {
+                        tenNv: this.nhanVien.tenNv.trim(), sdt: this.nhanVien.sdt.trim(), email: this.nhanVien.email.trim(),
+                        gioiTinh: Number(this.nhanVien.gioiTinh), ngaySinh: this.nhanVien.ngaySinh || null, trangThai: 1,
+                        diaChi: diaChiFull,
+                        // 🔧 SỬA: gửi riêng từng phần, không gộp phuongXa+quanHuyen nữa
+                        tinhThanh: d.tinhThanh,
+                        quanHuyen: d.quanHuyen,
+                        phuongXa: d.phuongXa,
+                        diaChiChiTiet: d.chiTietCuThe.trim(),
+                        vaiTro: { id: Number(this.nhanVien.vaiTro) }
+                    };
+
+                    const formData = new FormData();
+                    formData.append('data', JSON.stringify(payload));
+                    if (this.avatarFile) formData.append('avatar', this.avatarFile);
+
+                    await axios.post('http://localhost:8080/nhan-vien/add', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    alert('🎉 Thêm nhân viên thành công!');
+                    location.href = '/nhan-vien';
+                } catch (error) {
+                    alert('Thất bại: ' + (error.response?.data?.message || error.response?.data || error.message));
+                }
+            }
+        }
+    }
+</script>
+
+<style>
+    .btn-scan-qr { background-color:#1890ff;color:white;border:none;padding:0 16px;height:38px;border-radius:4px;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:13px; }
+    .btn-scan-qr:hover { background-color:#40a9ff; }
+    .mb-4 { margin-bottom:1.5rem; }
+    .form-group.has-error input { border-color:#ef4444 !important; background-color:#fef2f2; }
+    .form-select-control { width:100%;padding:8px 12px;border:1px solid #cbd5e1;border-radius:4px;height:38px;background-color:#fff;font-size:14px;color:#334155;outline:none;box-sizing:border-box; }
+    .form-select-control:focus { border-color:#f79b66; }
+    .error-text { color:#ef4444;font-size:13px;margin-top:5px;display:block;text-align:left; }
+    .customer-card { background:#ffffff;padding:24px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-align:left; }
+    .page-header { margin-bottom:20px; }
+    .back-link { background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;padding:0;margin-bottom:6px; }
+    .page-header p { font-size:18px;font-weight:600;color:#1e293b;margin:0; }
+    .avatar-upload-section { display:flex;gap:20px;align-items:center;background-color:#fff7ed;padding:16px;border-radius:8px;border:1px dashed #f79b66;margin-bottom:24px; }
+    .avatar-preview-box { width:100px;height:100px;border-radius:50%;overflow:hidden;border:2px solid #f79b66;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center; }
+    .avatar-preview-box img { width:100%;height:100%;object-fit:cover; }
+    .avatar-upload-controls { display:flex;flex-direction:column;gap:6px; }
+    .avatar-label { font-size:13px;font-weight:600;color:#374151; }
+    .avatar-hint { font-size:12px;color:#94a3b8; }
+    .btn-remove-avatar { align-self:flex-start;background:#fef2f2;color:#dc2626;border:1px solid #fee2e2;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-top:4px; }
+    .info-section { display:flex;gap:24px;margin-bottom:24px; }
+    .form-content { flex:1; }
+    .form-content h3, .address-section-header h3 { font-size:15px;font-weight:600;color:#1e293b;margin:0 0 16px 0; }
+    .form-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:16px; }
+    .form-group { display:flex;flex-direction:column;gap:6px; }
+    .form-group label { font-size:13px;font-weight:500;color:#475569; }
+    .form-group label span { color:#ef4444; }
+    .form-group input, .form-group select { height:38px;padding:0 12px;border:1px solid #cbd5e1;border-radius:4px;font-size:14px;color:#334155;outline:none; }
+    .radio-group { display:flex;gap:16px;height:38px;align-items:center; }
+    .radio-label { display:flex;align-items:center;gap:6px;font-size:13px;color:#334155;cursor:pointer; }
+    .address-section-header { display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;padding-top:20px;margin-bottom:15px; }
+    .address-box-item { border:1px solid #e2e8f0;padding:16px;border-radius:6px;background-color:#fafafa; }
+    .button-group { display:flex;justify-content:center;gap:12px; }
+    .btn-save { background:#f79b66;color:white;border:none;padding:10px 24px;border-radius:4px;cursor:pointer;font-weight:500;font-size:14px; }
+    .btn-cancel { background:#cbd5e1;color:#475569;border:none;padding:10px 24px;border-radius:4px;cursor:pointer;font-size:14px; }
+</style>
+</body>
+</html>

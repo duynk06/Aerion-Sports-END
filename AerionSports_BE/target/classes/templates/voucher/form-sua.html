@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: main-layout(~{::#phieu-giam-gia-edit})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Sửa Phiếu Giảm Giá</title>
+    <th:block th:fragment="extraHead"></th:block>
+</head>
+<body>
+
+<div id="phieu-giam-gia-edit">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+        .sidebar {
+            width: 220px;
+            background: white;
+            padding: 20px 14px;
+            border-right: 1px solid #e5e5e5;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 35px;
+            padding: 0 10px;
+        }
+        .logo img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .item,
+        .item-toggle-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #4b5563;
+            transition: 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+        .item i,
+        .item-toggle-header i {
+            width: 20px;
+            font-size: 15px;
+        }
+        .item:hover,
+        .item-toggle-header:hover {
+            background: #fff8f3;
+        }
+        .item.router-link-active {
+            background: #fff4ed;
+            color: #d87d4a;
+        }
+        .active-parent {
+            color: #d87d4a;
+            background: #fffbf7;
+        }
+        .arrow-nested {
+            margin-left: auto;
+            font-size: 11px !important;
+            color: #9ca3af;
+        }
+        .submenu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-left: 20px;
+            margin: 4px 0;
+            border-left: 1.5px dashed #fed7aa;
+            margin-left: 23px;
+        }
+        .sub-item {
+            display: block;
+            padding: 8px 12px;
+            font-size: 12.5px;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .sub-item:hover {
+            background-color: #fff8f3;
+            color: #d87d4a;
+        }
+        .sub-item.router-link-active {
+            background-color: #fff4ed;
+            color: #d87d4a;
+            font-weight: 600;
+        }
+        .bottom-menu {
+            margin-top: auto;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .bottom-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #4b5563;
+        }
+        .bottom-item:hover {
+            background: #f3f4f6;
+        }
+        .bottom-item i {
+            width: 20px;
+        }
+        .logout {
+            color: red;
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            height: 75px;
+            background: white;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-between: space-between;
+            padding: 0 25px;
+        }
+        .page-title h2 {
+            font-size: 24px;
+            color: #333;
+        }
+        .user-wrapper {
+            position: relative;
+        }
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: 0.2s;
+        }
+        .user:hover {
+            background: #f5f5f5;
+        }
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #e6925e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .user-info h4 {
+            font-size: 14px;
+        }
+        .user-info p {
+            color: #888;
+            font-size: 12px;
+        }
+        .arrow {
+            font-size: 12px;
+            color: #777;
+        }
+        .dropdown {
+            position: absolute;
+            top: 65px;
+            right: 0;
+            width: 210px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            z-index: 999;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .dropdown-item:hover {
+            background: #f5f5f5;
+        }
+        .dropdown-item i {
+            width: 18px;
+        }
+        .logout-item {
+            color: red;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .split-layout {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 20px;
+            width: 100%;
+        }
+        .left-panel {
+            width: 55%;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-panel {
+            width: calc(45% - 20px);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-container {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #edf2f7;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .list-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .title-icon {
+            width: 38px;
+            height: 38px;
+            background: #f79b66;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(247, 155, 102, 0.2);
+        }
+        .list-title h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+        .list-title span {
+            color: #718096;
+            font-size: 13px;
+            margin-top: 2px;
+            display: block;
+        }
+        .flex-form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .form-grid th, .form-grid td {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            box-sizing: border-box;
+            height: 40px;
+            padding: 0 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #2d3748;
+            outline: none;
+            background-color: #fff;
+            transition: all 0.2s;
+        }
+        .disabled-input {
+            background-color: #f8fafc !important;
+            color: #718096 !important;
+            cursor: not-allowed;
+            border-color: #e2e8f0 !important;
+            font-weight: 500;
+        }
+        .form-group textarea {
+            height: auto;
+            padding: 12px 14px;
+            resize: vertical;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #f79b66;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .hidden-placeholder {
+            display: none;
+        }
+        @media (min-width: 768px) {
+            .hidden-placeholder {
+                display: block;
+            }
+        }
+        .target-group {
+            margin-bottom: 5px;
+        }
+        .target-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .radio-group {
+            display: flex;
+            gap: 30px;
+            margin-top: 4px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #2d3748;
+        }
+        .radio-label input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #f79b66;
+            cursor: pointer;
+        }
+        .divider {
+            border-top: 1px solid #edf2f7;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        .mt-auto {
+            margin-top: auto;
+        }
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 20px;
+            border-top: 1px solid #edf2f7;
+        }
+        .btn-cancel,
+        .btn-save {
+            height: 40px;
+            padding: 0 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+        .btn-save {
+            background: #f79b66;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #e08553;
+        }
+        .table-animated-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .table-area {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .table-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .mb-15 {
+            margin-bottom: 15px;
+        }
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+        .search-box input {
+            width: 100%;
+            height: 40px;
+            box-sizing: border-box;
+            padding: 0 14px 0 36px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13.5px;
+            outline: none;
+            color: #2d3748;
+            transition: border-color 0.2s;
+        }
+        .search-box input:focus {
+            border-color: #f79b66;
+        }
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        .customer-table-container {
+            border: 1px solid #edf2f7;
+            border-radius: 8px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 250px;
+        }
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .customer-table thead {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            z-index: 1;
+        }
+        .customer-table th {
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 1px solid #edf2f7;
+            white-space: nowrap;
+        }
+        .customer-table td {
+            padding: 12px;
+            font-size: 13px;
+            color: #2d3748;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .font-medium {
+            font-weight: 600;
+            color: #1a202c !important;
+        }
+        .customer-table tbody tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .customer-table tbody tr:hover {
+            background: #fff8f5;
+        }
+        .customer-table tbody tr.selected-row {
+            background: #fff1e7;
+        }
+        .col-checkbox {
+            width: 40px;
+            text-align: center !important;
+        }
+        .col-checkbox input[type="checkbox"] {
+            accent-color: #f79b66;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .no-data {
+            text-align: center;
+            color: #a0aec0;
+            padding: 24px !important;
+            font-style: italic;
+        }
+        .required-star {
+            color: #e53e3e;
+            font-weight: bold;
+        }
+        @media (max-width: 1024px) {
+            .split-layout {
+                flex-direction: column;
+            }
+            .left-panel,
+            .right-panel {
+                width: 100%;
+            }
+        }
+    </style>
+        <div class="content">
+            <form th:action="@{/phieu-giam-gia/cap-nhat/{id}(id=${phieuGiamGia.id})}" th:object="${phieuGiamGia}" method="POST" id="voucherForm" class="split-layout">
+
+                <div class="form-container left-panel">
+                    <div class="list-header">
+                        <div class="list-title">
+                            <div class="title-icon">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </div>
+                            <div>
+                                <h3>Cập nhật phiếu giảm giá</h3>
+                                <span>Chỉnh sửa thông tin chương trình khuyến mãi</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Mã phiếu giảm giá</label>
+                                <input type="text" th:field="*{maPhieuGiamGia}" readonly class="disabled-input" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Tên phiếu giảm giá <span class="required-star">*</span></label>
+                                <input type="text" th:field="*{tenPhieuGiamGia}" required />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Loại phiếu</label>
+                                <select th:field="*{loaiPhieuGiamGia}" id="loaiPhieuSelect" onchange="updateLabelLoaiPhieu()">
+                                    <option value="Sale %">Sale %</option>
+                                    <option value="Giam Tien">Giảm Tiền</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label id="giaTriGiamLabel">Giá trị giảm (%) <span class="required-star">*</span></label>
+                                <input type="text" id="giaTriGiamDisplay" oninput="onInputCurrency('giaTriGiam', this)" required />
+                                <input type="hidden" th:field="*{giaTriGiam}" id="giaTriGiam" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Đơn tối thiểu (đ) <span class="required-star">*</span></label>
+                                <input type="text" id="giaTriDonToiThieuDisplay" oninput="onInputCurrency('giaTriDonToiThieu', this)" required />
+                                <input type="hidden" th:field="*{giaTriDonToiThieu}" id="giaTriDonToiThieu" />
+                            </div>
+
+                            <div class="form-group" id="giamToiDaGroup">
+                                <label>Giảm tối đa (đ) <span class="required-star">*</span></label>
+                                <input type="text" id="giaTriGiamToiDaDisplay" oninput="onInputCurrency('giaTriGiamToiDa', this)" required />
+                                <input type="hidden" th:field="*{giaTriGiamToiDa}" id="giaTriGiamToiDa" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Số lượng phát hành <span class="required-star">*</span></label>
+                                <input type="text" th:field="*{soLuong}" id="soLuongInput" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Ngày bắt đầu (Không thể chỉnh sửa)</label>
+                                <input type="datetime-local" name="ngayBatDau" th:value="${phieuGiamGia.ngayBatDau != null ? (#temporals.format(phieuGiamGia.ngayBatDau, 'yyyy-MM-dd') + 'T' + #temporals.format(phieuGiamGia.ngayBatDau, 'HH:mm')) : ''}" readonly class="disabled-input" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Ngày kết thúc <span class="required-star">*</span></label>
+                                <input type="datetime-local" name="ngayKetThuc" id="ngayKetThuc" th:value="${phieuGiamGia.ngayKetThuc != null ? (#temporals.format(phieuGiamGia.ngayKetThuc, 'yyyy-MM-dd') + 'T' + #temporals.format(phieuGiamGia.ngayKetThuc, 'HH:mm')) : ''}" required />
+                            </div>
+
+                            <div class="form-group hidden-placeholder" id="placeholderGroup"></div>
+
+                            <div class="form-group full-width">
+                                <label>Mô tả</label>
+                                <textarea rows="4" th:field="*{moTa}"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="button-group mt-auto">
+                            <a th:href="@{/phieu-giam-gia/hien-thi}" class="btn-cancel" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">Hủy</a>
+                            <button type="submit" class="btn-save">Cập nhật dữ liệu</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-container right-panel">
+                    <div class="target-group">
+                        <label class="target-label">Đối tượng áp dụng</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="doiTuongApDung" value="ALL" th:checked="${#lists.isEmpty(selectedKhachHangIds)}" onclick="handleDoiTuongChange('ALL')" />
+                                Tất cả khách hàng
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="doiTuongApDung" value="PERSONAL" th:checked="${!#lists.isEmpty(selectedKhachHangIds)}" onclick="handleDoiTuongChange('PERSONAL')" />
+                                Khách hàng cụ thể
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="personalPanel" class="table-animated-wrapper" style="display: none;">
+                        <div class="divider"></div>
+                        <div class="table-area">
+                            <div class="table-content">
+                                <div class="list-header" style="padding-bottom: 15px; margin-bottom: 15px;">
+                                    <div class="list-title">
+                                        <div class="title-icon" style="background: #3b82f6; width: 32px; height: 32px; font-size: 14px;">
+                                            <i class="fa-solid fa-users"></i>
+                                        </div>
+                                        <div>
+                                            <h3 style="font-size: 16px;">Chọn khách hàng áp dụng</h3>
+                                            <span>Đã chọn: <strong style="color: #f79b66;" id="selectedCount">0</strong> khách hàng</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="search-box mb-15">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="text" id="searchKhachHangInput" onkeyup="filterCustomerTable()" placeholder="Tìm tên, email, SĐT hoặc mã KH...">
+                                </div>
+
+                                <div class="customer-table-container">
+                                    <table class="customer-table" id="customerTable">
+                                        <thead>
+                                        <tr>
+                                            <th class="col-checkbox">
+                                                <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAllCustomers(this)" />
+                                            </th>
+                                            <th>Mã KH</th>
+                                            <th>Tên KH</th>
+                                            <th>Email</th>
+                                            <th>SĐT</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="kh : ${khachHangList}" th:data-search="${#strings.toLowerCase(kh.maKhachHang + ' ' + kh.hoTen + ' ' + kh.email + ' ' + kh.sdt)}" onclick="toggleRowCheckbox(this)">
+                                            <td class="col-checkbox" onclick="event.stopPropagation();">
+                                                <input type="checkbox" name="khachHangIds" th:value="${kh.id}" th:checked="${#lists.contains(selectedKhachHangIds, kh.id)}" class="row-checkbox" onchange="updateSelectedCount()" />
+                                            </td>
+                                            <td th:text="${kh.maKhachHang}"></td>
+                                            <td class="font-medium" th:text="${kh.hoTen}"></td>
+                                            <td th:text="${kh.email}"></td>
+                                            <td th:text="${kh.sdt}"></td>
+                                        </tr>
+                                        <tr id="noDataRow" style="display: none;">
+                                            <td colspan="5" class="no-data">Không tìm thấy khách hàng nào</td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(khachHangList)}">
+                                            <td colspan="5" class="no-data">Không có dữ liệu khách hàng nào trong hệ thống</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    <script>
+        function toggleDropdown(element) {
+            element.classList.toggle('active-parent');
+            const submenu = element.nextElementSibling;
+            const arrow = element.querySelector('.arrow-nested');
+
+            if (submenu.style.display === 'none') {
+                submenu.style.display = 'flex';
+                arrow.classList.replace('fa-chevron-right', 'fa-chevron-down');
+            } else {
+                submenu.style.display = 'none';
+                arrow.classList.replace('fa-chevron-down', 'fa-chevron-right');
+            }
+        }
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function formatCurrencyValue(value) {
+            if (!value && value !== 0) return '';
+            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function onInputCurrency(fieldId, inputElement) {
+            let val = inputElement.value;
+            val = val.replace(/[^0-9]/g, '');
+
+            const numericValue = val ? Number(val) : 0;
+
+            if (fieldId === 'giaTriGiam' && document.getElementById('loaiPhieuSelect').value === 'Sale %') {
+                if (numericValue > 100) {
+                    inputElement.value = '100';
+                    document.getElementById(fieldId).value = 100;
+                    return;
+                }
+            }
+
+            document.getElementById(fieldId).value = numericValue;
+            if (fieldId === 'giaTriGiam' && document.getElementById('loaiPhieuSelect').value === 'Sale %') {
+                inputElement.value = numericValue;
+            } else {
+                inputElement.value = formatCurrencyValue(numericValue);
+            }
+        }
+
+        function updateLabelLoaiPhieu() {
+            const select = document.getElementById('loaiPhieuSelect');
+            const label = document.getElementById('giaTriGiamLabel');
+            const displayInput = document.getElementById('giaTriGiamDisplay');
+            const hiddenInput = document.getElementById('giaTriGiam');
+            const giamToiDaGroup = document.getElementById('giamToiDaGroup');
+            const placeholderGroup = document.getElementById('placeholderGroup');
+
+            if (select.value === 'Sale %') {
+                label.innerHTML = "Giá trị giảm (%) <span class='required-star'>*</span>";
+                displayInput.placeholder = "Nhập số từ 1 - 100";
+                if(parseInt(hiddenInput.value) > 100) {
+                    hiddenInput.value = 100;
+                    displayInput.value = 100;
+                }
+                if (giamToiDaGroup) giamToiDaGroup.style.display = "flex";
+                if (placeholderGroup) placeholderGroup.style.display = "none";
+                document.getElementById('giaTriGiamToiDaDisplay').required = true;
+            } else {
+                label.innerHTML = "Giá trị giảm (đ) <span class='required-star'>*</span>";
+                displayInput.placeholder = "Nhập số tiền giảm";
+                displayInput.value = formatCurrencyValue(hiddenInput.value);
+
+                if (giamToiDaGroup) giamToiDaGroup.style.display = "none";
+                if (placeholderGroup) placeholderGroup.style.display = "block";
+                document.getElementById('giaTriGiamToiDaDisplay').required = false;
+                document.getElementById('giaTriGiamToiDa').value = 0;
+            }
+        }
+
+        function handleDoiTuongChange(value) {
+            const panel = document.getElementById('personalPanel');
+            if (value === 'PERSONAL') {
+                panel.style.display = 'flex';
+            } else {
+                panel.style.display = 'none';
+                const checkboxes = document.querySelectorAll('.row-checkbox');
+                checkboxes.forEach(cb => cb.checked = false);
+                document.getElementById('selectAllCheckbox').checked = false;
+                const rows = document.querySelectorAll('#customerTable tbody tr');
+                rows.forEach(row => row.classList.remove('selected-row'));
+                updateSelectedCount();
+            }
+        }
+
+        function filterCustomerTable() {
+            const input = document.getElementById('searchKhachHangInput');
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll('#customerTable tbody tr:not(#noDataRow)');
+            let hasVisibleRow = false;
+
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search');
+                if (searchData && searchData.includes(filter)) {
+                    row.style.display = "";
+                    hasVisibleRow = true;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            const noDataRow = document.getElementById('noDataRow');
+            if (rows.length > 0) {
+                noDataRow.style.display = hasVisibleRow ? "none" : "";
+            }
+        }
+
+        function toggleRowCheckbox(row) {
+            if (row.id === 'noDataRow') return;
+            const checkbox = row.querySelector('.row-checkbox');
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                if (checkbox.checked) {
+                    row.classList.add('selected-row');
+                } else {
+                    row.classList.remove('selected-row');
+                }
+                updateSelectedCount();
+                checkSelectAllStatus();
+            }
+        }
+
+        function toggleSelectAllCustomers(masterCheckbox) {
+            const rows = document.querySelectorAll('#customerTable tbody tr:not(#noDataRow)');
+            rows.forEach(row => {
+                if (row.style.display !== "none") {
+                    const checkbox = row.querySelector('.row-checkbox');
+                    if (checkbox) {
+                        checkbox.checked = masterCheckbox.checked;
+                        if (masterCheckbox.checked) {
+                            row.classList.add('selected-row');
+                        } else {
+                            row.classList.remove('selected-row');
+                        }
+                    }
+                }
+            });
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            document.getElementById('selectedCount').innerText = checkedBoxes.length;
+
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => {
+                const row = cb.closest('tr');
+                if (cb.checked) {
+                    row.classList.add('selected-row');
+                } else {
+                    row.classList.remove('selected-row');
+                }
+            });
+        }
+
+        function checkSelectAllStatus() {
+            const visibleCheckboxes = document.querySelectorAll('.row-checkbox');
+            const visibleChecked = document.querySelectorAll('.row-checkbox:checked');
+            const master = document.getElementById('selectAllCheckbox');
+            if (visibleCheckboxes.length > 0 && visibleCheckboxes.length === visibleChecked.length) {
+                master.checked = true;
+            } else {
+                master.checked = false;
+            }
+        }
+
+        document.getElementById('voucherForm').addEventListener('submit', function(e) {
+            const select = document.getElementById('loaiPhieuSelect').value;
+            const input = document.getElementById('giaTriGiam').value;
+            const inputDonToiThieu = Number(document.getElementById('giaTriDonToiThieu').value) || 0;
+            const radioPersonal = document.querySelector('input[name="doiTuongApDung"]:checked').value;
+            const ngayKetThucStr = document.getElementById('ngayKetThuc').value;
+
+            if (!ngayKetThucStr) {
+                e.preventDefault();
+                alert('Vui lòng chọn ngày kết thúc chiến dịch!');
+                return;
+            }
+
+            if (select === 'Sale %' && (input <= 0 || input > 100)) {
+                e.preventDefault();
+                alert('Tỷ lệ phần trăm giảm giá phải nằm trong khoảng từ 1% đến 100%!');
+                return;
+            }
+
+            if (select === 'Giam Tien' && inputDonToiThieu < Number(input)) {
+                e.preventDefault();
+                alert('Giá trị cấu hình lỗi: Số tiền "Đơn tối thiểu" bắt buộc phải lớn hơn hoặc bằng "Giá trị giảm tiền"!');
+                return;
+            }
+
+            if (radioPersonal === 'PERSONAL') {
+                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('Yêu cầu chọn cấu hình! Vui lòng tích chọn tối thiểu 1 khách hàng từ danh sách bên phải.');
+                    return;
+                }
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const currentUrl = "/phieu-giam-gia/hien-thi";
+            const menuItems = document.querySelectorAll('.menu-list .item, .submenu-container .sub-item');
+
+            menuItems.forEach(item => {
+                if (item.getAttribute('href') === currentUrl) {
+                    item.classList.add('router-link-active');
+                    const parentContainer = item.closest('.submenu-container');
+                    if (parentContainer) {
+                        parentContainer.style.display = 'flex';
+                        const header = parentContainer.previousElementSibling;
+                        header.classList.add('active-parent');
+                        header.querySelector('.arrow-nested').classList.replace('fa-chevron-right', 'fa-chevron-down');
+                    }
+                }
+            });
+
+            // SỬA TẠI ĐÂY: Dùng Number().toFixed(0) để ép sạch phần thập phân .00 trước khi đưa vào ô display
+            const initialGiam = document.getElementById('giaTriGiam').value;
+            const initialMin = document.getElementById('giaTriDonToiThieu').value;
+            const initialMax = document.getElementById('giaTriGiamToiDa').value;
+
+            const cleanGiam = initialGiam ? Number(initialGiam).toFixed(0) : "0";
+            const cleanMin = initialMin ? Number(initialMin).toFixed(0) : "0";
+            const cleanMax = initialMax ? Number(initialMax).toFixed(0) : "0";
+
+            if(document.getElementById('loaiPhieuSelect').value === 'Sale %') {
+                document.getElementById('giaTriGiamDisplay').value = cleanGiam;
+            } else {
+                document.getElementById('giaTriGiamDisplay').value = formatCurrencyValue(cleanGiam);
+            }
+
+            document.getElementById('giaTriDonToiThieuDisplay').value = formatCurrencyValue(cleanMin);
+            document.getElementById('giaTriGiamToiDaDisplay').value = formatCurrencyValue(cleanMax);
+
+            updateLabelLoaiPhieu();
+
+            const checkedRadio = document.querySelector('input[name="doiTuongApDung"]:checked');
+            if (checkedRadio && checkedRadio.value === 'PERSONAL') {
+                document.getElementById('personalPanel').style.display = 'flex';
+                updateSelectedCount();
+                checkSelectAllStatus();
+            }
+        });
+    </script>
+
+</div>
+
+
+</body>
+</html>

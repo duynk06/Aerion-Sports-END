@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: main-layout(~{::content})}">
+<body>
+
+<!-- Mảnh ghép nội dung, sẽ được nhúng vào layout.html qua ~{thong-ke :: content} -->
+<div th:fragment="content" id="thong-ke-page">
+
+    <!-- BỘ LỌC NGÀY (ĐÃ DỜI LÊN ĐẦU TRANG) -->
+    <div class="date-filter-horizontal-bar">
+        <div class="filter-date-item">
+            <label>Từ ngày</label>
+            <input type="date" id="inputTuNgay" />
+        </div>
+        <div class="filter-date-item">
+            <label>Đến ngày</label>
+            <input type="date" id="inputDenNgay" />
+        </div>
+        <div class="filter-buttons-action-flex">
+            <button class="btn-submit-filter" id="btnFilter" type="button"><i class="fa-solid fa-filter"></i> Lọc dữ liệu</button>
+            <button class="btn-reset-filter" id="btnReset" type="button">Đặt lại</button>
+
+            <button class="btn-download-excel" id="btnExportExcel" type="button">
+                <i class="fa-solid fa-file-excel"></i> Xuất file Excel
+            </button>
+
+            <button class="btn-send-mail-excel" id="btnSendMail" type="button">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span id="btnSendMailLabel">Gửi báo cáo về Mail</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 4 THẺ THỐNG KÊ -->
+    <div class="statistics-cards-grid-row">
+
+        <div class="stat-custom-card" data-card="today">
+            <div class="card-inner-top">
+                <div class="card-left-labels">
+                    <span class="card-time-title">Hôm nay</span>
+                    <div class="card-amount-split">
+                        <div class="amount-line cash">
+                            <i class="fa-solid fa-money-bill-wave"></i> Tiền mặt:
+                            <b data-field="doanhThuTienMat">0 ₫</b>
+                        </div>
+                        <div class="amount-line transfer">
+                            <i class="fa-solid fa-building-columns"></i> Chuyển khoản:
+                            <b data-field="doanhThuChuyenKhoan">0 ₫</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-icon-box-orange"><i class="fa-solid fa-calendar-day"></i></div>
+            </div>
+            <div class="card-middle-summary">
+                Sản phẩm đã bán <span class="txt-bold" data-field="soSanPhamDaBan">0</span> • Đơn hàng <span class="txt-bold" data-field="tongDonHang">0</span>
+            </div>
+            <div class="card-footer-badges-group">
+                <div class="badge-item-pastel green">Hoàn thành <span class="num-bold" data-field="donHoanThanh">0</span></div>
+                <div class="badge-item-pastel pink">Hủy <span class="num-bold" data-field="donHuy">0</span></div>
+                <div class="badge-item-pastel blue">Xử lý <span class="num-bold" data-field="donDangXuLy">0</span></div>
+            </div>
+        </div>
+
+        <div class="stat-custom-card" data-card="week">
+            <div class="card-inner-top">
+                <div class="card-left-labels">
+                    <span class="card-time-title">Tuần này</span>
+                    <div class="card-amount-split">
+                        <div class="amount-line cash">
+                            <i class="fa-solid fa-money-bill-wave"></i> Tiền mặt:
+                            <b data-field="doanhThuTienMat">0 ₫</b>
+                        </div>
+                        <div class="amount-line transfer">
+                            <i class="fa-solid fa-building-columns"></i> Chuyển khoản:
+                            <b data-field="doanhThuChuyenKhoan">0 ₫</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-icon-box-orange"><i class="fa-solid fa-calendar-week"></i></div>
+            </div>
+            <div class="card-middle-summary">
+                Sản phẩm đã bán <span class="txt-bold" data-field="soSanPhamDaBan">0</span> • Đơn hàng <span class="txt-bold" data-field="tongDonHang">0</span>
+            </div>
+            <div class="card-footer-badges-group">
+                <div class="badge-item-pastel green">Hoàn thành <span class="num-bold" data-field="donHoanThanh">0</span></div>
+                <div class="badge-item-pastel pink">Hủy <span class="num-bold" data-field="donHuy">0</span></div>
+                <div class="badge-item-pastel blue">Xử lý <span class="num-bold" data-field="donDangXuLy">0</span></div>
+            </div>
+        </div>
+
+        <div class="stat-custom-card" data-card="month">
+            <div class="card-inner-top">
+                <div class="card-left-labels">
+                    <span class="card-time-title">Tháng này</span>
+                    <div class="card-amount-split">
+                        <div class="amount-line cash">
+                            <i class="fa-solid fa-money-bill-wave"></i> Tiền mặt:
+                            <b data-field="doanhThuTienMat">0 ₫</b>
+                        </div>
+                        <div class="amount-line transfer">
+                            <i class="fa-solid fa-building-columns"></i> Chuyển khoản:
+                            <b data-field="doanhThuChuyenKhoan">0 ₫</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-icon-box-orange"><i class="fa-solid fa-calendar-days"></i></div>
+            </div>
+            <div class="card-middle-summary">
+                Sản phẩm đã bán <span class="txt-bold" data-field="soSanPhamDaBan">0</span> • Đơn hàng <span class="txt-bold" data-field="tongDonHang">0</span>
+            </div>
+            <div class="card-footer-badges-group">
+                <div class="badge-item-pastel green">Hoàn thành <span class="num-bold" data-field="donHoanThanh">0</span></div>
+                <div class="badge-item-pastel pink">Hủy <span class="num-bold" data-field="donHuy">0</span></div>
+                <div class="badge-item-pastel blue">Xử lý <span class="num-bold" data-field="donDangXuLy">0</span></div>
+            </div>
+        </div>
+
+        <div class="stat-custom-card" data-card="year">
+            <div class="card-inner-top">
+                <div class="card-left-labels">
+                    <span class="card-time-title">Năm nay</span>
+                    <div class="card-amount-split">
+                        <div class="amount-line cash">
+                            <i class="fa-solid fa-money-bill-wave"></i> Tiền mặt:
+                            <b data-field="doanhThuTienMat">0 ₫</b>
+                        </div>
+                        <div class="amount-line transfer">
+                            <i class="fa-solid fa-building-columns"></i> Chuyển khoản:
+                            <b data-field="doanhThuChuyenKhoan">0 ₫</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-icon-box-orange"><i class="fa-solid fa-chart-pie"></i></div>
+            </div>
+            <div class="card-middle-summary">
+                Sản phẩm đã bán <span class="txt-bold" data-field="soSanPhamDaBan">0</span> • Đơn hàng <span class="txt-bold" data-field="tongDonHang">0</span>
+            </div>
+            <div class="card-footer-badges-group">
+                <div class="badge-item-pastel green">Hoàn thành <span class="num-bold" data-field="donHoanThanh">0</span></div>
+                <div class="badge-item-pastel pink">Hủy <span class="num-bold" data-field="donHuy">0</span></div>
+                <div class="badge-item-pastel blue">Xử lý <span class="num-bold" data-field="donDangXuLy">0</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- KHỐI BIỂU ĐỒ -->
+    <div class="chart-main-wrapper-box">
+        <div class="chart-header-row">
+            <div class="chart-title-left"><i class="fa-solid fa-wallet"></i> Doanh thu cửa hàng</div>
+            <div class="chart-filter-right-inputs">
+                <div id="chartFilterControls"></div>
+                <button id="btnCompareToggle" class="btn-compare" type="button">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span id="btnCompareLabel">So sánh</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="chart-canvas-container">
+            <canvas id="revenueChartCanvas"></canvas>
+        </div>
+        <div class="chart-footer-summary">
+            <span id="footerSummaryNormal">Tổng doanh thu ghi nhận trong tháng: <strong id="tongDoanhThuThangText" style="color: #2563eb;">0 ₫</strong></span>
+            <span id="footerSummaryCompare" style="display:none;">* Đường màu <b style="color: #1d4ed8;">Xanh dương</b>: Kỳ gốc | Đường màu <b style="color: #f97316;">Cam</b>: Kỳ đối chiếu.</span>
+            <span class="unit-text-indicator"><i class="fa-solid fa-circle-info"></i> Đơn vị: VND</span>
+        </div>
+    </div>
+
+    <!-- 4 BẢNG THỐNG KÊ -->
+    <div class="dashboard-tables-layout-grid">
+
+        <div class="dashboard-table-box">
+            <div class="box-header-row font-cam">
+                <i class="fa-solid fa-fire"></i> Top sản phẩm bán chạy
+                <span class="header-tag-count">Top 10</span>
+            </div>
+            <div class="box-body-content">
+                <table class="minimal-dashboard-table">
+                    <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th>Sản phẩm</th>
+                        <th style="text-align: center; width: 90px;">Đã bán</th>
+                        <th style="text-align: center; width: 90px;">Tồn</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbodyTopBanChay">
+                    <tr><td colspan="4" class="empty-text">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-table-box">
+            <div class="box-header-row font-cam">
+                <i class="fa-solid fa-list-check"></i> Trạng thái &amp; Tiến độ đơn hàng
+                <span class="header-tag-count gray">Tổng: <span id="tongDonHangHienTai">0</span> đơn</span>
+            </div>
+            <div class="box-body-content">
+                <div class="completion-rate-wrapper">
+                    <div class="completion-rate-text-row">
+                        <span>Tỷ lệ hoàn thành</span>
+                        <strong><span id="tyLeHoanThanhText">0</span>%</strong>
+                    </div>
+                    <div class="master-progress-track">
+                        <div class="master-progress-fill" id="masterProgressFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="order-status-progress-list" id="listTrangThaiDonHang">
+                    <div class="empty-text">Đang tải dữ liệu...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-table-box">
+            <div class="box-header-row font-cam">
+                <i class="fa-solid fa-user-star"></i> Khách hàng tiềm năng chi tiêu lớn
+            </div>
+            <div class="box-body-content">
+                <table class="minimal-dashboard-table">
+                    <thead>
+                    <tr>
+                        <th>Khách hàng / SDT</th>
+                        <th style="text-align: center; width: 80px;">Số đơn</th>
+                        <th style="text-align: right; width: 140px;">Tổng chi tiêu</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbodyKhachHangTiemNang">
+                    <tr><td colspan="3" class="empty-text">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-table-box">
+            <div class="box-header-row font-cam">
+                <i class="fa-solid fa-boxes-stacked"></i> Sản phẩm bán chậm &amp; Tồn kho nhiều
+                <span class="header-tag-count danger">Chưa bán được</span>
+            </div>
+            <div class="box-body-content">
+                <table class="minimal-dashboard-table">
+                    <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th style="text-align: center; width: 80px;">Đã bán</th>
+                        <th style="text-align: center; width: 90px;">Tồn kho</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbodySanPhamTonKho">
+                    <tr><td colspan="3" class="empty-text">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- THƯ VIỆN NGOÀI: Chart.js + SheetJS (nếu layout.html của bạn chưa có sẵn thì để ở đây) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        #thong-ke-page .breadcrumb-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        #thong-ke-page .breadcrumb-text { font-size: 14px; color: #475569; }
+
+        #thong-ke-page .statistics-cards-grid-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        #thong-ke-page .stat-custom-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; }
+        #thong-ke-page .stat-custom-card:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        #thong-ke-page .card-inner-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        #thong-ke-page .card-left-labels { text-align: left; }
+        #thong-ke-page .card-time-title { font-size: 13px; font-weight: 500; color: #64748b; }
+        #thong-ke-page .card-amount-money { font-size: 18px; font-weight: 700; color: #0f172a; margin: 4px 0; }
+        #thong-ke-page .card-amount-split { margin: 6px 0 10px; display: flex; flex-direction: column; gap: 3px; }
+        #thong-ke-page .amount-line { font-size: 12px; color: #475569; white-space: nowrap; }
+        #thong-ke-page .amount-line b { color: #0f172a; font-weight: 700; }
+        #thong-ke-page .amount-line.cash i { color: #16a34a; width: 13px; text-align: center; }
+        #thong-ke-page .amount-line.transfer i { color: #2563eb; width: 13px; text-align: center; }
+        #thong-ke-page .card-icon-box-orange { width: 34px; height: 34px; border-radius: 8px; background-color: #fff7ed; border: 1px solid #ffedd5; color: #f79b66; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+        #thong-ke-page .card-middle-summary { font-size: 11.5px; color: #475569; text-align: left; margin-bottom: 10px; }
+        #thong-ke-page .txt-bold { font-weight: 700; color: #1e293b; }
+        #thong-ke-page .card-footer-badges-group { display: flex; gap: 4px; width: 100%; }
+        #thong-ke-page .badge-item-pastel { flex: 1; font-size: 10px; padding: 4px 1px; border-radius: 6px; font-weight: 500; text-align: center; }
+        #thong-ke-page .badge-item-pastel.green { background-color: #e6f4ea; color: #137333; }
+        #thong-ke-page .badge-item-pastel.pink { background-color: #fce8e6; color: #c5221f; }
+        #thong-ke-page .badge-item-pastel.blue { background-color: #e8f0fe; color: #1a73e8; }
+        #thong-ke-page .num-bold { font-weight: 700; display: inline-block; margin-left: 1px; }
+
+        #thong-ke-page .chart-main-wrapper-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+        #thong-ke-page .chart-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
+        #thong-ke-page .chart-title-left { font-size: 14px; font-weight: 700; color: #1e293b; }
+        #thong-ke-page .chart-filter-right-inputs { display: flex; gap: 8px; align-items: center; }
+        #thong-ke-page .minimal-select, #thong-ke-page .minimal-date-picker { padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background: #fff; height: 30px; }
+        #thong-ke-page .btn-compare { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; padding: 0 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; height: 30px; display: flex; align-items: center; gap: 4px; }
+
+        #thong-ke-page .active-compare-mode {
+            background-color: #f79b66 !important;
+            color: white !important;
+            border-color: #ea712b !important;
+        }
+
+        #thong-ke-page .chart-canvas-container { height: 260px; position: relative; width: 100%; }
+        #thong-ke-page .chart-footer-summary { text-align: left; font-size: 12.5px; color: #64748b; margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: space-between; }
+        #thong-ke-page .unit-text-indicator { font-size: 11.5px; color: #94a3b8; }
+
+        #thong-ke-page .date-filter-horizontal-bar { background-color: #fff; border: 1px solid #fed7aa; border-radius: 10px; padding: 12px 20px; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 20px; }
+        #thong-ke-page .filter-date-item { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+        #thong-ke-page .filter-date-item label { font-size: 12px; font-weight: 600; color: #475569; }
+        #thong-ke-page .filter-date-item input { padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; outline: none; width: 170px; height: 32px; }
+        #thong-ke-page .filter-buttons-action-flex { display: flex; gap: 8px; }
+        #thong-ke-page .btn-submit-filter { background-color: #2563eb; color: white; border: none; padding: 0 16px; height: 32px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+        #thong-ke-page .btn-submit-filter:hover { background-color: #1d4ed8; }
+        #thong-ke-page .btn-reset-filter { background-color: #f3f4f6; color: #4b5563; border: 1px solid #cbd5e1; padding: 0 16px; height: 32px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+
+        #thong-ke-page .btn-download-excel { background-color: #2563eb; color: white; border: none; padding: 0 16px; height: 32px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        #thong-ke-page .btn-send-mail-excel { background-color: #10b981; color: white; border: none; padding: 0 16px; height: 32px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        #thong-ke-page .btn-send-mail-excel:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+        #thong-ke-page .dashboard-tables-layout-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        #thong-ke-page .dashboard-table-box { background: #ffffff; border: 1px solid #edf2f7; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+        #thong-ke-page .box-header-row { background-color: #fff; border-bottom: 1px solid #f1f5f9; padding: 12px 16px; font-size: 13.5px; font-weight: 700; text-align: left; display: flex; align-items: center; gap: 6px; }
+        #thong-ke-page .box-header-row.font-cam { color: #f79b66; }
+        #thong-ke-page .header-tag-count { background-color: #ffedd5; color: #f79b66; font-size: 10.5px; padding: 1px 6px; border-radius: 4px; margin-left: auto; }
+        #thong-ke-page .header-tag-count.gray { background-color: #f1f5f9; color: #475569; }
+        #thong-ke-page .header-tag-count.danger { background-color: #fee2e2; color: #ef4444; }
+
+        #thong-ke-page .box-body-content { padding: 12px; max-height: 350px; overflow-y: auto; }
+        #thong-ke-page .minimal-dashboard-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        #thong-ke-page .minimal-dashboard-table th { color: #64748b; font-weight: 600; padding: 8px; border-bottom: 1px solid #edf2f7; background-color: #fafafa; }
+        #thong-ke-page .minimal-dashboard-table td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        #thong-ke-page .empty-text { padding: 30px; color: #94a3b8; font-style: italic; font-size: 12.5px; text-align: center; }
+
+        #thong-ke-page .completion-rate-wrapper { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 10px 14px; border-radius: 8px; margin-bottom: 15px; text-align: left; }
+        #thong-ke-page .completion-rate-text-row { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        #thong-ke-page .master-progress-track { width: 100%; height: 10px; background-color: #e2e8f0; border-radius: 999px; overflow: hidden; }
+        #thong-ke-page .master-progress-fill { height: 100%; background-color: #3b82f6; border-radius: 999px; }
+
+        #thong-ke-page .order-status-progress-list { display: flex; flex-direction: column; gap: 14px; padding: 2px 0; }
+        #thong-ke-page .status-progress-item { display: flex; flex-direction: column; gap: 5px; }
+        #thong-ke-page .status-meta-labels { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 500; }
+        #thong-ke-page .status-name-text { color: #475569; }
+        #thong-ke-page .dot-orange { color: #f79b66; font-size: 10px; margin-right: 2px; }
+        #thong-ke-page .status-count-number { font-weight: bold; color: #0f172a; }
+        #thong-ke-page .progress-bar-track { width: 100%; height: 7px; background-color: #f1f5f9; border-radius: 999px; overflow: hidden; }
+        #thong-ke-page .progress-fill-active { height: 100%; background-color: #f79b66; border-radius: 999px; }
+
+        #thong-ke-page .cell-count-badge { padding: 2px 8px; border-radius: 20px; font-weight: bold; font-size: 11.5px; }
+        #thong-ke-page .cell-count-badge.green { background-color: #e6f4ea; color: #137333; }
+        #thong-ke-page .cell-count-badge.red { background-color: #fce8e6; color: #c5221f; }
+    </style>
+
+    <script th:inline="javascript">
+        (function () {
+            // ============================================================
+            // CẤU HÌNH GỐC API (đổi lại nếu backend không cùng origin)
+            // ============================================================
+            const API_BASE = '/api/thong-ke';
+
+            // ============================================================
+            // HÀM TIỆN ÍCH NGÀY THÁNG (tương đương bản Vue gốc)
+            // ============================================================
+            const getNgayDauThangMoi = () => {
+                const now = new Date();
+                const nam = now.getFullYear();
+                const thang = String(now.getMonth() + 1).padStart(2, '0');
+                return `${nam}-${thang}-01`;
+            };
+
+            const getNgayCuoiThangMoi = () => {
+                const now = new Date();
+                const nam = now.getFullYear();
+                const thang = now.getMonth() + 1;
+                const ngayCuoi = new Date(nam, thang, 0).getDate();
+                return `${nam}-${String(thang).padStart(2, '0')}-${String(ngayCuoi).padStart(2, '0')}`;
+            };
+
+            const getThangNamMoi = () => {
+                const now = new Date();
+                const nam = now.getFullYear();
+                const thang = String(now.getMonth() + 1).padStart(2, '0');
+                return `${nam}-${thang}`;
+            };
+
+            // ============================================================
+            // STATE (thay cho các ref() của Vue)
+            // ============================================================
+            let isCompareMode = false;
+            let selectedPeriodType = 'ngay';
+            let compareType = 'ngay';
+            let selectedMonthYear = getThangNamMoi();
+            let lineChartInstance = null;
+            let isSendingMail = false;
+            let isLoadingChart = false;
+
+            const namHienTai = new Date().getFullYear();
+            const thangHienTai = new Date().getMonth() + 1;
+            const thangTruoc = thangHienTai === 1 ? 12 : thangHienTai - 1;
+            const danhSachNam = Array.from({ length: 5 }, (_, i) => namHienTai - i);
+
+            const filterCompare = {
+                thangGoc: thangHienTai,
+                thangSoSanh: thangTruoc,
+                namGoc: namHienTai,
+                namSoSanh: namHienTai - 1
+            };
+
+            const dateFilter = {
+                tuNgay: getNgayDauThangMoi(),
+                denNgay: getNgayCuoiThangMoi()
+            };
+
+            let cardsData = {
+                today: { doanhThu: 0, doanhThuTienMat: 0, doanhThuChuyenKhoan: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
+                week: { doanhThu: 0, doanhThuTienMat: 0, doanhThuChuyenKhoan: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
+                month: { doanhThu: 0, doanhThuTienMat: 0, doanhThuChuyenKhoan: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
+                year: { doanhThu: 0, doanhThuTienMat: 0, doanhThuChuyenKhoan: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 }
+            };
+
+            let tableData = { topBanChay: [], trangThaiDonHang: [], khachHangTiemNang: [], sanPhamTonKho: [] };
+
+            // Chế độ thường (không so sánh): 2 map tách theo phương thức thanh toán
+            let mapDoanhThuBieuDoFromServer = { tienMat: {}, chuyenKhoan: {} };
+            let bieuDoCompositeData = { gocLabel: '', gocData: {}, ssLabel: '', ssData: {} };
+
+            // ============================================================
+            // HÀM ĐỊNH DẠNG
+            // ============================================================
+            const formatPriceThuan = (value) => new Intl.NumberFormat('vi-VN').format(value || 0);
+            const formatTienTe = (value) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
+
+            // ============================================================
+            // RENDER 4 THẺ THỐNG KÊ
+            // ============================================================
+            function renderCards() {
+                ['today', 'week', 'month', 'year'].forEach((key) => {
+                    const data = cardsData[key] || {};
+                    const cardEl = document.querySelector(`#thong-ke-page [data-card="${key}"]`);
+                    if (!cardEl) return;
+                    cardEl.querySelector('[data-field="doanhThuTienMat"]').textContent = formatTienTe(data.doanhThuTienMat);
+                    cardEl.querySelector('[data-field="doanhThuChuyenKhoan"]').textContent = formatTienTe(data.doanhThuChuyenKhoan);
+                    cardEl.querySelector('[data-field="soSanPhamDaBan"]').textContent = data.soSanPhamDaBan ?? 0;
+                    cardEl.querySelector('[data-field="tongDonHang"]').textContent = data.tongDonHang ?? 0;
+                    cardEl.querySelector('[data-field="donHoanThanh"]').textContent = data.donHoanThanh ?? 0;
+                    cardEl.querySelector('[data-field="donHuy"]').textContent = data.donHuy ?? 0;
+                    cardEl.querySelector('[data-field="donDangXuLy"]').textContent = data.donDangXuLy ?? 0;
+                });
+            }
+
+            async function loadAllCardsData() {
+                try {
+                    const res = await fetch(`${API_BASE}/dashboard-cards`);
+                    cardsData = await res.json();
+                    renderCards();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            // ============================================================
+            // RENDER 4 BẢNG DƯỚI
+            // ============================================================
+            function tinhTongDonHang() {
+                return (tableData.trangThaiDonHang || []).reduce((sum, item) => sum + item.soLuong, 0);
+            }
+
+            function tinhTyLeHoanThanh() {
+                const tong = tinhTongDonHang();
+                if (tong === 0) return 0;
+                const hoanThanhObj = (tableData.trangThaiDonHang || []).find((i) => i.tenTrangThai === 'Hoàn thành');
+                const soLuongHoanThanh = hoanThanhObj ? hoanThanhObj.soLuong : 0;
+                return Math.round((soLuongHoanThanh / tong) * 100);
+            }
+
+            function renderTables() {
+                // Top bán chạy
+                const tbodyTop = document.getElementById('tbodyTopBanChay');
+                const topBanChay = tableData.topBanChay || [];
+                tbodyTop.innerHTML = topBanChay.length === 0
+                    ? `<tr><td colspan="4" class="empty-text">Chưa ghi nhận số liệu bán hàng trong khoảng ngày chọn.</td></tr>`
+                    : topBanChay.map((item, idx) => `
+              <tr>
+                <td style="text-align: center; color: #94a3b8;">#${idx + 1}</td>
+                <td style="font-weight: 500; text-align: left;">${item.tenSanPham}</td>
+                <td style="text-align: center; font-weight: bold; color: #16a34a;">
+                  <span class="cell-count-badge green">${item.daBan}</span>
+                </td>
+                <td style="text-align: center; color: #64748b;">${item.tonKho}</td>
+              </tr>
+            `).join('');
+
+                // Trạng thái & tiến độ đơn hàng
+                const tongDonHang = tinhTongDonHang();
+                document.getElementById('tongDonHangHienTai').textContent = tongDonHang;
+                const tyLe = tinhTyLeHoanThanh();
+                document.getElementById('tyLeHoanThanhText').textContent = tyLe;
+                document.getElementById('masterProgressFill').style.width = tyLe + '%';
+
+                const listTrangThai = document.getElementById('listTrangThaiDonHang');
+                const trangThaiDonHang = tableData.trangThaiDonHang || [];
+                listTrangThai.innerHTML = trangThaiDonHang.length === 0
+                    ? `<div class="empty-text">Chưa phát sinh giao dịch đơn hàng nào.</div>`
+                    : trangThaiDonHang.map((status) => {
+                        const phanTram = tongDonHang > 0 ? Math.round((status.soLuong / tongDonHang) * 100) : 0;
+                        return `
+                <div class="status-progress-item">
+                  <div class="status-meta-labels">
+                    <span class="status-name-text"><i class="fa-regular fa-circle-dot dot-orange"></i> ${status.tenTrangThai}</span>
+                    <span class="status-count-number">${status.soLuong}</span>
+                  </div>
+                  <div class="progress-bar-track">
+                    <div class="progress-fill-active" style="width: ${phanTram}%;"></div>
+                  </div>
+                </div>
+              `;
+                    }).join('');
+
+                // Khách hàng tiềm năng
+                const tbodyKh = document.getElementById('tbodyKhachHangTiemNang');
+                const khachHang = tableData.khachHangTiemNang || [];
+                tbodyKh.innerHTML = khachHang.length === 0
+                    ? `<tr><td colspan="3" class="empty-text">Hệ thống chưa có dữ liệu khách mua.</td></tr>`
+                    : khachHang.map((kh) => `
+              <tr>
+                <td style="text-align: left;">
+                  <div style="font-weight: 600; color: #1e293b;">${kh.hoTen}</div>
+                  <small style="color: #94a3b8; font-size: 11px;">${kh.sdt}</small>
+                </td>
+                <td style="text-align: center; font-weight: bold; color: #f79b66;">${kh.soDon}</td>
+                <td style="text-align: right; font-weight: 600; color: #2563eb;">${formatPriceThuan(kh.tongChiTieu)} đ</td>
+              </tr>
+            `).join('');
+
+                // Tồn kho / bán chậm
+                const tbodyTon = document.getElementById('tbodySanPhamTonKho');
+                const sanPhamTonKho = tableData.sanPhamTonKho || [];
+                tbodyTon.innerHTML = sanPhamTonKho.length === 0
+                    ? `<tr><td colspan="3" class="empty-text">Không có hàng tồn kho cảnh báo.</td></tr>`
+                    : sanPhamTonKho.map((tk) => `
+              <tr>
+                <td style="font-weight: 500; text-align: left; color: #334155;">${tk.tenSanPham}</td>
+                <td style="text-align: center; color: #94a3b8;">${tk.daBan}</td>
+                <td style="text-align: center; font-weight: bold; color: #ef4444;">
+                  <span class="cell-count-badge red">${tk.tonKho}</span>
+                </td>
+              </tr>
+            `).join('');
+            }
+
+            async function load4TablesDataWithFilter() {
+                try {
+                    const params = new URLSearchParams();
+                    if (dateFilter.tuNgay) params.set('tuNgay', dateFilter.tuNgay);
+                    if (dateFilter.denNgay) params.set('denNgay', dateFilter.denNgay);
+                    const res = await fetch(`${API_BASE}/chi-tiet-tables?${params.toString()}`);
+                    tableData = await res.json();
+                    renderTables();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            function resetDateFilter() {
+                dateFilter.tuNgay = getNgayDauThangMoi();
+                dateFilter.denNgay = getNgayCuoiThangMoi();
+                document.getElementById('inputTuNgay').value = dateFilter.tuNgay;
+                document.getElementById('inputDenNgay').value = dateFilter.denNgay;
+                load4TablesDataWithFilter();
+            }
+
+            // ============================================================
+            // BỘ ĐIỀU KHIỂN BỘ LỌC BIỂU ĐỒ (thay cho v-if / v-else của Vue)
+            // ============================================================
+            function monthOptionsHtml() {
+                return Array.from({ length: 12 }, (_, i) => i + 1)
+                    .map((m) => `<option value="${m}">Tháng ${m}</option>`).join('');
+            }
+
+            function yearOptionsHtml() {
+                return danhSachNam.map((n) => `<option value="${n}">Năm ${n}</option>`).join('');
+            }
+
+            function renderCompareSubControls() {
+                const el = document.getElementById('compareSubControls');
+                if (!el) return;
+                if (compareType === 'ngay') {
+                    el.innerHTML = `
+            <select id="selectThangGoc" class="minimal-select">${monthOptionsHtml()}</select>
+            <span style="font-size: 11px; color: #94a3b8;">với</span>
+            <select id="selectThangSoSanh" class="minimal-select">${monthOptionsHtml()}</select>
+          `;
+                    document.getElementById('selectThangGoc').value = filterCompare.thangGoc;
+                    document.getElementById('selectThangSoSanh').value = filterCompare.thangSoSanh;
+                    document.getElementById('selectThangGoc').addEventListener('change', (e) => {
+                        filterCompare.thangGoc = Number(e.target.value);
+                        loadBieuDoDataFromServer();
+                    });
+                    document.getElementById('selectThangSoSanh').addEventListener('change', (e) => {
+                        filterCompare.thangSoSanh = Number(e.target.value);
+                        loadBieuDoDataFromServer();
+                    });
+                } else {
+                    el.innerHTML = `
+            <select id="selectNamGoc" class="minimal-select">${yearOptionsHtml()}</select>
+            <span style="font-size: 11px; color: #94a3b8;">với</span>
+            <select id="selectNamSoSanh" class="minimal-select">${yearOptionsHtml()}</select>
+          `;
+                    document.getElementById('selectNamGoc').value = filterCompare.namGoc;
+                    document.getElementById('selectNamSoSanh').value = filterCompare.namSoSanh;
+                    document.getElementById('selectNamGoc').addEventListener('change', (e) => {
+                        filterCompare.namGoc = Number(e.target.value);
+                        loadBieuDoDataFromServer();
+                    });
+                    document.getElementById('selectNamSoSanh').addEventListener('change', (e) => {
+                        filterCompare.namSoSanh = Number(e.target.value);
+                        loadBieuDoDataFromServer();
+                    });
+                }
+            }
+
+            function renderChartFilterControls() {
+                const container = document.getElementById('chartFilterControls');
+                if (!isCompareMode) {
+                    container.innerHTML = `
+            <select id="selectPeriodType" class="minimal-select">
+              <option value="ngay">Theo ngày</option>
+            </select>
+            <input type="month" id="inputMonthYear" class="minimal-date-picker" value="${selectedMonthYear}" />
+          `;
+                    document.getElementById('selectPeriodType').value = selectedPeriodType;
+                    document.getElementById('selectPeriodType').addEventListener('change', (e) => {
+                        selectedPeriodType = e.target.value;
+                        loadBieuDoDataFromServer();
+                    });
+                    document.getElementById('inputMonthYear').addEventListener('change', (e) => {
+                        selectedMonthYear = e.target.value;
+                        loadBieuDoDataFromServer();
+                    });
+                } else {
+                    container.innerHTML = `
+            <select id="selectCompareType" class="minimal-select">
+              <option value="ngay">So sánh Tháng (Các Ngày)</option>
+              <option value="quy">So sánh Quý (Trong Năm)</option>
+              <option value="thang">So sánh Năm (Các Tháng)</option>
+            </select>
+            <div style="display: flex; gap: 4px; align-items: center;" id="compareSubControls"></div>
+          `;
+                    document.getElementById('selectCompareType').value = compareType;
+                    document.getElementById('selectCompareType').addEventListener('change', (e) => {
+                        compareType = e.target.value;
+                        renderCompareSubControls();
+                        loadBieuDoDataFromServer();
+                    });
+                    renderCompareSubControls();
+                }
+            }
+
+            // ============================================================
+            // VẼ BIỂU ĐỒ (Chart.js) - tương đương renderWaveLineChartGraphic
+            // ============================================================
+            function renderWaveLineChartGraphic() {
+                if (lineChartInstance) lineChartInstance.destroy();
+                const canvas = document.getElementById('revenueChartCanvas');
+                const ctx = canvas.getContext('2d');
+
+                const gradientFill = ctx.createLinearGradient(0, 0, 0, 260);
+                gradientFill.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
+                gradientFill.addColorStop(1, 'rgba(255, 255, 255, 0.01)');
+
+                const gradientFillGreen = ctx.createLinearGradient(0, 0, 0, 260);
+                gradientFillGreen.addColorStop(0, 'rgba(22, 163, 74, 0.20)');
+                gradientFillGreen.addColorStop(1, 'rgba(255, 255, 255, 0.01)');
+
+                let labelsX = [];
+                const currentType = isCompareMode ? compareType : selectedPeriodType;
+
+                if (currentType === 'ngay') {
+                    labelsX = Array.from({ length: 30 }, (_, i) => i + 1);
+                } else if (currentType === 'quy') {
+                    labelsX = [1, 2, 3, 4];
+                } else if (currentType === 'thang') {
+                    labelsX = Array.from({ length: 12 }, (_, i) => i + 1);
+                }
+
+                let datasetsConfig = [];
+
+                if (!isCompareMode) {
+                    // Tách 2 đường: Tiền mặt / Chuyển khoản
+                    const dataTienMat = labelsX.map((day) => Number(mapDoanhThuBieuDoFromServer.tienMat?.[day] || 0));
+                    const dataChuyenKhoan = labelsX.map((day) => Number(mapDoanhThuBieuDoFromServer.chuyenKhoan?.[day] || 0));
+
+                    datasetsConfig.push(
+                        {
+                            label: 'Tiền mặt',
+                            data: dataTienMat,
+                            borderColor: '#16a34a',
+                            borderWidth: 2,
+                            backgroundColor: gradientFillGreen,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: (context) => (dataTienMat[context.dataIndex] > 0 ? 4 : 0),
+                            pointBackgroundColor: '#16a34a',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1.5
+                        },
+                        {
+                            label: 'Chuyển khoản',
+                            data: dataChuyenKhoan,
+                            borderColor: '#1d4ed8',
+                            borderWidth: 2,
+                            backgroundColor: gradientFill,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: (context) => (dataChuyenKhoan[context.dataIndex] > 0 ? 4 : 0),
+                            pointBackgroundColor: '#1d4ed8',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1.5
+                        }
+                    );
+
+                    const tongDoanhThuThang = [...dataTienMat, ...dataChuyenKhoan].reduce((sum, val) => sum + val, 0);
+                    document.getElementById('tongDoanhThuThangText').textContent = formatTienTe(tongDoanhThuThang);
+                } else {
+                    const dataGoc = labelsX.map((k) => Number(bieuDoCompositeData.gocData[k] || 0));
+                    const dataSoSanh = labelsX.map((k) => Number(bieuDoCompositeData.ssData[k] || 0));
+
+                    datasetsConfig.push(
+                        {
+                            label: bieuDoCompositeData.gocLabel || 'Kỳ gốc',
+                            data: dataGoc,
+                            borderColor: '#1d4ed8',
+                            borderWidth: 2.5,
+                            backgroundColor: 'rgba(37, 99, 235, 0.02)',
+                            fill: true,
+                            tension: 0.38
+                        },
+                        {
+                            label: bieuDoCompositeData.ssLabel || 'Kỳ đối chiếu',
+                            data: dataSoSanh,
+                            borderColor: '#f97316',
+                            borderWidth: 2.5,
+                            backgroundColor: 'rgba(249, 115, 22, 0.02)',
+                            fill: true,
+                            tension: 0.38
+                        }
+                    );
+                }
+
+                lineChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labelsX.map((lbl) => {
+                            if (currentType === 'quy') return 'Quý ' + lbl;
+                            if (currentType === 'thang') return 'Tháng ' + lbl;
+                            return lbl;
+                        }),
+                        datasets: datasetsConfig
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        // Luôn hiện chú thích vì chế độ thường giờ cũng có 2 đường (Tiền mặt / Chuyển khoản)
+                        plugins: { legend: { display: true } },
+                        scales: {
+                            y: {
+                                min: 0,
+                                suggestedMax: 25000000,
+                                ticks: { callback: (val) => (val === 0 ? '0' : (val / 1000000) + '.0M') },
+                                grid: { color: '#f1f5f9' }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            async function loadBieuDoDataFromServer() {
+                if (isLoadingChart) return;
+                isLoadingChart = true;
+
+                try {
+                    if (!isCompareMode) {
+                        const [nam, thang] = selectedMonthYear.split('-');
+                        const params = new URLSearchParams({
+                            loai: 'ngay',
+                            thang: String(parseInt(thang, 10)),
+                            nam: String(parseInt(nam, 10)),
+                            isCompare: 'false'
+                        });
+                        const res = await fetch(`${API_BASE}/bieu-do-line?${params.toString()}`);
+                        // Server trả về { tienMat: {...}, chuyenKhoan: {...} }
+                        mapDoanhThuBieuDoFromServer = await res.json();
+                    } else {
+                        const params = new URLSearchParams({
+                            loai: compareType,
+                            isCompare: 'true',
+                            thangGoc: String(filterCompare.thangGoc),
+                            thangSoSanh: String(filterCompare.thangSoSanh),
+                            namGoc: String(filterCompare.namGoc),
+                            namSoSanh: String(filterCompare.namSoSanh)
+                        });
+                        const res = await fetch(`${API_BASE}/bieu-do-line?${params.toString()}`);
+                        bieuDoCompositeData = await res.json();
+                    }
+                    renderWaveLineChartGraphic();
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setTimeout(() => { isLoadingChart = false; }, 200);
+                }
+            }
+
+            // ============================================================
+            // NÚT BẬT/TẮT SO SÁNH
+            // ============================================================
+            function toggleCompareMode() {
+                isCompareMode = !isCompareMode;
+                const btn = document.getElementById('btnCompareToggle');
+                btn.classList.toggle('active-compare-mode', isCompareMode);
+                document.getElementById('btnCompareLabel').textContent = isCompareMode ? 'Tắt so sánh' : 'So sánh';
+                document.getElementById('footerSummaryNormal').style.display = isCompareMode ? 'none' : '';
+                document.getElementById('footerSummaryCompare').style.display = isCompareMode ? '' : 'none';
+                renderChartFilterControls();
+                loadBieuDoDataFromServer();
+            }
+
+            // ============================================================
+            // XUẤT EXCEL (SheetJS) - tương đương handleXuatExcelTaiCho
+            // ============================================================
+            function handleXuatExcelTaiCho() {
+                if ((tableData.topBanChay || []).length === 0) {
+                    alert('Không có dữ liệu trong khoảng ngày chọn để xuất!');
+                    return;
+                }
+                const flattenData = [];
+                flattenData.push(['TOP SẢN PHẨM BÁN CHẠY']);
+                flattenData.push(['STT', 'Tên Sản Phẩm', 'Số Lượng Đã Bán', 'Còn Tồn Kho']);
+                tableData.topBanChay.forEach((item, index) => {
+                    flattenData.push([index + 1, item.tenSanPham, item.daBan, item.tonKho]);
+                });
+                flattenData.push([]);
+                flattenData.push(['TRẠNG THÁI & TIẾN ĐỘ ĐƠN HÀNG']);
+                flattenData.push(['Tên Trạng Thái', 'Số Lượng Đơn']);
+                (tableData.trangThaiDonHang || []).forEach((item) => {
+                    flattenData.push([item.tenTrangThai, item.soLuong]);
+                });
+
+                const worksheet = XLSX.utils.aoa_to_sheet(flattenData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Báo Cáo Doanh Thu');
+                XLSX.writeFile(workbook, `BaoCao_AerionSports_${dateFilter.tuNgay}_to_${dateFilter.denNgay}.xlsx`);
+            }
+
+            // ============================================================
+            // GỬI EMAIL THỦ CÔNG
+            // ============================================================
+            async function handleGuiEmailThuCong() {
+                if (isSendingMail) return;
+                isSendingMail = true;
+                const btn = document.getElementById('btnSendMail');
+                btn.disabled = true;
+                document.getElementById('btnSendMailLabel').textContent = 'Đang gửi...';
+                try {
+                    const res = await fetch(`${API_BASE}/gui-email-thu-cong`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        alert('Thành công! Hệ thống đã gửi đính kèm file báo cáo Excel về hòm thư Gmail của bạn.');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Thất bại, kiểm tra lại luồng mạng hoặc cấu hình SMTP!');
+                } finally {
+                    isSendingMail = false;
+                    btn.disabled = false;
+                    document.getElementById('btnSendMailLabel').textContent = 'Gửi báo cáo về Mail';
+                }
+            }
+
+            // ============================================================
+            // GẮN SỰ KIỆN + KHỞI TẠO (tương đương onMounted)
+            // ============================================================
+            function bindStaticEvents() {
+                document.getElementById('btnCompareToggle').addEventListener('click', toggleCompareMode);
+                document.getElementById('btnFilter').addEventListener('click', load4TablesDataWithFilter);
+                document.getElementById('btnReset').addEventListener('click', resetDateFilter);
+                document.getElementById('btnExportExcel').addEventListener('click', handleXuatExcelTaiCho);
+                document.getElementById('btnSendMail').addEventListener('click', handleGuiEmailThuCong);
+            }
+
+            function init() {
+                document.getElementById('inputTuNgay').value = dateFilter.tuNgay;
+                document.getElementById('inputDenNgay').value = dateFilter.denNgay;
+                document.getElementById('inputTuNgay').addEventListener('change', (e) => { dateFilter.tuNgay = e.target.value; });
+                document.getElementById('inputDenNgay').addEventListener('change', (e) => { dateFilter.denNgay = e.target.value; });
+
+                bindStaticEvents();
+                renderChartFilterControls();
+
+                loadAllCardsData();
+                load4TablesDataWithFilter();
+                loadBieuDoDataFromServer();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+
+</div>
+</body>
+</html>

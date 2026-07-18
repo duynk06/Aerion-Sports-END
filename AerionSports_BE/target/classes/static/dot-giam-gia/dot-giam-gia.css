@@ -1,0 +1,839 @@
+.dot-giam-gia-page {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dot-giam-gia-page .page-shell,
+.dot-giam-gia-page .create-shell,
+.dot-giam-gia-page .edit-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Khung card dùng chung cho danh sách, tạo mới, sửa và xem chi tiết. */
+.dot-giam-gia-page .card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.dot-giam-gia-page .card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f79b66;
+  color: #ffffff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.dot-giam-gia-page .filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.dot-giam-gia-page .filter-grid label,
+.dot-giam-gia-page .create-field label,
+.dot-giam-gia-page .selected-filter label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.dot-giam-gia-page .filter-grid input,
+.dot-giam-gia-page .filter-grid select,
+.dot-giam-gia-page .create-field input,
+.dot-giam-gia-page .create-field textarea,
+.dot-giam-gia-page .selected-filter select,
+.dot-giam-gia-page .selected-search input,
+.dot-giam-gia-page .product-search input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  outline: none;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.dot-giam-gia-page .filter-grid input,
+.dot-giam-gia-page .filter-grid select {
+  height: 44px;
+}
+
+.dot-giam-gia-page .create-field textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.dot-giam-gia-page .filter-action,
+.dot-giam-gia-page .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.dot-giam-gia-page .btn-reset,
+.dot-giam-gia-page .btn-search,
+.dot-giam-gia-page .btn-add,
+.dot-giam-gia-page .btn-save,
+.dot-giam-gia-page .btn-cancel,
+.dot-giam-gia-page .action-btn,
+.dot-giam-gia-page .status-btn,
+.dot-giam-gia-page .btn-close,
+.dot-giam-gia-page .group-toggle-button {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.dot-giam-gia-page .btn-reset {
+  background: #f3f4f6;
+  color: #111827;
+  padding: 10px 18px;
+}
+
+.dot-giam-gia-page .btn-search {
+  background: #d8f5eb;
+  color: #0f8c64;
+  padding: 10px 18px;
+}
+
+.dot-giam-gia-page .list-header,
+.dot-giam-gia-page .create-header,
+.dot-giam-gia-page .detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.dot-giam-gia-page .list-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dot-giam-gia-page .title-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f79b66;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+
+.dot-giam-gia-page .list-title h3,
+.dot-giam-gia-page .create-header h3,
+.dot-giam-gia-page .detail-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.dot-giam-gia-page .list-title span,
+.dot-giam-gia-page .create-header span,
+.dot-giam-gia-page .detail-header span {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.dot-giam-gia-page .btn-add,
+.dot-giam-gia-page .btn-save {
+  background: #f79b66;
+  color: #ffffff;
+  padding: 0 16px;
+  height: 40px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dot-giam-gia-page .btn-cancel {
+  background: #f3f4f6;
+  color: #111827;
+  padding: 0 16px;
+  height: 40px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dot-giam-gia-page .btn-close {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  flex: 0 0 auto;
+}
+
+.dot-giam-gia-page .btn-add:hover,
+.dot-giam-gia-page .btn-save:hover {
+  opacity: 0.95;
+}
+
+.dot-giam-gia-page .btn-cancel:hover,
+.dot-giam-gia-page .btn-reset:hover,
+.dot-giam-gia-page .btn-search:hover,
+.dot-giam-gia-page .action-btn:hover,
+.dot-giam-gia-page .status-btn:hover,
+.dot-giam-gia-page .btn-close:hover {
+  background: #f9fafb;
+}
+
+.dot-giam-gia-page .discount-table,
+.dot-giam-gia-page .product-table,
+.dot-giam-gia-page .detail-table,
+.dot-giam-gia-page .selected-group-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 12px;
+}
+
+.dot-giam-gia-page .discount-table thead,
+.dot-giam-gia-page .detail-table thead,
+.dot-giam-gia-page .selected-group-table thead {
+  background: #f79b66;
+  color: #ffffff;
+}
+
+.dot-giam-gia-page .product-table thead {
+  background: #f79b66;
+  color: #ffffff;
+}
+
+.dot-giam-gia-page .discount-table th,
+.dot-giam-gia-page .discount-table td,
+.dot-giam-gia-page .product-table th,
+.dot-giam-gia-page .product-table td,
+.dot-giam-gia-page .detail-table th,
+.dot-giam-gia-page .detail-table td,
+.dot-giam-gia-page .selected-group-table th,
+.dot-giam-gia-page .selected-group-table td {
+  padding: 12px 10px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dot-giam-gia-page .discount-table tbody tr:hover,
+.dot-giam-gia-page .product-table tbody tr:hover,
+.dot-giam-gia-page .detail-table tbody tr:hover,
+.dot-giam-gia-page .selected-group-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.dot-giam-gia-page .state-cell {
+  padding: 18px 10px;
+  text-align: center !important;
+}
+
+.dot-giam-gia-page .error-cell,
+.dot-giam-gia-page .create-error,
+.dot-giam-gia-page .detail-error {
+  color: #b00020;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.45;
+}
+
+/* Dùng cho lỗi validate realtime hiển thị ngay dưới từng input. */
+.dot-giam-gia-page .field-error {
+  display: block;
+  min-height: 16px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #b00020;
+  line-height: 1.35;
+}
+
+/* Viền đỏ báo field đang không hợp lệ. */
+.dot-giam-gia-page .is-invalid {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.12);
+}
+
+.dot-giam-gia-page .status-badge,
+.dot-giam-gia-page .status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dot-giam-gia-page .status-wait {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.dot-giam-gia-page .status-running {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.dot-giam-gia-page .status-end {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.dot-giam-gia-page .status-cancel {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.dot-giam-gia-page .row-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dot-giam-gia-page .action-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+}
+
+.dot-giam-gia-page .status-btn {
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  padding: 0 10px;
+}
+
+.dot-giam-gia-page .pagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #374151;
+}
+
+.dot-giam-gia-page .page-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot-giam-gia-page .page-center a {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111827;
+  text-decoration: none;
+}
+
+.dot-giam-gia-page .page-center a.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dot-giam-gia-page .create-grid {
+  display: grid;
+  grid-template-columns: minmax(420px, 1fr) minmax(620px, 1.15fr);
+  gap: 20px;
+  align-items: start;
+}
+
+/* Cột trái là form, cột phải là khu chọn sản phẩm. */
+.dot-giam-gia-page .create-form-panel,
+.dot-giam-gia-page .create-product-panel,
+.dot-giam-gia-page .detail-panel,
+.dot-giam-gia-page .detail-products-panel {
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  padding: 18px;
+  background: #ffffff;
+}
+
+.dot-giam-gia-page .create-form-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dot-giam-gia-page .create-product-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.dot-giam-gia-page .create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.dot-giam-gia-page .create-field input[readonly] {
+  background: #f9fafb;
+}
+
+.dot-giam-gia-page .create-field input:disabled {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.dot-giam-gia-page .create-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dot-giam-gia-page .summary-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.dot-giam-gia-page .summary-item span {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 5px;
+}
+
+.dot-giam-gia-page .summary-item strong {
+  font-size: 13px;
+  color: #111827;
+  font-weight: 800;
+}
+
+.dot-giam-gia-page .summary-note {
+  grid-column: 1 / -1;
+}
+
+.dot-giam-gia-page .product-search-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+/* Khối chọn sản phẩm bên phải và thanh lọc ở dưới. */
+.dot-giam-gia-page .product-search,
+.dot-giam-gia-page .selected-search {
+  display: flex;
+  width: 100%;
+}
+
+.dot-giam-gia-page .product-search input,
+.dot-giam-gia-page .selected-search input {
+  flex: 1;
+  height: 44px;
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+}
+
+.dot-giam-gia-page .product-search button,
+.dot-giam-gia-page .selected-search button {
+  width: 52px;
+  border: none;
+  border-radius: 0 10px 10px 0;
+  background: #f79b66;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.dot-giam-gia-page .product-meta {
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.dot-giam-gia-page .group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.dot-giam-gia-page .product-group {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.dot-giam-gia-page .product-group[open] {
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.dot-giam-gia-page .product-group-summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #fff7f1 0%, #ffffff 100%);
+}
+
+.dot-giam-gia-page .product-group-summary::-webkit-details-marker {
+  display: none;
+}
+
+.dot-giam-gia-page .product-group-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dot-giam-gia-page .product-group-summary-left strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.dot-giam-gia-page .product-group-summary-left span,
+.dot-giam-gia-page .product-group-summary-right span {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.dot-giam-gia-page .product-group-summary-right {
+  color: #f79b66;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dot-giam-gia-page .group-toggle-button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #64748b;
+  border-radius: 6px;
+  position: relative;
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+
+.dot-giam-gia-page .group-toggle-minus {
+  display: none;
+}
+
+.dot-giam-gia-page .product-group[open] .group-toggle-plus {
+  display: none;
+}
+
+.dot-giam-gia-page .product-group[open] .group-toggle-minus {
+  display: inline-block;
+}
+
+.dot-giam-gia-page .group-checkbox {
+  width: 16px;
+  height: 16px;
+}
+
+.dot-giam-gia-page .product-group-body {
+  border-top: 1px solid #f1f5f9;
+  overflow-x: hidden;
+}
+
+.dot-giam-gia-page .group-table {
+  table-layout: fixed !important;
+  width: 100%;
+}
+
+.dot-giam-gia-page .group-table th,
+.dot-giam-gia-page .group-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 8px 6px;
+}
+
+.dot-giam-gia-page .selected-details {
+  margin-top: 18px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Bảng chi tiết các biến thể đã tick ở phía dưới form. */
+.dot-giam-gia-page .selected-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.dot-giam-gia-page .selected-details-header h4 {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.dot-giam-gia-page .selected-count-badge {
+  font-family: inherit !important;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dot-giam-gia-page .selected-filter-bar {
+  display: grid;
+  grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.dot-giam-gia-page .selected-filter select {
+  height: 40px;
+}
+
+.dot-giam-gia-page .selected-list {
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  min-width: 0;
+}
+
+.dot-giam-gia-page .selected-group-table-wrap {
+  overflow-x: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.dot-giam-gia-page .selected-group-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.dot-giam-gia-page .selected-group-table th,
+.dot-giam-gia-page .selected-group-table td {
+  font-size: 11px;
+  line-height: 1.2;
+  padding: 8px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dot-giam-gia-page .selected-group-table td:nth-child(3),
+.dot-giam-gia-page .selected-group-table td:nth-child(4),
+.dot-giam-gia-page .selected-group-table td:nth-child(9),
+.dot-giam-gia-page .selected-group-table td:nth-child(10),
+.dot-giam-gia-page .selected-group-table td:nth-child(11),
+.dot-giam-gia-page .selected-group-table td:nth-child(12) {
+  font-weight: 600;
+}
+
+.dot-giam-gia-page .detail-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+/* Dải thông tin tóm tắt ở modal xem chi tiết. */
+.dot-giam-gia-page .summary-note {
+  grid-column: 1 / -1;
+}
+
+.dot-giam-gia-page .detail-products-panel {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 18px;
+}
+
+.dot-giam-gia-page .detail-table {
+  min-width: 1280px;
+}
+
+.dot-giam-gia-page .modal-card,
+.dot-giam-gia-page .modal-backdrop {
+  all: unset;
+}
+
+.dot-giam-gia-page .flash-message {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dot-giam-gia-page .flash-success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.dot-giam-gia-page .flash-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+@media (max-width: 1100px) {
+  .dot-giam-gia-page .filter-grid,
+  .dot-giam-gia-page .create-grid,
+  .dot-giam-gia-page .selected-filter-bar,
+  .dot-giam-gia-page .detail-summary,
+  .dot-giam-gia-page .create-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .dot-giam-gia-page .filter-grid,
+  .dot-giam-gia-page .create-grid,
+  .dot-giam-gia-page .selected-filter-bar,
+  .dot-giam-gia-page .detail-summary,
+  .dot-giam-gia-page .create-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .dot-giam-gia-page .list-header,
+  .dot-giam-gia-page .create-header,
+  .dot-giam-gia-page .detail-header {
+    flex-direction: column;
+  }
+}
+
+/* Toggle Switch Styling */
+.dot-giam-gia-page .toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.dot-giam-gia-page .toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.dot-giam-gia-page .toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: .3s;
+  border-radius: 24px;
+}
+
+.dot-giam-gia-page .toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+.dot-giam-gia-page .toggle-switch input:checked + .toggle-slider {
+  background-color: #f79b66;
+}
+
+.dot-giam-gia-page .toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.dot-giam-gia-page .toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 1px #f79b66;
+}
+
+/* Align checkbox column and search actions */
+.dot-giam-gia-page .product-search button,
+.dot-giam-gia-page .selected-search button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot-giam-gia-page .selected-group-table th input[type="checkbox"],
+.dot-giam-gia-page .selected-group-table td input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Prevent overlapping text in name and variant columns */
+.dot-giam-gia-page .product-table td:nth-child(4),
+.dot-giam-gia-page .product-table th:nth-child(4),
+.dot-giam-gia-page .selected-group-table td:nth-child(4),
+.dot-giam-gia-page .selected-group-table th:nth-child(4) {
+  white-space: nowrap !important;
+  word-break: normal;
+  text-align: left;
+}
+
+.dot-giam-gia-page .create-product-panel,
+.dot-giam-gia-page .detail-panel,
+.dot-giam-gia-page .detail-products-panel,
+.dot-giam-gia-page .selected-details,
+.dot-giam-gia-page .selected-filter-bar,
+.dot-giam-gia-page .group-list {
+  min-width: 0;
+}
+
+.dot-giam-gia-page .selected-filter-bar,
+.dot-giam-gia-page .create-grid {
+  width: 100%;
+}

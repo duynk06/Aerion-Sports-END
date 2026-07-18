@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: main-layout(~{::#ban-hang-tai-quay})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Bán hàng (tại cửa hàng)</title>
+    <th:block th:fragment="extraHead"></th:block>
+</head>
+<body>
+
+<div id="ban-hang-tai-quay">
+
+    <!-- Toast thông báo (thay cho <transition name="toast">) -->
+    <div id="toast" style="
+      position: fixed; top: 20px; right: 20px; z-index: 9999;
+      padding: 12px 20px; border-radius: 8px; color: #fff; font-weight: 600;
+      font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none; align-items: center; gap: 8px; min-width: 250px;">
+    </div>
+
+    <div class="pos-container">
+
+        <div class="top-outside-header">
+            <span class="order-counter"><span id="soDonHienTai">0</span>/5 đơn</span>
+            <button class="btn-create-order" onclick="taoHoaDon()">+ Tạo đơn hàng</button>
+        </div>
+
+        <div class="section order-tabs-section">
+            <div class="tabs-wrapper" id="tabsWrapper"></div>
+        </div>
+
+        <div class="pos-content">
+
+            <!-- SẢN PHẨM TRONG ĐƠN -->
+            <div class="section product-section">
+                <div class="section-header">
+                    <h3>Sản phẩm</h3>
+                    <div class="actions">
+                        <button class="btn-outline" onclick="openProductModal()">+ Thêm sản phẩm</button>
+                        <button class="btn-outline" onclick="moModalQuetQR()" style="display:flex;align-items:center;gap:6px;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                <rect x="3" y="14" width="7" height="7"/>
+                                <path d="M14 14h3v3m0 4h4m-4 0v-4m-3 4h-1m1-4h-1v-1"/>
+                            </svg>
+                            Quét QR
+                        </button>
+                    </div>
+                </div>
+                <table class="product-table">
+                    <colgroup>
+                        <col style="width:80px">
+                        <col>
+                        <col style="width:150px">
+                        <col style="width:140px">
+                        <col style="width:150px">
+                        <col style="width:60px">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th width="80" class="text-center">Ảnh</th>
+                        <th>Sản phẩm</th>
+                        <th width="150" class="text-right">Đơn giá</th>
+                        <th width="140" class="text-center">Số lượng</th>
+                        <th width="150" class="text-right">Thành tiền</th>
+                        <th width="60" class="text-center">Xóa</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                    <tr>
+                        <td colspan="6" class="text-center text-muted" style="padding:20px;">Chưa có sản phẩm nào trong đơn hàng</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="product-summary">
+                    <span class="text-muted font-bold">Tổng tiền</span>
+                    <span class="font-bold" id="tongTienHienTaiLabel">0 đ</span>
+                </div>
+            </div>
+
+            <div class="bottom-grid">
+
+                <!-- THÔNG TIN KHÁCH HÀNG -->
+                <div class="section customer-section">
+                    <div class="section-header">
+                        <div class="header-titles">
+                            <br>
+                            <h3>Thông tin khách hàng</h3>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-outline-modal" style="border-color:#666;" onclick="chonKhachVangLai()">Khách vãng lai</button>
+                            <button class="btn-primary text-sm" onclick="openCustomerModal()">Chọn khách hàng</button>
+                        </div>
+                    </div>
+                    <div class="customer-card" id="customerCard">
+                        <div style="margin-bottom:12px;">
+                            <span class="text-muted text-sm" style="display:block;">Tên khách hàng</span>
+                            <h4 class="mt-1">Khách hàng vãng lai</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- THANH TOÁN -->
+                <div class="section payment-section">
+                    <div class="section-header">
+                        <h3>Thanh toán</h3>
+                    </div>
+
+                    <div class="payment-body">
+                        <div class="form-group row-flex">
+                            <label class="font-bold">Hình thức</label>
+                            <div class="toggle-wrap mt-1">
+                                <div class="toggle-switch" id="toggleSwitch" onclick="toggleLoaiHoaDon()" style="cursor:pointer;"></div>
+                                <span id="loaiHoaDonLabel">Bán tại quầy</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="flex-between mb-2">
+                                <label class="font-bold">Mã giảm giá</label>
+                            </div>
+                            <div id="couponArea">
+                                <div style="color:#888;font-size:13px;padding:8px 0;">Chưa có mã giảm giá phù hợp</div>
+                            </div>
+                        </div>
+
+                        <hr class="divider"/>
+
+                        <div class="summary-list" id="summaryList">
+                            <div class="summary-row">
+                                <span class="text-muted">Tiền hàng</span>
+                                <span class="font-bold">0 đ</span>
+                            </div>
+                            <div class="summary-row total-row mt-2">
+                                <span class="font-bold">Tổng phải trả</span>
+                                <span class="text-danger font-bold text-lg">0 đ</span>
+                            </div>
+                            <div class="summary-row align-center mt-3">
+                                <span class="text-muted">Khách thanh toán</span>
+                                <span class="input-wrapper-pay">
+                  <input type="text" id="soTienKhachDuaInput" class="input-right" placeholder="0 đ"
+                         style="width:150px;text-align:right;" oninput="onSoTienKhachDuaInput(this)"/>
+                </span>
+                            </div>
+                            <div class="summary-row mt-3">
+                                <span class="text-muted">Tiền thừa trả khách</span>
+                                <span class="font-bold">0 đ</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label class="font-bold">Ghi chú</label>
+                            <textarea id="ghiChuInput" class="input-full" placeholder="Nhập ghi chú cho đơn hàng..."
+                                      rows="2" style="resize:none;margin-top:4px;font-size:13px;"
+                                      oninput="onGhiChuInput(this.value)"></textarea>
+                        </div>
+
+                        <div class="payment-actions mt-3">
+                            <button class="btn-pay-cash" onclick="xuLyThanhToan(1)">Thanh toán (tiền mặt)</button>
+                            <button class="btn-pay-qr" onclick="xuLyThanhToan(2)">Thanh toán QR</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="productModal" style="display:none;" onclick="if(event.target===this) closeModal('productModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Chọn biến thể để thêm vào đơn</h2>
+                <button class="btn-close" onclick="closeModal('productModal')">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="filter-area">
+                    <div class="filter-row">
+                        <div class="filter-group flex-2">
+                            <label>Tìm kiếm</label>
+                            <input id="keywordInput" type="text" placeholder="Tìm theo mã / tên sản phẩm..." class="modal-input" oninput="onKeywordInput(this.value)"/>
+                        </div>
+                        <div class="filter-group flex-1">
+                            <label>Màu sắc</label>
+                            <select id="mauSacSelect" class="modal-select" onchange="onMauSacChange(this.value)">
+                                <option value="">-- Chọn màu sắc --</option>
+                            </select>
+                        </div>
+                        <div class="filter-group flex-1">
+                            <label>Trọng lượng</label>
+                            <select id="trongLuongSelect" class="modal-select" onchange="onTrongLuongChange(this.value)">
+                                <option value="">-- Chọn trọng lượng --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-row align-end">
+                        <div class="filter-group flex-2">
+                            <label>Khoảng giá</label>
+                            <div class="price-value" id="giaMaxLabel">0 đ - 0 đ</div>
+                            <div class="single-slider">
+                                <div class="slider-progress" id="sliderProgress"></div>
+                                <input type="range" id="giaMaxRange" min="0" max="0" class="range-input" oninput="onGiaMaxInput(this.value)"/>
+                            </div>
+                        </div>
+                        <div class="filter-group flex-1">
+                            <label>Trạng thái</label>
+                            <div class="radio-group">
+                                <label class="radio-label"><input type="radio" name="trangThai" value="" checked onchange="onTrangThaiChange(this.value)"/> Tất cả</label>
+                                <label class="radio-label"><input type="radio" name="trangThai" value="1" onchange="onTrangThaiChange(this.value)"/> Còn hàng</label>
+                                <label class="radio-label"><input type="radio" name="trangThai" value="0" onchange="onTrangThaiChange(this.value)"/> Hết hàng</label>
+                            </div>
+                        </div>
+                        <div class="filter-actions flex-1 text-right">
+                            <button class="btn-outline-modal" onclick="resetFilter()">Đặt lại</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-table-container">
+                    <table class="modal-table">
+                        <thead>
+                        <tr>
+                            <th width="40" class="text-center">STT</th>
+                            <th width="120">Mã</th>
+                            <th width="60">Ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th width="100">Màu</th>
+                            <th width="110">Trọng lượng</th>
+                            <th width="80" class="text-right">Tồn</th>
+                            <th width="120" class="text-right">Giá</th>
+                            <th width="80" class="text-center">Chọn</th>
+                        </tr>
+                        </thead>
+                        <tbody id="productModalTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <span class="text-muted text-sm" id="productCountInfo">Tổng:0 sản phẩm</span>
+                    <div class="pagination">
+                        <button class="page-btn" id="productPrevBtn" onclick="prevPage()">&lt;</button>
+                        <span class="page-info" id="productPageInfo">Trang 1/1</span>
+                        <button class="page-btn" id="productNextBtn" onclick="nextPage()">&gt;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="customerModal" style="display:none;" onclick="if(event.target===this) closeModal('customerModal')">
+        <div class="modal-content" style="max-width:900px;">
+            <div class="modal-header">
+                <h2>Chọn khách hàng</h2>
+                <button class="btn-close" onclick="closeModal('customerModal')">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom:15px;">
+                    <input type="text" id="searchKhachHangInput" placeholder="Tìm theo tên/SĐT/email/địa chỉ..." class="modal-input"
+                           style="width:100%;margin-bottom:10px;" oninput="onSearchKhachHangInput(this.value)"/>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn-outline-modal" style="border-color:#666;" onclick="chonKhachVangLai()">Khách vãng lai</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-table-container">
+                    <table class="modal-table">
+                        <thead>
+                        <tr>
+                            <th width="50" class="text-center">STT</th>
+                            <th width="150">Tên khách</th>
+                            <th width="120">SĐT</th>
+                            <th>Địa chỉ</th>
+                            <th width="80" class="text-center">Chọn</th>
+                        </tr>
+                        </thead>
+                        <tbody id="customerModalTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;margin-top:15px;">
+                    <span class="text-muted text-sm" id="customerCountInfo">Tổng:0 khách hàng</span>
+                    <div class="pagination" style="display:flex;align-items:center;gap:10px;">
+                        <button class="page-btn" id="customerPrevBtn" onclick="prevPageKh()">&lt;</button>
+                        <span class="page-info" id="customerPageInfo">Trang 1 / 1</span>
+                        <button class="page-btn" id="customerNextBtn" onclick="nextPageKh()">&gt;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addressModal" style="display:none;" onclick="if(event.target===this) closeModal('addressModal')">
+        <div class="modal-content" style="max-width:650px;">
+            <div class="modal-header">
+                <h2>Chọn địa chỉ giao hàng</h2>
+                <button class="btn-close" onclick="closeModal('addressModal')">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="modal-body" id="addressModalList">
+                <div class="text-center text-muted" style="padding:30px;">Khách hàng chưa có địa chỉ nào</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="qrPaymentModal" style="display:none;" onclick="if(event.target===this) closeModal('qrPaymentModal')">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h2>Thanh toán bằng QR</h2>
+                <button class="btn-close" onclick="closeModal('qrPaymentModal')">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:20px;padding:12px 16px;background:#f5f5f5;border-radius:8px;">
+                    <div style="text-align:left;">
+                        <span style="font-size:12px;color:#888;display:block;">Mã hóa đơn</span>
+                        <span style="font-weight:600;font-size:14px;" id="qrMaHoaDon"></span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:12px;color:#888;display:block;">Số tiền thanh toán</span>
+                        <span style="font-weight:700;font-size:18px;color:#cf1322;" id="qrSoTien"></span>
+                    </div>
+                </div>
+                <div style="margin-bottom:16px;display:inline-block;">
+                    <div style="width:240px;height:320px;background:transparent;display:flex;align-items:center;justify-content:center;border-radius:8px;">
+                        <!-- Điều chỉnh lại đường dẫn ảnh QR theo thư mục static của bạn, ví dụ: /images/anhqr.png.jpg -->
+                        <img th:src="@{/images/anhqr.png.jpg}" alt="QR Code" style="width:100%;height:100%;object-fit:contain;border-radius:8px;">
+                    </div>
+                </div>
+                <p style="color:#888;font-size:13px;margin-bottom:20px;">Quét mã hoặc chuyển sang trang thanh toán</p>
+                <div style="background:#f5f5f5;border-radius:8px;padding:12px 16px;text-align:left;margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:13px;color:#666;">Mã đơn</span>
+                        <span style="font-size:13px;font-weight:600;" id="qrMaHoaDon2"></span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span style="font-size:13px;color:#666;">Ghi chú</span>
+                        <span style="font-size:13px;color:#555;" id="qrGhiChu"></span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;">
+                    <button onclick="thucHienThanhToan(2)" style="flex:1;background:#f79b66;color:#fff;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Xác nhận thanh toán</button>
+                    <button onclick="closeModal('qrPaymentModal')" style="flex:1;background:#fff;color:#555;border:1px solid #d9d9d9;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="qrScanModal" style="display:none;" onclick="if(event.target===this) dongModalQuetQR()">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header">
+                <h2>Quét mã QR sản phẩm</h2>
+                <button class="btn-close" onclick="dongModalQuetQR()">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:center;padding:24px;">
+                <div id="qr-reader" style="width:100%;border-radius:8px;overflow:hidden;border:2px solid #f79b66;"></div>
+                <p style="margin-top:12px;color:#888;font-size:13px;">Hướng mã QR vào camera</p>
+                <div id="qrScanKetQua" style="display:none;margin-top:12px;padding:10px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;font-size:13px;"></div>
+                <div id="qrScanLoi" style="display:none;margin-top:12px;padding:10px;background:#fff2f0;border:1px solid #ffccc7;border-radius:6px;font-size:13px;color:#cf1322;"></div>
+            </div>
+        </div>
+    </div>
+    <link rel="stylesheet" th:href="@{/ban-hang/tai-quay.css}">
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <script th:src="@{/ban-hang/tai-quay.js}"></script>
+</div>
+</body>
+</html>

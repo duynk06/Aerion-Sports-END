@@ -1,0 +1,235 @@
+/* =====================================================================
+   BỔ SUNG VÀO san-pham.css — Modal thêm/sửa thuộc tính (đẹp hơn + validate)
+   Dán toàn bộ khối này vào cuối file san-pham.css hiện có
+   ===================================================================== */
+
+.custom-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(3px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: overlayFadeIn 0.18s ease;
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.custom-modal-box {
+    background: #fff;
+    border-radius: 12px;
+    width: 440px;
+    max-width: 92vw;
+    overflow: hidden;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+    animation: modalPopIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPopIn {
+    from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-box-header {
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #f79b66 0%, #ea712b 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.modal-box-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #fff;
+    font-weight: 700;
+}
+
+.btn-close-x {
+    background: rgba(255, 255, 255, 0.18);
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    color: #fff;
+    transition: background 0.15s ease;
+}
+.btn-close-x:hover { background: rgba(255, 255, 255, 0.32); }
+
+.modal-box-body {
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group-item label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 6px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.input-with-icon {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #f79b66;
+    font-size: 13px;
+}
+
+.input-with-icon input {
+    width: 100%;
+    padding: 10px 12px 10px 34px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-with-icon input:focus {
+    border-color: #f79b66;
+    box-shadow: 0 0 0 3px rgba(247, 155, 102, 0.15);
+}
+
+.input-with-icon input.disabled-input {
+    background: #f8fafc;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border-color: #eef2f6;
+}
+#divMaThuocTinh .input-icon { color: #cbd5e1; }
+
+.required-star { color: #ea712b; font-weight: 700; }
+
+.modal-box-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #fafafa;
+}
+
+.btn-modal-cancel {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    color: #475569;
+    padding: 9px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+.btn-modal-cancel:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+.btn-modal-submit {
+    background: linear-gradient(135deg, #f79b66 0%, #ea712b 100%);
+    color: #fff;
+    border: none;
+    padding: 9px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 10px rgba(234, 113, 43, 0.3);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-modal-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(234, 113, 43, 0.4);
+}
+.btn-modal-submit:active { transform: translateY(0); }
+
+/* ===== Khung báo lỗi validate ===== */
+.form-error-text {
+    color: #dc2626;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-top: 6px;
+    display: block;
+    min-height: 16px;
+}
+
+.input-with-icon input.input-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+}
+
+.shake-anim {
+    animation: shakeInput 0.35s ease;
+}
+
+@keyframes shakeInput {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+
+/* ===== Nút sửa dạng icon tròn (đảm bảo đồng bộ nếu chưa có sẵn) ===== */
+.icon-btn-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.icon-btn-circle.edit-pencil {
+    background-color: #f9f5ff;
+    color: #7c3aed;
+    border: 1px solid #f3e8ff;
+}
+.icon-btn-circle.edit-pencil:hover {
+    background-color: #7c3aed;
+    color: #ffffff;
+    border-color: #7c3aed;
+    transform: scale(1.08);
+}
