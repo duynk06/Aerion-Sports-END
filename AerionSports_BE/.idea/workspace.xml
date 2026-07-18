@@ -5,13 +5,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6ed6c808-4310-4e17-93ca-174aff479799" name="Changes" comment="update 13/7/2026">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/aerion-sports-test-console.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/SanPhamController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/controller/SanPhamController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/DiaChiKhachHangRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/DiaChiKhachHangRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/KhachHangRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/AerionSports_BE/repository/KhachHangRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/detail.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/hoa-don/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-san-pham.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/them-san-pham.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/js/thuoc-tinh.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/js/thuoc-tinh.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/san-pham/danh-sach-bien-the.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/san-pham/danh-sach-bien-the.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/san-pham/danh-sach-bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/san-pham/danh-sach-bien-the.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/thuoc-tinh/thuoc-tinh-view.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/thuoc-tinh/thuoc-tinh-view.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/KhachHangController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/KhachHangController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/NhanVienController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/NhanVienController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/PhieuGiamGiaController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/PhieuGiamGiaController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/ThongKeController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/controller/ThongKeController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/response/ThongKeCardResponse.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/dto/response/ThongKeCardResponse.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/entity/TaiKhoan$TaiKhoanBuilder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/entity/TaiKhoan$TaiKhoanBuilder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/ChiTietSanPhamRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/ChiTietSanPhamRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/DiaChiKhachHangRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/DiaChiKhachHangRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/KhachHangRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/KhachHangRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/SanPhamRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/repository/SanPhamRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/ChiTietSanPhamService$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/ChiTietSanPhamService$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/ChiTietSanPhamService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/ChiTietSanPhamService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/EmailService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/EmailService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/ThongKeService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/AerionSports_BE/service/ThongKeService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/js/thuoc-tinh.js" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/js/thuoc-tinh.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/san-pham/danh-sach-bien-the.js" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/san-pham/danh-sach-bien-the.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/fragments/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/fragments/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/san-pham/danh-sach-bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/san-pham/danh-sach-bien-the.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/san-pham/them-bien-the.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/san-pham/them-bien-the.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/thong-ke/thong-ke.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/thong-ke/thong-ke.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/thuoc-tinh/thuoc-tinh-view.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/thuoc-tinh/thuoc-tinh-view.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,6 +44,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="HTML File" />
         <option value="Interface" />
         <option value="Class" />
       </list>
@@ -55,29 +79,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;Spring Boot.BeDatnApplication.executor&quot;: &quot;Run&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;TongKet__BE&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/OneDrive/Desktop/moi/Aerion-Sports-END/AerionSports_BE&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.BeDatnApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "hoanthien-BE",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/ADMIN/OneDrive/Desktop/phan/Aerion-Sports-END/AerionSports_BE",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ADMIN\OneDrive\Desktop\30\Aerion-Sports\AerionSports_BE\src\main\java\com\example\AerionSports_BE\dto\response" />
@@ -155,6 +180,9 @@
       <workItem from="1783896115981" duration="5108000" />
       <workItem from="1783902780881" duration="93000" />
       <workItem from="1783949123826" duration="3372000" />
+      <workItem from="1784301205646" duration="491000" />
+      <workItem from="1784301790190" duration="925000" />
+      <workItem from="1784387194367" duration="3737000" />
     </task>
     <task id="LOCAL-00001" summary="update chitietdotgiamgia">
       <option name="closed" value="true" />

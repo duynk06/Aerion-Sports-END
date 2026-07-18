@@ -16,15 +16,18 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
     boolean existsByMaKhachHang(String maKhachHang);
     boolean existsBySdt(String sdt);
     boolean existsByEmail(String email);
+    boolean existsBySdtAndIdNot(String sdt, Integer id);
+    boolean existsByEmailAndIdNot(String email, Integer id);
     Optional<KhachHang> findFirstByOrderByIdDesc();
-
+    @Query("SELECT DISTINCT kh FROM KhachHang kh LEFT JOIN FETCH kh.addresses WHERE kh.id = :id")
+    Optional<KhachHang> findByIdWithAddresses(@Param("id") Integer id);
     @EntityGraph(attributePaths = {"addresses"})
     List<KhachHang> findAll();
 
     @Query(value = "SELECT kh.id, kh.ma_khach_hang, kh.ho_ten, kh.email, kh.sdt, kh.ngay_sinh, " +
             "(SELECT COUNT(*) FROM hoa_don hd WHERE hd.id_khach_hang = kh.id AND hd.trang_thai IN (1, 5)) as tongSoDonHang, " +
             "(SELECT MAX(hd.ngay_tao) FROM hoa_don hd WHERE hd.id_khach_hang = kh.id AND hd.trang_thai IN (1, 5)) as donHangGanNhat " +
-                    "FROM khach_hang kh WHERE kh.trang_thai = 1", nativeQuery = true)
+            "FROM khach_hang kh WHERE kh.trang_thai = 1", nativeQuery = true)
     List<Object[]> findAllKhachHangWithOrderSummary();
 
     // Bên trong interface KhachHangRepository của bạn:
@@ -70,14 +73,12 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
 
     // KhachHangRepository.java — thêm query lấy địa chỉ mặc định
     @Query(value = """
-    SELECT 
-        ISNULL(dc.dia_chi_chi_tiet + ', ' + dc.phuong_xa + ', ' + dc.tinh_thanh, '') AS diaChi,
+    SELECT
+ISNULL(dc.dia_chi_chi_tiet + ', ' + dc.phuong_xa + ', ' + dc.tinh_thanh, '') AS diaChi,
         ISNULL(dc.tinh_thanh, '') AS tinhThanh
     FROM dia_chi_khach_hang dc
     WHERE dc.id_khach_hang = :idKhachHang 
       AND dc.mac_dinh = 1
 """, nativeQuery = true)
     Object[] findDiaChiMacDinh(@Param("idKhachHang") Integer idKhachHang);
-    @Query("SELECT DISTINCT kh FROM KhachHang kh LEFT JOIN FETCH kh.addresses WHERE kh.id = :id")
-    Optional<KhachHang> findByIdWithAddresses(@Param("id") Integer id);
 }

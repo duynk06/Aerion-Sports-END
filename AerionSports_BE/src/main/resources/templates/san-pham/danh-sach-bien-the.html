@@ -206,7 +206,10 @@
                 <div style="margin-bottom: 12px; display: flex; gap: 10px;">
                     <div style="flex: 1;">
                         <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Giá bán lẻ (đ)</label>
-                        <input type="number" id="modalGiaBan" min="0" required style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;"/>
+                        <input type="text" id="modalGiaBanHienThi" inputmode="numeric" required
+                               oninput="dinhDangSoTienModal(this)"
+                               style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;"/>
+                        <input type="hidden" id="modalGiaBan"/>
                     </div>
                     <div style="flex: 1;">
                         <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Số lượng tồn</label>

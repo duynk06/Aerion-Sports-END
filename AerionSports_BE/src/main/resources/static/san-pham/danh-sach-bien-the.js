@@ -24,6 +24,8 @@ async function toggleTrangThai(id, trangThaiHienTai) {
 function exportToExcel() {
     const table = document.getElementById('tblTatCaBienThe');
     if (!table) return;
+    if (!confirm('Bạn có chắc chắn muốn xuất toàn bộ danh sách biến thể hiện tại ra file Excel không?')) return;
+
     const wb = XLSX.utils.table_to_book(table, { sheet: "BienThe" });
     XLSX.writeFile(wb, 'Danh_Sach_Bien_The.xlsx');
 }
@@ -71,12 +73,10 @@ function inMaQRCode() {
     win.document.close();
 }
 
-// =========================================================================
-// 4. CẬP NHẬT BIẾN THỂ (Modal)
-// =========================================================================
 function openFullEditModal(id, sku, giaBan, soLuong, idMauSac, idTrongLuong) {
     document.getElementById('modalVariantId').value = id;
     document.getElementById('modalSkuLabel').innerText = sku;
+    document.getElementById('modalGiaBanHienThi').value = new Intl.NumberFormat('vi-VN').format(Math.round(giaBan));
     document.getElementById('modalGiaBan').value = Math.round(giaBan);
     document.getElementById('modalSoLuong').value = soLuong;
     document.getElementById('modalMauSac').value = idMauSac;
@@ -86,11 +86,22 @@ function openFullEditModal(id, sku, giaBan, soLuong, idMauSac, idTrongLuong) {
 
 async function submitFullEdit(event) {
     event.preventDefault();
+
+    const giaBanThuc = layGiaTriSoModal(document.getElementById('modalGiaBanHienThi').value);
+    document.getElementById('modalGiaBan').value = giaBanThuc;
+
+    if (giaBanThuc <= 0) {
+        alert('Giá bán lẻ phải lớn hơn 0 đ!');
+        return;
+    }
+
+    if (!confirm('Bạn có chắc chắn muốn lưu các thay đổi cho biến thể này không?')) return;
+
     const id = document.getElementById('modalVariantId').value;
     const formData = new FormData();
     formData.append("idMauSac", document.getElementById('modalMauSac').value);
     formData.append("idTrongLuong", document.getElementById('modalTrongLuong').value);
-    formData.append("giaBan", document.getElementById('modalGiaBan').value);
+    formData.append("giaBan", giaBanThuc);
     formData.append("soLuong", document.getElementById('modalSoLuong').value);
     const file = document.getElementById('modalFileAnh').files[0];
     if (file) formData.append("fileAnh", file);
@@ -109,5 +120,15 @@ async function submitFullEdit(event) {
         }
     } catch (e) {
         alert('Lỗi kết nối máy chủ!');
+    }
+
+    function dinhDangSoTienModal(input) {
+        let numeric = input.value.replace(/\D/g, "");
+        input.value = numeric ? new Intl.NumberFormat('vi-VN').format(numeric) : "";
+    }
+
+    function layGiaTriSoModal(chuoi) {
+        if (!chuoi) return 0;
+        return Number(String(chuoi).replace(/\./g, '')) || 0;
     }
 }

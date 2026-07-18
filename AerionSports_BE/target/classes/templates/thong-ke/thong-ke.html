@@ -6,7 +6,30 @@
 <!-- Mảnh ghép nội dung, sẽ được nhúng vào layout.html qua ~{thong-ke :: content} -->
 <div th:fragment="content" id="thong-ke-page">
 
+    <!-- BỘ LỌC NGÀY (ĐÃ DỜI LÊN ĐẦU TRANG) -->
+    <div class="date-filter-horizontal-bar">
+        <div class="filter-date-item">
+            <label>Từ ngày</label>
+            <input type="date" id="inputTuNgay" />
+        </div>
+        <div class="filter-date-item">
+            <label>Đến ngày</label>
+            <input type="date" id="inputDenNgay" />
+        </div>
+        <div class="filter-buttons-action-flex">
+            <button class="btn-submit-filter" id="btnFilter" type="button"><i class="fa-solid fa-filter"></i> Lọc dữ liệu</button>
+            <button class="btn-reset-filter" id="btnReset" type="button">Đặt lại</button>
 
+            <button class="btn-download-excel" id="btnExportExcel" type="button">
+                <i class="fa-solid fa-file-excel"></i> Xuất file Excel
+            </button>
+
+            <button class="btn-send-mail-excel" id="btnSendMail" type="button">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span id="btnSendMailLabel">Gửi báo cáo về Mail</span>
+            </button>
+        </div>
+    </div>
 
     <!-- 4 THẺ THỐNG KÊ -->
     <div class="statistics-cards-grid-row">
@@ -15,7 +38,16 @@
             <div class="card-inner-top">
                 <div class="card-left-labels">
                     <span class="card-time-title">Hôm nay</span>
-                    <h2 class="card-amount-money" data-field="doanhThu">0 ₫</h2>
+                    <div class="card-amount-split">
+                        <div class="amount-line cash">
+                            <i class="fa-solid fa-money-bill-wave"></i> Tiền mặt:
+                            <b data-field="doanhThuTienMat">0 ₫</b>
+                        </div>
+                        <div class="amount-line transfer">
+                            <i class="fa-solid fa-building-columns"></i> Chuyển khoản:
+                            <b data-field="doanhThuChuyenKhoan">0 ₫</b>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-icon-box-orange"><i class="fa-solid fa-calendar-day"></i></div>
             </div>
@@ -33,7 +65,16 @@
             <div class="card-inner-top">
                 <div class="card-left-labels">
                     <span class="card-time-title">Tuần này</span>
-                    <h2 class="card-amount-money" data-field="doanhThu">0 ₫</h2>
+                    <div class="card-amount-split">
+                        <div class="amount-line cash">
+                            <i class="fa-solid fa-money-bill-wave"></i> Tiền mặt:
+                            <b data-field="doanhThuTienMat">0 ₫</b>
+                        </div>
+                        <div class="amount-line transfer">
+                            <i class="fa-solid fa-building-columns"></i> Chuyển khoản:
+                            <b data-field="doanhThuChuyenKhoan">0 ₫</b>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-icon-box-orange"><i class="fa-solid fa-calendar-week"></i></div>
             </div>
@@ -51,7 +92,16 @@
             <div class="card-inner-top">
                 <div class="card-left-labels">
                     <span class="card-time-title">Tháng này</span>
-                    <h2 class="card-amount-money" data-field="doanhThu">0 ₫</h2>
+                    <div class="card-amount-split">
+                        <div class="amount-line cash">
+                            <i class="fa-solid fa-money-bill-wave"></i> Tiền mặt:
+                            <b data-field="doanhThuTienMat">0 ₫</b>
+                        </div>
+                        <div class="amount-line transfer">
+                            <i class="fa-solid fa-building-columns"></i> Chuyển khoản:
+                            <b data-field="doanhThuChuyenKhoan">0 ₫</b>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-icon-box-orange"><i class="fa-solid fa-calendar-days"></i></div>
             </div>
@@ -69,7 +119,16 @@
             <div class="card-inner-top">
                 <div class="card-left-labels">
                     <span class="card-time-title">Năm nay</span>
-                    <h2 class="card-amount-money" data-field="doanhThu">0 ₫</h2>
+                    <div class="card-amount-split">
+                        <div class="amount-line cash">
+                            <i class="fa-solid fa-money-bill-wave"></i> Tiền mặt:
+                            <b data-field="doanhThuTienMat">0 ₫</b>
+                        </div>
+                        <div class="amount-line transfer">
+                            <i class="fa-solid fa-building-columns"></i> Chuyển khoản:
+                            <b data-field="doanhThuChuyenKhoan">0 ₫</b>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-icon-box-orange"><i class="fa-solid fa-chart-pie"></i></div>
             </div>
@@ -105,31 +164,6 @@
             <span id="footerSummaryNormal">Tổng doanh thu ghi nhận trong tháng: <strong id="tongDoanhThuThangText" style="color: #2563eb;">0 ₫</strong></span>
             <span id="footerSummaryCompare" style="display:none;">* Đường màu <b style="color: #1d4ed8;">Xanh dương</b>: Kỳ gốc | Đường màu <b style="color: #f97316;">Cam</b>: Kỳ đối chiếu.</span>
             <span class="unit-text-indicator"><i class="fa-solid fa-circle-info"></i> Đơn vị: VND</span>
-        </div>
-    </div>
-
-    <!-- BỘ LỌC NGÀY -->
-    <div class="date-filter-horizontal-bar">
-        <div class="filter-date-item">
-            <label>Từ ngày</label>
-            <input type="date" id="inputTuNgay" />
-        </div>
-        <div class="filter-date-item">
-            <label>Đến ngày</label>
-            <input type="date" id="inputDenNgay" />
-        </div>
-        <div class="filter-buttons-action-flex">
-            <button class="btn-submit-filter" id="btnFilter" type="button"><i class="fa-solid fa-filter"></i> Lọc dữ liệu</button>
-            <button class="btn-reset-filter" id="btnReset" type="button">Đặt lại</button>
-
-            <button class="btn-download-excel" id="btnExportExcel" type="button">
-                <i class="fa-solid fa-file-excel"></i> Xuất file Excel
-            </button>
-
-            <button class="btn-send-mail-excel" id="btnSendMail" type="button">
-                <i class="fa-solid fa-paper-plane"></i>
-                <span id="btnSendMailLabel">Gửi báo cáo về Mail</span>
-            </button>
         </div>
     </div>
 
@@ -238,7 +272,12 @@
         #thong-ke-page .card-left-labels { text-align: left; }
         #thong-ke-page .card-time-title { font-size: 13px; font-weight: 500; color: #64748b; }
         #thong-ke-page .card-amount-money { font-size: 18px; font-weight: 700; color: #0f172a; margin: 4px 0; }
-        #thong-ke-page .card-icon-box-orange { width: 34px; height: 34px; border-radius: 8px; background-color: #fff7ed; border: 1px solid #ffedd5; color: #f79b66; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        #thong-ke-page .card-amount-split { margin: 6px 0 10px; display: flex; flex-direction: column; gap: 3px; }
+        #thong-ke-page .amount-line { font-size: 12px; color: #475569; white-space: nowrap; }
+        #thong-ke-page .amount-line b { color: #0f172a; font-weight: 700; }
+        #thong-ke-page .amount-line.cash i { color: #16a34a; width: 13px; text-align: center; }
+        #thong-ke-page .amount-line.transfer i { color: #2563eb; width: 13px; text-align: center; }
+        #thong-ke-page .card-icon-box-orange { width: 34px; height: 34px; border-radius: 8px; background-color: #fff7ed; border: 1px solid #ffedd5; color: #f79b66; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
         #thong-ke-page .card-middle-summary { font-size: 11.5px; color: #475569; text-align: left; margin-bottom: 10px; }
         #thong-ke-page .txt-bold { font-weight: 700; color: #1e293b; }
         #thong-ke-page .card-footer-badges-group { display: flex; gap: 4px; width: 100%; }
@@ -372,15 +411,16 @@
             };
 
             let cardsData = {
-                today: { doanhThu: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
-                week: { doanhThu: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
-                month: { doanhThu: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
-                year: { doanhThu: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 }
+                today: { doanhThu: 0, doanhThuTienMat: 0, doanhThuChuyenKhoan: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
+                week: { doanhThu: 0, doanhThuTienMat: 0, doanhThuChuyenKhoan: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
+                month: { doanhThu: 0, doanhThuTienMat: 0, doanhThuChuyenKhoan: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 },
+                year: { doanhThu: 0, doanhThuTienMat: 0, doanhThuChuyenKhoan: 0, soSanPhamDaBan: 0, tongDonHang: 0, donHoanThanh: 0, donHuy: 0, donDangXuLy: 0 }
             };
 
             let tableData = { topBanChay: [], trangThaiDonHang: [], khachHangTiemNang: [], sanPhamTonKho: [] };
 
-            let mapDoanhThuBieuDoFromServer = {};
+            // Chế độ thường (không so sánh): 2 map tách theo phương thức thanh toán
+            let mapDoanhThuBieuDoFromServer = { tienMat: {}, chuyenKhoan: {} };
             let bieuDoCompositeData = { gocLabel: '', gocData: {}, ssLabel: '', ssData: {} };
 
             // ============================================================
@@ -397,7 +437,8 @@
                     const data = cardsData[key] || {};
                     const cardEl = document.querySelector(`#thong-ke-page [data-card="${key}"]`);
                     if (!cardEl) return;
-                    cardEl.querySelector('[data-field="doanhThu"]').textContent = formatTienTe(data.doanhThu);
+                    cardEl.querySelector('[data-field="doanhThuTienMat"]').textContent = formatTienTe(data.doanhThuTienMat);
+                    cardEl.querySelector('[data-field="doanhThuChuyenKhoan"]').textContent = formatTienTe(data.doanhThuChuyenKhoan);
                     cardEl.querySelector('[data-field="soSanPhamDaBan"]').textContent = data.soSanPhamDaBan ?? 0;
                     cardEl.querySelector('[data-field="tongDonHang"]').textContent = data.tongDonHang ?? 0;
                     cardEl.querySelector('[data-field="donHoanThanh"]').textContent = data.donHoanThanh ?? 0;
@@ -626,6 +667,10 @@
                 gradientFill.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
                 gradientFill.addColorStop(1, 'rgba(255, 255, 255, 0.01)');
 
+                const gradientFillGreen = ctx.createLinearGradient(0, 0, 0, 260);
+                gradientFillGreen.addColorStop(0, 'rgba(22, 163, 74, 0.20)');
+                gradientFillGreen.addColorStop(1, 'rgba(255, 255, 255, 0.01)');
+
                 let labelsX = [];
                 const currentType = isCompareMode ? compareType : selectedPeriodType;
 
@@ -640,22 +685,40 @@
                 let datasetsConfig = [];
 
                 if (!isCompareMode) {
-                    const dataSingle = labelsX.map((day) => Number(mapDoanhThuBieuDoFromServer[day] || 0));
-                    datasetsConfig.push({
-                        label: 'Doanh thu',
-                        data: dataSingle,
-                        borderColor: '#1d4ed8',
-                        borderWidth: 2,
-                        backgroundColor: gradientFill,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: (context) => (dataSingle[context.dataIndex] > 0 ? 5 : 0),
-                        pointBackgroundColor: '#1d4ed8',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 1.5
-                    });
+                    // Tách 2 đường: Tiền mặt / Chuyển khoản
+                    const dataTienMat = labelsX.map((day) => Number(mapDoanhThuBieuDoFromServer.tienMat?.[day] || 0));
+                    const dataChuyenKhoan = labelsX.map((day) => Number(mapDoanhThuBieuDoFromServer.chuyenKhoan?.[day] || 0));
 
-                    const tongDoanhThuThang = Object.values(mapDoanhThuBieuDoFromServer).reduce((sum, val) => sum + Number(val), 0);
+                    datasetsConfig.push(
+                        {
+                            label: 'Tiền mặt',
+                            data: dataTienMat,
+                            borderColor: '#16a34a',
+                            borderWidth: 2,
+                            backgroundColor: gradientFillGreen,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: (context) => (dataTienMat[context.dataIndex] > 0 ? 4 : 0),
+                            pointBackgroundColor: '#16a34a',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1.5
+                        },
+                        {
+                            label: 'Chuyển khoản',
+                            data: dataChuyenKhoan,
+                            borderColor: '#1d4ed8',
+                            borderWidth: 2,
+                            backgroundColor: gradientFill,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: (context) => (dataChuyenKhoan[context.dataIndex] > 0 ? 4 : 0),
+                            pointBackgroundColor: '#1d4ed8',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1.5
+                        }
+                    );
+
+                    const tongDoanhThuThang = [...dataTienMat, ...dataChuyenKhoan].reduce((sum, val) => sum + val, 0);
                     document.getElementById('tongDoanhThuThangText').textContent = formatTienTe(tongDoanhThuThang);
                 } else {
                     const dataGoc = labelsX.map((k) => Number(bieuDoCompositeData.gocData[k] || 0));
@@ -696,7 +759,8 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { display: isCompareMode } },
+                        // Luôn hiện chú thích vì chế độ thường giờ cũng có 2 đường (Tiền mặt / Chuyển khoản)
+                        plugins: { legend: { display: true } },
                         scales: {
                             y: {
                                 min: 0,
@@ -724,6 +788,7 @@
                             isCompare: 'false'
                         });
                         const res = await fetch(`${API_BASE}/bieu-do-line?${params.toString()}`);
+                        // Server trả về { tienMat: {...}, chuyenKhoan: {...} }
                         mapDoanhThuBieuDoFromServer = await res.json();
                     } else {
                         const params = new URLSearchParams({

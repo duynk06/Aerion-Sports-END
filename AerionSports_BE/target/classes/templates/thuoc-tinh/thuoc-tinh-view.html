@@ -113,10 +113,11 @@
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
                             <a th:href="@{/thuoc-tinh/{loai}/doi-trang-thai/{id}(loai=${apiPath}, id=${item.id}, trangThaiHienTai=${item.trangThai})}"
-                               class="status-toggle-container" title="Thay đổi trạng thái">
-                                <span class="toggle-track" th:classappend="${item.trangThai == 1} ? 'track-active' : 'track-inactive'">
-                                    <span class="toggle-handle"></span>
-                                </span>
+                               class="status-toggle-container" title="Thay đổi trạng thái"
+                               onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của thuộc tính này?');">
+    <span class="toggle-track" th:classappend="${item.trangThai == 1} ? 'track-active' : 'track-inactive'">
+        <span class="toggle-handle"></span>
+    </span>
                             </a>
                         </div>
                     </td>

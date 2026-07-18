@@ -111,22 +111,18 @@ function clearLoiValidatePanel() {
     }
 }
 
-// =========================================================================
-// 3. HÀM XUẤT EXCEL CHUYÊN NGHIỆP TRỰC TIẾP TỪ BẢNG HTML
-// =========================================================================
 function xuatExcelLocal() {
     const table = document.getElementById("ttMainTable");
     if (!table) {
         alert("Không tìm thấy dữ liệu bảng để xuất!");
         return;
     }
+    if (!confirm("Bạn có chắc chắn muốn xuất danh sách này ra file Excel không?")) return;
 
     const cloneTable = table.cloneNode(true);
     const rows = cloneTable.querySelectorAll("tr");
     rows.forEach(row => {
-        if (row.lastElementChild) {
-            row.lastElementChild.remove();
-        }
+        if (row.lastElementChild) row.lastElementChild.remove();
     });
 
     const titlePage = window.TT_CONFIG ? window.TT_CONFIG.title : "ThuocTinh";
@@ -224,7 +220,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 event.preventDefault(); return false;
             }
 
+            event.preventDefault();
             clearLoiValidatePanel();
+            const thongDiepXacNhan = currentId
+                ? `Bạn có chắc chắn muốn cập nhật ${titleName} này không?`
+                : `Bạn có chắc chắn muốn thêm mới ${titleName} này không?`;
+
+            if (confirm(thongDiepXacNhan)) {
+                form.submit();
+            }
         });
     }
 
