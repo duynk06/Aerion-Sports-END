@@ -88,7 +88,7 @@
                     <template x-for="(item, index) in khachHang.listDiaChi" :key="item.uid">
                         <div class="address-box-item">
                             <div class="address-box-header">
-                                <span class="badge-title">📍 Khối địa chỉ #<span x-text="index + 1"></span></span>
+                                <span class="badge-title">địa chỉ #<span x-text="index + 1"></span></span>
                                 <button x-show="khachHang.listDiaChi.length > 1" type="button" class="btn-remove-address" @click="xoaKhoiDiaChi(index)">✕ Xóa khối</button>
                             </div>
 
@@ -150,7 +150,7 @@
                 </div>
 
                 <div class="button-group" style="margin-top:30px;">
-                    <button type="submit" class="btn-save">💾 Lưu thông tin khách hàng</button>
+                    <button type="submit" class="btn-save">Lưu thông tin khách hàng</button>
                     <button type="button" class="btn-cancel" onclick="location.href='/khach-hang'">✖ Hủy bỏ</button>
                 </div>
             </form>
@@ -186,11 +186,30 @@
 
             async init() { await this.load63TinhThanh(); },
 
+            listTinhThanh: [],   // giờ sẽ chứa CẢ CÂY dữ liệu: tỉnh → quận/huyện → phường/xã
+
+            async init() { await this.load63TinhThanh(); },
+
             async load63TinhThanh() {
                 try {
-                    const res = await axios.get('https://provinces.open-api.vn/api/p/');
+                    const res = await axios.get('/data/vn-provinces.json');   // 🌟 file tĩnh, cùng domain, không CORS
                     this.listTinhThanh = res.data || [];
-                } catch (e) { console.error(e); }
+                } catch (e) { console.error('Lỗi tải dữ liệu tỉnh/thành: ', e); }
+            },
+
+// 🌟 Không còn gọi API nữa — chỉ lọc từ dữ liệu đã có sẵn trong bộ nhớ
+            handleThayDoiTinhThanh(item) {
+                item.quanHuyen = ''; item.phuongXa = ''; item.listQuanHuyenTmp = []; item.listPhuongXaTmp = [];
+                if (!item.tinhThanh) return;
+                const tinh = this.listTinhThanh.find(t => t.name === item.tinhThanh);
+                item.listQuanHuyenTmp = tinh ? (tinh.districts || []) : [];
+            },
+
+            handleThayDoiQuanHuyen(item) {
+                item.phuongXa = ''; item.listPhuongXaTmp = [];
+                if (!item.quanHuyen) return;
+                const quan = item.listQuanHuyenTmp.find(q => q.name === item.quanHuyen);
+                item.listPhuongXaTmp = quan ? (quan.wards || []) : [];
             },
 
             onAvatarFileChange(e) {
@@ -232,24 +251,7 @@
                 }
             },
 
-            async handleThayDoiTinhThanh(item) {
-                item.quanHuyen = ''; item.phuongXa = ''; item.listQuanHuyenTmp = []; item.listPhuongXaTmp = [];
-                if (!item.tinhThanh) return;
-                const tinh = this.listTinhThanh.find(t => t.name === item.tinhThanh);
-                if (tinh) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                    item.listQuanHuyenTmp = res.data.districts || [];
-                }
-            },
-            async handleThayDoiQuanHuyen(item) {
-                item.phuongXa = ''; item.listPhuongXaTmp = [];
-                if (!item.quanHuyen) return;
-                const quan = item.listQuanHuyenTmp.find(q => q.name === item.quanHuyen);
-                if (quan) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                    item.listPhuongXaTmp = res.data.wards || [];
-                }
-            },
+
 
             themKhoiDiaChiMoi() {
                 this.khachHang.listDiaChi.push({

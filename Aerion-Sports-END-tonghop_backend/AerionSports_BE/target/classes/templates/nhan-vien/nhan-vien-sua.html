@@ -168,7 +168,7 @@
 
             async load63TinhThanh() {
                 try {
-                    const res = await axios.get('https://provinces.open-api.vn/api/p/');
+                    const res = await axios.get('/data/vn-provinces.json');   // 🌟 SỬA
                     this.listTinhThanhAPI = res.data || [];
                     console.log("Đã load", this.listTinhThanhAPI.length, "tỉnh/thành");
                 } catch (e) {
@@ -177,44 +177,89 @@
             },
 
             async loadDuLieuNhanVienCu() {
-            try {
-                const res = await axios.get('http://localhost:8080/nhan-vien/' + this.nhanVienId);
-                const nv = res.data;
-                console.log("Dữ liệu nhân viên từ DB:", nv);
+                try {
+                    const res = await axios.get('http://localhost:8080/nhan-vien/' + this.nhanVienId);
+                    const nv = res.data;
+                    console.log("Dữ liệu nhân viên từ DB:", nv);
 
-                // === Gán thông tin cơ bản ===
-                this.nhanVienForm = {
-                    id: nv.id,
-                    hoTen: nv.tenNv || '',
-                    sdt: nv.sdt || '',
-                    email: nv.email || '',
-                    ngaySinh: nv.ngaySinh ? nv.ngaySinh.split('T')[0] : '',
-                    gioiTinh: String(nv.gioiTinh || 0),
-                    trangThai: nv.trangThai === 1 ? 1 : 0,
-                    vaiTro: nv.vaiTro?.id || 3,
-                    avatarUrlCu: nv.avatar || '',
-                    avatarPreview: nv.avatar || ''
-                };
+                    this.nhanVienForm = {
+                        id: nv.id,
+                        hoTen: nv.tenNv || '',
+                        sdt: nv.sdt || '',
+                        email: nv.email || '',
+                        ngaySinh: nv.ngaySinh ? nv.ngaySinh.split('T')[0] : '',
+                        gioiTinh: String(nv.gioiTinh || 0),
+                        trangThai: nv.trangThai === 1 ? 1 : 0,
+                        vaiTro: nv.vaiTro?.id || 3,
+                        avatarUrlCu: nv.avatar || '',
+                        avatarPreview: nv.avatar || ''
+                    };
 
-                // === Gán địa chỉ ===
-                this.diaChi.tinhThanh = (nv.tinhThanh || '').trim();
-                this.diaChi.quanHuyen = (nv.quanHuyen || '').trim();
-                this.diaChi.phuongXa = (nv.phuongXa || '').trim();
-                this.diaChi.chiTietCuThe = nv.diaChiChiTiet || '';
+                    this.diaChi.tinhThanh = (nv.tinhThanh || '').trim();
+                    this.diaChi.quanHuyen = (nv.quanHuyen || '').trim();
+                    this.diaChi.phuongXa = (nv.phuongXa || '').trim();
+                    this.diaChi.chiTietCuThe = nv.diaChiChiTiet || '';
 
-                this.loaded = true;
+                    this.loaded = true;
 
-                // Fill cascade sau khi loaded = true và DOM render
-                await this.$nextTick();
-                if (this.diaChi.tinhThanh) {
-                    await this.fillCascadeDiaChi();
+                    await this.$nextTick();
+                    if (this.diaChi.tinhThanh) {
+                        this.fillCascadeDiaChi();   // 🌟 không cần await nữa vì giờ chạy đồng bộ (sync)
+                    }
+
+                } catch (e) {
+                    console.error(e);
+                    this.loaded = true;
                 }
+            },
 
-            } catch (e) {
-                console.error(e);
-                this.loaded = true;
-            }
-        },
+
+// 🌟 Không còn async/gọi API — lọc local, chạy tức thì (đồng bộ)
+            handleThayDoiTinhThanh(isInitial = false) {
+                this.listQuanHuyenTmp = [];
+                this.listPhuongXaTmp = [];
+                if (!this.diaChi.tinhThanh) return;
+
+                const tinh = this.listTinhThanhAPI.find(t =>
+                    t.name.trim().toLowerCase() === this.diaChi.tinhThanh.trim().toLowerCase()
+                );
+
+                if (tinh) {
+                    this.listQuanHuyenTmp = tinh.districts || [];
+
+                    if (isInitial && this.diaChi.quanHuyen) {
+                        this.$nextTick(() => {
+                            const qhVal = this.diaChi.quanHuyen;
+                            this.diaChi.quanHuyen = '';
+                            this.$nextTick(() => {
+                                this.diaChi.quanHuyen = qhVal;
+                                this.handleThayDoiQuanHuyen(true);
+                            });
+                        });
+                    }
+                }
+            },
+
+            handleThayDoiQuanHuyen(isInitial = false) {
+                this.listPhuongXaTmp = [];
+                if (!this.diaChi.quanHuyen) return;
+
+                const quan = this.listQuanHuyenTmp.find(q =>
+                    q.name.trim().toLowerCase() === this.diaChi.quanHuyen.trim().toLowerCase()
+                );
+
+                if (quan) {
+                    this.listPhuongXaTmp = quan.wards || [];
+
+                    if (isInitial && this.diaChi.phuongXa) {
+                        this.$nextTick(() => {
+                            const pxVal = this.diaChi.phuongXa;
+                            this.diaChi.phuongXa = '';
+                            this.$nextTick(() => { this.diaChi.phuongXa = pxVal; });
+                        });
+                    }
+                }
+            },
             async fillCascadeDiaChi() {
                 await this.handleThayDoiTinhThanh(true);
                 await this.$nextTick();
@@ -229,53 +274,6 @@
 
                 if (this.diaChi.quanHuyen) {
                     await this.handleThayDoiQuanHuyen(true);
-                }
-            },
-
-            async handleThayDoiTinhThanh(isInitial = false) {
-                this.listQuanHuyenTmp = [];
-                this.listPhuongXaTmp = [];
-                if (!this.diaChi.tinhThanh) return;
-
-                const tinh = this.listTinhThanhAPI.find(t =>
-                    t.name.trim().toLowerCase() === this.diaChi.tinhThanh.trim().toLowerCase()
-                );
-
-                if (tinh) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                    this.listQuanHuyenTmp = res.data.districts || [];
-
-                    // 🌟 Ép reactivity cho quận/huyện sau khi options mới render
-                    if (isInitial && this.diaChi.quanHuyen) {
-                        await this.$nextTick();
-                        const qhVal = this.diaChi.quanHuyen;
-                        this.diaChi.quanHuyen = '';
-                        await this.$nextTick();
-                        this.diaChi.quanHuyen = qhVal;
-                        await this.handleThayDoiQuanHuyen(true);
-                    }
-                }
-            },
-
-            async handleThayDoiQuanHuyen(isInitial = false) {
-                this.listPhuongXaTmp = [];
-                if (!this.diaChi.quanHuyen) return;
-
-                const quan = this.listQuanHuyenTmp.find(q =>
-                    q.name.trim().toLowerCase() === this.diaChi.quanHuyen.trim().toLowerCase()
-                );
-
-                if (quan) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                    this.listPhuongXaTmp = res.data.wards || [];
-
-                    if (isInitial && this.diaChi.phuongXa) {
-                        await this.$nextTick();
-                        const pxVal = this.diaChi.phuongXa;
-                        this.diaChi.phuongXa = '';
-                        await this.$nextTick();
-                        this.diaChi.phuongXa = pxVal;
-                    }
                 }
             },
             

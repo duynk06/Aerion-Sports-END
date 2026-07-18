@@ -65,15 +65,20 @@ public class AuthController {
                 vaiTro = (String) result.get("ma_vai_tro");
                 tenNguoiDung = (String) result.get("ten_nv");
             } catch (Exception e) {
-                vaiTro = "ADMIN";
-                tenNguoiDung = "Nhân viên Aerion (Dự phòng)";
+                return ResponseEntity.status(500).body(Map.of("message", "Không tìm thấy thông tin nhân viên tương ứng!"));
             }
         } else {
-            String sql = "SELECT ho_ten FROM khach_hang WHERE id = ?";
+            String sql = "SELECT ho_ten, trang_thai FROM khach_hang WHERE id = ?";
             try {
-                tenNguoiDung = jdbcTemplate.queryForObject(sql, String.class, tk.getIdChuTaiKhoan());
+                Map<String, Object> result = jdbcTemplate.queryForMap(sql, tk.getIdChuTaiKhoan());
+                Integer trangThaiKh = (Integer) result.get("trang_thai");
+                if (trangThaiKh == null || trangThaiKh != 1) {
+                    return ResponseEntity.status(403).body(Map.of("message", "Tài khoản khách hàng đã bị khoá!"));
+                }
+                tenNguoiDung = (String) result.get("ho_ten");
+                vaiTro = "CUSTOMER";
             } catch (Exception e) {
-                tenNguoiDung = "Khách Hàng";
+                return ResponseEntity.status(500).body(Map.of("message", "Không tìm thấy hồ sơ khách hàng tương ứng!"));
             }
         }
 
@@ -118,8 +123,6 @@ public class AuthController {
         System.out.println(new BCryptPasswordEncoder().encode("123456"));
 
         return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công! 🎉"));
-
-
     }
 
 }

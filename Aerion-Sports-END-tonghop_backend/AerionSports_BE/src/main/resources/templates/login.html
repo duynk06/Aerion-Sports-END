@@ -100,9 +100,20 @@
 
             sessionStorage.setItem('token', res.data.token);
             sessionStorage.setItem('user', JSON.stringify(res.data.user));
+            sessionStorage.setItem('role', res.data.user.ma_vai_tro);
+
             document.cookie = `jwt_token=${res.data.token}; path=/; max-age=86400; SameSite=Lax`;
 
-            location.href = '/thong-ke';
+            // 🌟 Điều hướng theo vai trò
+            const vaiTro = res.data.user.ma_vai_tro;
+            if (vaiTro === 'ADMIN') {
+                location.href = '/thong-ke';
+            } else if (vaiTro === 'QL') {
+                location.href = '/thong-ke';
+            } else {
+                location.href = '/ban-hang'; // NV vào thẳng màn bán hàng
+            }
+
         } catch (e) {
             showError(e.response?.data?.message || 'Đăng nhập thất bại! Vui lòng thử lại.');
             setLoading(false);

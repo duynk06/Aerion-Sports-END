@@ -2,12 +2,16 @@ package com.example.AerionSports_BE.controller;
 
 import com.example.AerionSports_BE.dto.response.KhachHangResponse;
 import com.example.AerionSports_BE.entity.KhachHang;
+import com.example.AerionSports_BE.entity.TaiKhoan;
+import com.example.AerionSports_BE.repository.KhachHangRepository;
+import com.example.AerionSports_BE.repository.TaiKhoanRepository;
 import com.example.AerionSports_BE.service.KhachHangService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,13 +30,27 @@ public class KhachHangController {
 
     @Autowired
     private KhachHangService khachHangService;
-
+    @Autowired
+    private TaiKhoanRepository taiKhoanRepository;
+    @Autowired
+    private KhachHangRepository khachHangRepository;
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     // Thư mục vật lý lưu ảnh đại diện khách hàng (đổi lại theo cấu hình server thật của bạn)
     @Value("${app.upload.dir:${user.dir}/uploads}")
     private String uploadDir;
 
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyProfile() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        TaiKhoan tk = taiKhoanRepository.findByTenDangNhapAndTrangThai(username, 1)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
+
+        KhachHang kh = khachHangRepository.findById(tk.getIdChuTaiKhoan())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ khách hàng"));
+
+        return ResponseEntity.ok(kh);
+    }
 
     @GetMapping("/hien-thi")
     public ResponseEntity<List<KhachHang>> getAll() {

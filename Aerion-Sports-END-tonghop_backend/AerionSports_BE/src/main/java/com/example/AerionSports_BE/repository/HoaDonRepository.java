@@ -16,6 +16,7 @@ import java.util.List;
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
+
     @Query("""
         SELECT hd
         FROM HoaDon hd
@@ -194,4 +195,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<Object[]> queryDoanhThu4QuyTheoNam(@Param("nam") Integer nam);
     List<HoaDon> findByTrangThai(Integer trangThai);
     long countByTrangThai(Integer trangThai);
+    List<HoaDon> findByKhachHang_IdOrderByIdDesc(Integer idKhachHang);
+    java.util.Optional<HoaDon> findByIdAndKhachHang_Id(Integer id, Integer idKhachHang);
 }

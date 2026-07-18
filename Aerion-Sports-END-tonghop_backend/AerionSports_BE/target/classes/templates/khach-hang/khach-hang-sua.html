@@ -195,9 +195,23 @@
 
             async load63TinhThanh() {
                 try {
-                    const res = await axios.get('https://provinces.open-api.vn/api/p/');
+                    const res = await axios.get('/data/vn-provinces.json');
                     this.listTinhThanhAPI = res.data || [];
-                } catch (e) { console.error('Lỗi tải 63 tỉnh thành: ', e); }
+                } catch (e) { console.error('Lỗi tải dữ liệu tỉnh/thành: ', e); }
+            },
+
+            handleThayDoiTinhThanh(addr) {
+                addr.quanHuyen = ''; addr.phuongXa = ''; addr.listQuanHuyenTmp = []; addr.listPhuongXaTmp = [];
+                if (!addr.tinhThanh) return;
+                const tinh = this.listTinhThanhAPI.find(t => t.name === addr.tinhThanh);
+                addr.listQuanHuyenTmp = tinh ? (tinh.districts || []) : [];
+            },
+
+            handleThayDoiQuanHuyen(addr) {
+                addr.phuongXa = ''; addr.listPhuongXaTmp = [];
+                if (!addr.quanHuyen) return;
+                const quan = addr.listQuanHuyenTmp.find(q => q.name === addr.quanHuyen);
+                addr.listPhuongXaTmp = quan ? (quan.wards || []) : [];
             },
 
             async loadDuLieuKhachHangCu() {
@@ -220,14 +234,10 @@
                             if (addr.tinhThanh && this.listTinhThanhAPI.length > 0) {
                                 const tinh = this.listTinhThanhAPI.find(t => t.name.trim() === addr.tinhThanh.trim());
                                 if (tinh) {
-                                    const resHuyen = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                                    huyenList = resHuyen.data.districts || [];
+                                    huyenList = tinh.districts || [];
                                     if (qHuyen && huyenList.length > 0) {
                                         const quan = huyenList.find(q => q.name.trim() === qHuyen.trim());
-                                        if (quan) {
-                                            const resXa = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                                            xaList = resXa.data.wards || [];
-                                        }
+                                        if (quan) xaList = quan.wards || [];
                                     }
                                 }
                             }
@@ -253,25 +263,6 @@
                 } catch (e) {
                     console.error('Lỗi nạp hồ sơ khách hàng cũ: ', e);
                     this.loaded = true;
-                }
-            },
-
-            async handleThayDoiTinhThanh(addr) {
-                addr.quanHuyen = ''; addr.phuongXa = ''; addr.listQuanHuyenTmp = []; addr.listPhuongXaTmp = [];
-                if (!addr.tinhThanh) return;
-                const tinh = this.listTinhThanhAPI.find(t => t.name === addr.tinhThanh);
-                if (tinh) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                    addr.listQuanHuyenTmp = res.data.districts || [];
-                }
-            },
-            async handleThayDoiQuanHuyen(addr) {
-                addr.phuongXa = ''; addr.listPhuongXaTmp = [];
-                if (!addr.quanHuyen) return;
-                const quan = addr.listQuanHuyenTmp.find(q => q.name === addr.quanHuyen);
-                if (quan) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                    addr.listPhuongXaTmp = res.data.wards || [];
                 }
             },
 

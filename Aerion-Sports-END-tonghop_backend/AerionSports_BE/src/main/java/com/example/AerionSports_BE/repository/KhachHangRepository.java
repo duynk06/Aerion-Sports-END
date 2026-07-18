@@ -16,6 +16,8 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
     boolean existsByMaKhachHang(String maKhachHang);
     boolean existsBySdt(String sdt);
     boolean existsByEmail(String email);
+    boolean existsBySdtAndIdNot(String sdt, Integer id);
+    boolean existsByEmailAndIdNot(String email, Integer id);
     Optional<KhachHang> findFirstByOrderByIdDesc();
     @Query("SELECT DISTINCT kh FROM KhachHang kh LEFT JOIN FETCH kh.addresses WHERE kh.id = :id")
     Optional<KhachHang> findByIdWithAddresses(@Param("id") Integer id);

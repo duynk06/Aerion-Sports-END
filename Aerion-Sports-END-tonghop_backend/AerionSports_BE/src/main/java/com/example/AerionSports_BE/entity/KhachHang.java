@@ -1,5 +1,6 @@
 package com.example.AerionSports_BE.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -69,5 +70,6 @@ public class KhachHang {
     // orphanRemoval = true giúp xóa hẳn bản ghi địa chỉ dưới DB khi ta xóa phần tử khỏi List này
     @OneToMany(mappedBy = "khachHang", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference // Ngăn lỗi vòng lặp vô hạn (Infinite Recursion) khi Jackson parse JSON
+    @JsonIgnore
     private List<DiaChiKhachHang> addresses = new ArrayList<>();
 }

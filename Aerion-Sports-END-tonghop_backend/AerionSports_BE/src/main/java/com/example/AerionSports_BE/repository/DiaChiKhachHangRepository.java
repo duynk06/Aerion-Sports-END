@@ -8,9 +8,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DiaChiKhachHangRepository extends JpaRepository<DiaChiKhachHang, Integer> {
-    List<DiaChiKhachHang> findByKhachHangId(Integer idKhachHang);
+
+    // 🌟 SỬA: đổi tên method — Spring Data JPA tự sinh câu SQL dựa theo
+    // đường dẫn field thật (khachHang.id), không phải "idKhachHang"
+    List<DiaChiKhachHang> findByKhachHangId(Integer khachHangId);
+
+    Optional<DiaChiKhachHang> findByIdAndKhachHangId(Integer id, Integer khachHangId);
 
     @Query(value = """
         SELECT
@@ -29,9 +35,8 @@ public interface DiaChiKhachHangRepository extends JpaRepository<DiaChiKhachHang
         WHERE dc.id_khach_hang = :idKhachHang
         ORDER BY dc.mac_dinh DESC
     """, nativeQuery = true)
-    List<DiaChiKhachHangResponse> findDiaChiByKhachHang(
-            @Param("idKhachHang") Integer idKhachHang
-    );
+    List<DiaChiKhachHangResponse> findDiaChiByKhachHang(@Param("idKhachHang") Integer idKhachHang);
+
     @Modifying
     @Query("UPDATE DiaChiKhachHang d SET d.macDinh = false WHERE d.khachHang.id = :idKhachHang")
     void boMacDinhTheoKhachHang(@Param("idKhachHang") Integer idKhachHang);

@@ -169,9 +169,25 @@
 
             async load63TinhThanh() {
                 try {
-                    const res = await axios.get('https://provinces.open-api.vn/api/p/');
+                    const res = await axios.get('/data/vn-provinces.json');   // 🌟 SỬA: dùng file tĩnh local
                     this.listTinhThanh = res.data || [];
                 } catch (e) { console.error(e); }
+            },
+
+// 🌟 Không còn async/gọi API — chỉ lọc từ dữ liệu đã có sẵn
+            handleThayDoiTinhThanh() {
+                this.diaChi.quanHuyen = ''; this.diaChi.phuongXa = '';
+                this.listQuanHuyenTmp = []; this.listPhuongXaTmp = [];
+                if (!this.diaChi.tinhThanh) return;
+                const tinh = this.listTinhThanh.find(t => t.name === this.diaChi.tinhThanh);
+                this.listQuanHuyenTmp = tinh ? (tinh.districts || []) : [];
+            },
+
+            handleThayDoiQuanHuyen() {
+                this.diaChi.phuongXa = ''; this.listPhuongXaTmp = [];
+                if (!this.diaChi.quanHuyen) return;
+                const quan = this.listQuanHuyenTmp.find(q => q.name === this.diaChi.quanHuyen);
+                this.listPhuongXaTmp = quan ? (quan.wards || []) : [];
             },
 
             onAvatarFileChange(e) {
@@ -209,26 +225,6 @@
                     }
                 }
             },
-
-            async handleThayDoiTinhThanh() {
-                this.diaChi.quanHuyen = ''; this.diaChi.phuongXa = ''; this.listQuanHuyenTmp = []; this.listPhuongXaTmp = [];
-                if (!this.diaChi.tinhThanh) return;
-                const tinh = this.listTinhThanh.find(t => t.name === this.diaChi.tinhThanh);
-                if (tinh) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                    this.listQuanHuyenTmp = res.data.districts || [];
-                }
-            },
-            async handleThayDoiQuanHuyen() {
-                this.diaChi.phuongXa = ''; this.listPhuongXaTmp = [];
-                if (!this.diaChi.quanHuyen) return;
-                const quan = this.listQuanHuyenTmp.find(q => q.name === this.diaChi.quanHuyen);
-                if (quan) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                    this.listPhuongXaTmp = res.data.wards || [];
-                }
-            },
-
             validateSdt() {
                 if (!/^(0[3|5|7|8|9])([0-9]{8})$/.test(this.nhanVien.sdt.trim())) { this.errors.sdt = 'SĐT không đúng định dạng nhà mạng VN!'; return false; }
                 this.errors.sdt = ''; return true;

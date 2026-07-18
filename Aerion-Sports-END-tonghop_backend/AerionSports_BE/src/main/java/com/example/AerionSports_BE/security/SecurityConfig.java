@@ -1,5 +1,7 @@
 package com.example.AerionSports_BE.security;
 
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,7 +37,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:63342"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -58,70 +63,79 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
 
-                // 🟢 ĐÃ SỬA: Chuyển policy thành IF_REQUIRED để Spring Security cho phép tạo Session
-                // phục vụ lưu vết phiên làm việc tĩnh cho Thymeleaf Monolith.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(customAuthEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
                 )
 
-
                 .authorizeHttpRequests(auth -> auth
 
+                        // =========================================================
+                        // 🔓 NHÓM 1: PUBLIC — KHÔNG CẦN ĐĂNG NHẬP (permitAll)
+                        // =========================================================
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/auth/**").permitAll()
+                        .requestMatchers("/login", "/login/**", "/logout", "/access-denied").permitAll()
+                        .requestMatchers("/public/client-auth/**", "/api/public/client-auth/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
 
-                        // 🔓 TẠM MỞ TOÀN BỘ GIAO DIỆN QUẢN TRỊ THYMELEAF
-                                // Trang quản trị Thymeleaf: cần đăng nhập với vai trò ADMIN hoặc NHAN_VIEN
-                                .requestMatchers(
-                                        "/trang-chu",
-                                        "/thong-ke",
-                                        "/san-pham", "/san-pham/**",
-                                        "/thuoc-tinh/**",
-                                        "/giao-ca", "/giao-ca/**",
-                                        "/lich-lam-viec", "/lich-lam-viec/**",
-                                        "/khach-hang", "/khach-hang/**"
-                                ).hasAnyRole("ADMIN", "QL", "NV")
+                        // =========================================================
+                        // 🔒 NHÓM 2: CẦN ĐĂNG NHẬP — DÙNG CHUNG CHO ADMIN, QL, NV
+                        // =========================================================
+                        .requestMatchers(
+                                "/api/dia-chinh/**",
+                                "/phieu-giam-gia/**",
+                                "/san-pham", "/san-pham/**",
+                                "/thuoc-tinh/**",
+                                "/lich-lam-viec", "/lich-lam-viec/**",
+                                "/khach-hang", "/khach-hang/**",
+                                "/ban-hang", "/ban-hang/**",          // 🌟 CHUYỂN xuống đây, cho phép NV bán hàng
+                                "/hoa-don", "/hoa-don/**",             // 🌟 CHUYỂN xuống đây, cho phép NV xem/tạo hoá đơn
+                                "/api/san-pham/**",
+                                "/api/thong-ke/**",
+                                "/api/chat-lieu-khung-vot/**",
+                                "/api/chat-lieu-than-vot/**",
+                                "/api/chu-vi-can-vot/**",
+                                "/api/danh-muc/**",
+                                "/api/diem-can-bang/**",
+                                "/api/do-cung/**",
+                                "/api/mau-sac/**",
+                                "/api/thuong-hieu/**",
+                                "/api/trong-luong/**",
+                                "/api/xuat-xu/**"
+                        ).hasAnyRole("ADMIN", "QL", "NV")
 
-// Các trang chỉ ADMIN mới được vào
-                                .requestMatchers(
-                                        "/nhan-vien", "/nhan-vien/**",
-                                        "/dot-giam-gia", "/dot-giam-gia/**",
-                                        "/hoa-don", "/hoa-don/**",
-                                        "/phieu-giam-gia/**",
-                                        "/ban-hang", "/ban-hang/**",
-                                        "/lich-su-thanh-toan/**",
-                                        "/lich-su-hoa-don/**",
-                                        "/public/online-orders/**",
-                                        "/api/public/online-orders/**"
+                        .requestMatchers(
+                                "/public/khach-hang/me", "/public/khach-hang/me/**",
+                                "/api/khach-hang-tu-quan-ly/**"
+                        )
+                        .hasRole("CUSTOMER")
 
-                                ).hasRole("ADMIN")
+                        // =========================================================
+                        // 🔒 NHÓM 3: CHỈ ADMIN MỚI ĐƯỢC VÀO
+                        // =========================================================
+                        .requestMatchers(
+                                "/thong-ke",
+                                "/nhan-vien", "/nhan-vien/**",
+                                "/dot-giam-gia", "/dot-giam-gia/**",
+                                "/phieu-giam-gia/**",
+                                "/lich-su-thanh-toan/**",
+                                "/lich-su-hoa-don/**",
+                                "/public/online-orders/**",
+                                "/api/public/online-orders/**",
+                                "/api/dot-giam-gia/**"
+                        ).hasAnyRole("ADMIN", "QL")
 
-// API tương ứng
-                                .requestMatchers(
-                                        "/api/san-pham/**",
-                                        "/api/thong-ke/**",
-                                        "/api/chat-lieu-khung-vot/**",
-                                        "/api/chat-lieu-than-vot/**",
-                                        "/api/chu-vi-can-vot/**",
-                                        "/api/danh-muc/**",
-                                        "/api/diem-can-bang/**",
-                                        "/api/do-cung/**",
-                                        "/api/mau-sac/**",
-                                        "/api/thuong-hieu/**",
-                                        "/api/trong-luong/**",
-                                        "/api/xuat-xu/**",
-                                        "/api/giao-ca/**", "/api/lich-lam-viec/**",
-                                        "/uploads/**",
-                                        "/api/realtime/**"
-                                ).hasAnyRole("ADMIN", "QL", "NV")
-
-                                .requestMatchers("/api/dot-giam-gia/**").hasRole("ADMIN")
-
-                                .requestMatchers("/nhan-vien/**").hasRole("ADMIN")
-
-                                .anyRequest().authenticated()
+                        // =========================================================
+                        // 🔒 NHÓM 4: MẶC ĐỊNH — CÒN LẠI PHẢI ĐĂNG NHẬP
+                        // =========================================================
+                        .anyRequest().authenticated()
                 );
 
         httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

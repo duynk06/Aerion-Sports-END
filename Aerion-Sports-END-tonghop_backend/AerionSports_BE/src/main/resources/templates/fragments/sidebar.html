@@ -76,7 +76,7 @@
   </a>
 
   <!-- 2. Thống kê -->
-  <a th:href="@{/thong-ke}" class="item">
+  <a th:href="@{/thong-ke}" class="item" id="menuThongKe" >
     <i class="fa-solid fa-chart-line"></i> <span>Thống kê</span>
   </a>
 
@@ -128,12 +128,12 @@
   </a>
 
   <!-- 8. Đợt giảm giá -->
-  <a th:href="@{/dot-giam-gia}" class="item">
+  <a th:href="@{/dot-giam-gia}" class="item" id="menuDotGiamGia">
     <i class="fa-solid fa-percent"></i> <span>Đợt giảm giá</span>
   </a>
 
   <!-- 9. Nhân viên -->
-  <a th:href="@{/nhan-vien}" class="item">
+  <a th:href="@{/nhan-vien}" class="item" id="menuNhanVien">
     <i class="fa-solid fa-user-tie"></i> <span>Nhân viên</span>
   </a>
 
@@ -170,6 +170,19 @@
 
     // Script tự động kích hoạt menu dựa vào URL khi trang vừa tải xong
     document.addEventListener("DOMContentLoaded", function() {
+      const role = sessionStorage.getItem("role");
+
+      if (role === "NV") {
+
+        const menuThongKe = document.getElementById("menuThongKe");
+        if (menuThongKe) menuThongKe.style.display = "none";
+
+        const menuNhanVien = document.getElementById("menuNhanVien");
+        if (menuNhanVien) menuNhanVien.style.display = "none";
+
+        const menuDotGiamGia = document.getElementById("menuDotGiamGia");
+        if (menuDotGiamGia) menuDotGiamGia.style.display = "none";
+      }
       const currentPath = window.location.pathname;
       const links = document.querySelectorAll('.menu-list a');
 
