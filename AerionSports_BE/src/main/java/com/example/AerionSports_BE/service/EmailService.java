@@ -110,6 +110,45 @@ public class EmailService {
             System.err.println(">>> [MAIL ERROR] Thất bại khi gửi tài khoản khách hàng tới " + toEmail + ". Lý do: " + e.getMessage());
         }
     }
+
+    /**
+     * Tính năng: Gửi email thông báo mật khẩu mới sau khi người dùng yêu cầu đặt lại mật khẩu (quên mật khẩu)
+     * @param toEmail Email của người dùng nhận mật khẩu mới
+     * @param tenNguoiDung Tên hiển thị của người dùng
+     * @param matKhauMoi Mật khẩu mới được hệ thống sinh ra
+     */
+    @Async
+    public void sendResetPasswordEmail(String toEmail, String tenNguoiDung, String matKhauMoi) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("🔐 Aerion Sports - Yêu cầu đặt lại mật khẩu");
+
+            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 25px; border: 1px solid #f79b66; border-radius: 12px; max-width: 550px; margin: 0 auto;'>"
+                    + "<div style='text-align: center; margin-bottom: 20px;'>"
+                    + "  <h2 style='color: #f79b66; margin: 0; font-size: 22px; letter-spacing: 1px;'>YÊU CẦU ĐẶT LẠI MẬT KHẨU</h2>"
+                    + "  <p style='color: #475569; font-size: 14px;'>Hệ thống Aerion Sports đã ghi nhận yêu cầu đặt lại mật khẩu của bạn.</p>"
+                    + "</div>"
+                    + "<p>Xin chào <strong>" + tenNguoiDung + "</strong>,</p>"
+                    + "<p>Mật khẩu mới của bạn đã được khởi tạo, vui lòng sử dụng thông tin dưới đây để đăng nhập:</p>"
+                    + "<div style='background-color: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 15px 0; line-height: 1.6;'>"
+                    + "  <p style='margin: 5px 0; font-size: 14px;'>📧 <strong>Tài khoản (Username):</strong> <span style='font-weight: 600; color: #1e293b;'>" + toEmail + "</span></p>"
+                    + "  <p style='margin: 5px 0; font-size: 14px;'>🔑 <strong>Mật khẩu mới:</strong> <span style='font-weight: 700; color: #dc2626; font-family: monospace; background: #fee2e2; padding: 2px 6px; border-radius: 4px;'>" + matKhauMoi + "</span></p>"
+                    + "</div>"
+                    + "<p style='color: #ef4444; font-size: 12.5px; font-style: italic; font-weight: 500;'>⚠️ *Nếu bạn không phải là người thực hiện yêu cầu này, vui lòng đổi mật khẩu ngay hoặc liên hệ với chúng tôi để được hỗ trợ.</p>"
+                    + "<hr style='border: none; border-top: 1px solid #f1f5f9; margin: 20px 0;'/>"
+                    + "<p style='font-size: 11px; color: #94a3b8; text-align: center; margin: 0;'>Hệ thống vận hành tự động Aerion Sports &copy; 2026</p>"
+                    + "</div>";
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            System.out.println(">>> [MAIL SUCCESS] Đã gửi mật khẩu mới thành công tới email: " + toEmail);
+        } catch (Exception e) {
+            System.err.println(">>> [MAIL ERROR] Thất bại khi gửi mật khẩu mới về mail " + toEmail + ". Lý do: " + e.getMessage());
+        }
+    }
     /**
      * Tính năng 2: Gửi email chứa mã giảm giá (Voucher) cá nhân dành riêng cho Khách hàng được tri ân
      * @param toEmail Email của khách hàng nhận voucher

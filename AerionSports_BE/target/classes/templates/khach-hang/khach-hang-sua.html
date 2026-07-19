@@ -136,7 +136,10 @@
                                 <div class="form-row">
                                     <div class="form-cell">
                                         <label>SĐT người nhận <span class="required">*</span></label>
-                                        <input type="text" x-model="addr.sdt" placeholder="Nhập số điện thoại nhận" required />
+                                        <input type="text" x-model="addr.sdt" maxlength="10"
+                                               placeholder="Nhập số điện thoại nhận"
+                                               @input="addr.sdt = addr.sdt.replace(/[^0-9]/g, '')"
+                                               required />
                                     </div>
                                     <div class="form-cell">
                                         <label>Địa chỉ chi tiết <span class="required">*</span></label>
@@ -321,11 +324,14 @@
                 const tuoiHopLe = this.validateNgaySinh();
                 if (!hoTenHopLe || !sdtHopLe || !emailHopLe || !tuoiHopLe) return alert('Vui lòng hoàn thiện đúng các trường hiển thị lỗi đỏ!');
 
-                const trong = this.customerForm.addresses.some(a => !a.nguoiNhan.trim() || !a.sdt.trim() || !a.tinhThanh || !a.quanHuyen || !a.phuongXa || !a.diaChiChiTiet.trim());
+                const sdtRegex = /^(0[3|5|7|8|9])([0-9]{8})$/;
+                const trong = this.customerForm.addresses.some(a =>
+                    !a.nguoiNhan.trim() || !a.sdt.trim() || !a.tinhThanh || !a.quanHuyen || !a.phuongXa || !a.diaChiChiTiet.trim()
+                );
                 if (trong) return alert('Vui lòng không để trống bất kì thông tin nào trong khối sổ địa chỉ!');
 
-                const xacNhan = confirm(`Bạn có chắc chắn muốn lưu thay đổi thông tin khách hàng "${this.customerForm.hoTen}" không?`);
-                if (!xacNhan) return;
+                const sdtSai = this.customerForm.addresses.some(a => !sdtRegex.test(a.sdt.trim()));
+                if (sdtSai) return alert('Số điện thoại người nhận trong sổ địa chỉ không đúng định dạng nhà mạng VN (10 số, đầu số 03/05/07/08/09)!');
 
                 try {
                     const checkTrungRes = await axios.get('http://localhost:8080/public/khach-hang/check-trung', {

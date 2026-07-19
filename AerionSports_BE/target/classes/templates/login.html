@@ -21,10 +21,10 @@
 
         <form id="login-form" onsubmit="return false;">
             <div class="form-group">
-                <label>Tên đăng nhập</label>
+                <label>Email</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-user input-icon"></i>
-                    <input type="text" id="tenDangNhap" placeholder="Nhập tên đăng nhập" autocomplete="username" />
+                    <input type="text" id="tenDangNhap" placeholder="Nhập email" autocomplete="username" />
                 </div>
             </div>
 
@@ -45,12 +45,9 @@
             </button>
         </form>
 
-        <!-- 🆕 Link đăng ký tài khoản -->
+        <!-- 🆕 Quên mật khẩu (thay cho 2 link đăng ký trước đây) -->
         <div class="register-links">
-            <span>Chưa có tài khoản?</span>
-            <a th:href="@{/dang-ky-khach-hang}">Đăng ký Khách hàng</a>
-            <span class="dot">•</span>
-            <a th:href="@{/dang-ky-nhan-vien}">Đăng ký Nhân viên</a>
+            <a th:href="@{/quen-mat-khau}">Quên mật khẩu?</a>
         </div>
 
         <div class="login-footer">
@@ -98,7 +95,7 @@
         const matKhau = document.getElementById('matKhau').value;
 
         if (!tenDangNhap || !matKhau) {
-            showError('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!');
+            showError('Vui lòng nhập đầy đủ email và mật khẩu!');
             return;
         }
 
@@ -119,11 +116,8 @@
             } else if (vaiTro === 'NV') {
                 location.href = '/ban-hang'; // NV vào thẳng màn bán hàng
             } else if (vaiTro === 'KHACH_HANG') {
-                // 🆕 Khách hàng KHÔNG được vào các trang quản lý (/ban-hang, /thong-ke...)
-                // Đổi '/trang-ca-nhan' thành route trang khách hàng thật của bạn (VD: trang chủ shop, hồ sơ, đơn hàng...)
-                location.href = '/trang-ca-nhan';
+                location.href = '/trang-ca-nhan'; // 🌟 Đổi thành route trang khách hàng thật của bạn
             } else {
-                // Phòng hờ vai trò lạ chưa xử lý — không cho vào khu quản lý
                 showError('Tài khoản của bạn không có quyền truy cập hệ thống này!');
                 setLoading(false);
             }
@@ -310,28 +304,21 @@
         cursor: not-allowed;
     }
 
-    /* 🆕 Style cho khu vực link đăng ký */
+    /* Link Quên mật khẩu */
     .register-links {
         text-align: center;
         margin-top: 18px;
         font-size: 13px;
-        color: #6b7280;
     }
 
     .register-links a {
         color: #f79b66;
         font-weight: 600;
         text-decoration: none;
-        margin: 0 4px;
     }
 
     .register-links a:hover {
         text-decoration: underline;
-    }
-
-    .register-links .dot {
-        color: #d1d5db;
-        margin: 0 2px;
     }
 
     .login-footer {

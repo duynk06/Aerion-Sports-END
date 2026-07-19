@@ -2,16 +2,17 @@ package com.example.AerionSports_BE.service.impl;
 
 import com.example.AerionSports_BE.entity.NhanVien;
 import com.example.AerionSports_BE.entity.VaiTro;
-import com.example.AerionSports_BE.entity.TaiKhoan; // 🌟 THÊM IMPORT
+import com.example.AerionSports_BE.entity.TaiKhoan;
 import com.example.AerionSports_BE.repository.NhanVienRepository;
 import com.example.AerionSports_BE.repository.VaiTroRepository;
-import com.example.AerionSports_BE.repository.TaiKhoanRepository; // 🌟 THÊM IMPORT
+import com.example.AerionSports_BE.repository.TaiKhoanRepository;
 import com.example.AerionSports_BE.service.NhanVienService;
 import com.example.AerionSports_BE.service.EmailService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // 🌟 THÊM ĐỂ ĐẢM BẢO ATOMICITY
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,14 +25,14 @@ public class NhanVienServiceImpl implements NhanVienService {
     private final NhanVienRepository nhanVienRepository;
     private final VaiTroRepository vaiTroRepository;
     private final EmailService emailService;
-    private final TaiKhoanRepository taiKhoanRepository; //
-    private final PasswordEncoder passwordEncoder;   // 🔧 THÊM DÒNG NÀY
-// 🌟 TIÊM REPOSITORY TÀI KHOẢN
+    private final TaiKhoanRepository taiKhoanRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<NhanVien> findAll() {
         return nhanVienRepository.findAllByOrderByNgayTaoDesc();
     }
+
     @Override
     public NhanVien findById(Integer id) {
         return nhanVienRepository.findById(id)
@@ -47,7 +48,7 @@ public class NhanVienServiceImpl implements NhanVienService {
     }
 
     @Override
-    @Transactional // 🌟 Đảm bảo nếu tạo tài khoản lỗi thì sẽ Rollback không tạo Nhân viên lỗi
+    @Transactional
     public NhanVien add(NhanVien nhanVien) {
 
         // --- LOGIC TỰ TĂNG MÃ NHÂN VIÊN TUẦN TỰ ---
@@ -73,6 +74,15 @@ public class NhanVienServiceImpl implements NhanVienService {
             throw new RuntimeException("Email đã tồn tại");
         }
 
+        // 🌟 THÊM: Kiểm tra email đã được dùng làm tên đăng nhập ở bảng tai_khoan chưa
+        // (VD: email đã đăng ký làm khách hàng, hoặc từng có tài khoản nhân viên khác dùng email này).
+        // Thiếu bước này thì insert nhan_vien vẫn thành công nhưng insert tai_khoan sẽ vỡ UNIQUE KEY,
+        // và vì có @Transactional nên toàn bộ sẽ rollback — nhưng lỗi SQL thô sẽ văng thẳng ra người dùng.
+        if (nhanVien.getEmail() != null && !nhanVien.getEmail().trim().isEmpty()
+                && taiKhoanRepository.existsByTenDangNhap(nhanVien.getEmail())) {
+            throw new RuntimeException("Email này đã được sử dụng cho một tài khoản đăng nhập khác trong hệ thống!");
+        }
+
         Integer vaiTroId = nhanVien.getVaiTro().getId();
         VaiTro vaiTro = vaiTroRepository.findById(vaiTroId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò"));
@@ -81,32 +91,35 @@ public class NhanVienServiceImpl implements NhanVienService {
         nhanVien.setNgayTao(LocalDateTime.now());
         nhanVien.setNgaySua(LocalDateTime.now());
 
-        // Thực hiện lưu thông tin nhân viên mới xuống Database SQL Server trước để lấy ID tự tăng
         NhanVien savedEmployee = nhanVienRepository.save(nhanVien);
 
         // ==========================================================================
-        // ⚡ ĐÃ CẬP NHẬT: TỰ ĐỘNG ĐỒNG BỘ ĐỒNG THỜI TÀI KHOẢN HỆ THỐNG
+        // ⚡ TỰ ĐỘNG ĐỒNG BỘ ĐỒNG THỜI TÀI KHOẢN HỆ THỐNG
         // ==========================================================================
-        String matKhauTamThoi = UUID.randomUUID().toString().substring(0, 8); // Sinh 8 ký tự mật khẩu
+        String matKhauTamThoi = UUID.randomUUID().toString().substring(0, 8);
 
         TaiKhoan tkMoi = new TaiKhoan();
         tkMoi.setTenDangNhap(savedEmployee.getEmail());
-        tkMoi.setMatKhauHash(passwordEncoder.encode(matKhauTamThoi)); // 🔧 THÊM DÒNG NÀY — bắt buộc để tránh lỗi NOT NULL
-// Lấy luôn Email làm tên đăng nhập hệ thống
+        tkMoi.setMatKhauHash(passwordEncoder.encode(matKhauTamThoi));
         tkMoi.setLoaiTaiKhoan("NHAN_VIEN");
-        tkMoi.setIdChuTaiKhoan(savedEmployee.getId()); // Gắn kết ID của NhanVien vừa sinh ra
+        tkMoi.setIdChuTaiKhoan(savedEmployee.getId());
         tkMoi.setNgayTao(LocalDateTime.now());
         tkMoi.setNgayCapNhat(LocalDateTime.now());
         tkMoi.setTrangThai(1);
 
-        taiKhoanRepository.save(tkMoi); // Lưu trực tiếp bản ghi Authentication
+        try {
+            taiKhoanRepository.save(tkMoi);
+        } catch (DataIntegrityViolationException e) {
+            // 🌟 Lưới an toàn cuối cùng: nếu vẫn có race-condition (2 request cùng lúc dùng chung email)
+            // thì trả về message thân thiện thay vì để lỗi SQL thô văng ra như trước.
+            throw new RuntimeException("Email này đã được sử dụng cho một tài khoản đăng nhập khác trong hệ thống!");
+        }
 
-        // 3. Kích hoạt luồng gửi mail ngầm trả tài khoản về hòm thư Gmail của nhân viên
         if (savedEmployee.getEmail() != null && !savedEmployee.getEmail().trim().isEmpty()) {
             emailService.sendAccountCreationEmail(
                     savedEmployee.getEmail(),
                     savedEmployee.getTenNv(),
-                    matKhauTamThoi // Gửi mật khẩu dạng text thô qua email cho nhân viên đọc
+                    matKhauTamThoi
             );
         }
 
@@ -124,6 +137,13 @@ public class NhanVienServiceImpl implements NhanVienService {
 
         if (nhanVien.getEmail() != null && !nhanVien.getEmail().trim().isEmpty() && !nhanVien.getEmail().equalsIgnoreCase(nv.getEmail()) && nhanVienRepository.existsByEmail(nhanVien.getEmail())) {
             throw new RuntimeException("Email đã tồn tại");
+        }
+
+        // 🌟 THÊM: nếu đổi sang email khác, cũng cần đảm bảo email mới chưa bị dùng làm tài khoản đăng nhập khác
+        if (nhanVien.getEmail() != null && !nhanVien.getEmail().trim().isEmpty()
+                && !nhanVien.getEmail().equalsIgnoreCase(nv.getEmail())
+                && taiKhoanRepository.existsByTenDangNhap(nhanVien.getEmail())) {
+            throw new RuntimeException("Email này đã được sử dụng cho một tài khoản đăng nhập khác trong hệ thống!");
         }
 
         VaiTro vaiTro = vaiTroRepository.findById(nhanVien.getVaiTro().getId())

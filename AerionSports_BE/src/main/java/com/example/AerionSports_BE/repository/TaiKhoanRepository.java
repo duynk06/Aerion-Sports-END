@@ -7,4 +7,5 @@
 
     public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, Integer > {
         Optional<TaiKhoan> findByTenDangNhapAndTrangThai(String tenDangNhap, Integer trangThai);
+        boolean existsByTenDangNhap(String tenDangNhap);
     }

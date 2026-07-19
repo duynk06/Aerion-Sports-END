@@ -77,6 +77,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/dang-ky-nhan-vien", "/dang-ky-khach-hang").permitAll()
+                        .requestMatchers("/quen-mat-khau").permitAll()
 
                         // =========================================================
                         // 🔒 NHÓM 2: CẦN ĐĂNG NHẬP — DÙNG CHUNG CHO ADMIN, QL, NV

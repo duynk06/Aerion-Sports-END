@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -101,7 +100,7 @@ public class AuthController {
     }
 
     // =========================================================
-    // ĐỔI MẬT KHẨU
+    // ĐỔI MẬT KHẨU (yêu cầu đã đăng nhập)
     // =========================================================
     @PutMapping("/doi-mat-khau")
     public ResponseEntity<?> doiMatKhau(@Valid @RequestBody DoiMatKhauRequest request) {
@@ -127,7 +126,7 @@ public class AuthController {
     }
 
     // =========================================================
-    // 🆕 ĐĂNG KÝ TÀI KHOẢN NHÂN VIÊN (public, tự sinh mật khẩu, gửi mail)
+    // ĐĂNG KÝ TÀI KHOẢN NHÂN VIÊN (public, tự sinh mật khẩu, gửi mail)
     // =========================================================
     @PostMapping("/dang-ky-nhan-vien")
     public ResponseEntity<?> dangKyNhanVien(@RequestBody DangKyNhanVienRequest req) {
@@ -184,7 +183,7 @@ public class AuthController {
     }
 
     // =========================================================
-    // 🆕 ĐĂNG KÝ TÀI KHOẢN KHÁCH HÀNG (public, tự sinh mật khẩu, gửi mail)
+    // ĐĂNG KÝ TÀI KHOẢN KHÁCH HÀNG (public, tự sinh mật khẩu, gửi mail)
     // =========================================================
     @PostMapping("/dang-ky-khach-hang")
     public ResponseEntity<?> dangKyKhachHang(@RequestBody DangKyKhachHangRequest req) {
@@ -238,6 +237,49 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Đăng ký thành công! Thông tin tài khoản đã được gửi qua email."));
     }
 
+    // =========================================================
+    // QUÊN MẬT KHẨU (public, tự sinh mật khẩu mới, gửi qua mail)
+    // =========================================================
+    @PostMapping("/quen-mat-khau")
+    public ResponseEntity<?> quenMatKhau(@RequestBody QuenMatKhauRequest req) {
+
+        if (req.getEmail() == null || req.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng nhập email!"));
+        }
+
+        Optional<TaiKhoan> tkOpt = taiKhoanRepository.findByTenDangNhapAndTrangThai(req.getEmail(), 1);
+        if (tkOpt.isEmpty()) {
+            // Không tiết lộ email có tồn tại hay không, tránh dò email người khác
+            return ResponseEntity.ok(Map.of("message", "Nếu email tồn tại trong hệ thống, mật khẩu mới đã được gửi tới hộp thư của bạn."));
+        }
+
+        TaiKhoan tk = tkOpt.get();
+        String matKhauMoi = generateRandomPassword();
+        tk.setMatKhauHash(passwordEncoder.encode(matKhauMoi));
+        taiKhoanRepository.save(tk);
+
+        String tenNguoiDung;
+        if ("NHAN_VIEN".equals(tk.getLoaiTaiKhoan())) {
+            try {
+                tenNguoiDung = jdbcTemplate.queryForObject(
+                        "SELECT ten_nv FROM nhan_vien WHERE id = ?", String.class, tk.getIdChuTaiKhoan());
+            } catch (Exception e) {
+                tenNguoiDung = "Nhân viên Aerion";
+            }
+        } else {
+            try {
+                tenNguoiDung = jdbcTemplate.queryForObject(
+                        "SELECT ho_ten FROM khach_hang WHERE id = ?", String.class, tk.getIdChuTaiKhoan());
+            } catch (Exception e) {
+                tenNguoiDung = "Khách hàng";
+            }
+        }
+
+        emailService.sendResetPasswordEmail(req.getEmail(), tenNguoiDung, matKhauMoi);
+
+        return ResponseEntity.ok(Map.of("message", "Nếu email tồn tại trong hệ thống, mật khẩu mới đã được gửi tới hộp thư của bạn."));
+    }
+
     private String generateRandomPassword() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 10; i++) {
@@ -264,5 +306,10 @@ class DangKyNhanVienRequest {
 class DangKyKhachHangRequest {
     private String hoTen;
     private String sdt;
+    private String email;
+}
+
+@Data
+class QuenMatKhauRequest {
     private String email;
 }

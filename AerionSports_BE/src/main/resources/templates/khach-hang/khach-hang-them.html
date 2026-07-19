@@ -81,14 +81,16 @@
 
                 <div class="address-section-header">
                     <h3>Sổ địa chỉ giao nhận (Tối đa nhiều nơi)</h3>
-                    <button type="button" class="btn-add-address" @click="themKhoiDiaChiMoi()">➕ Thêm địa chỉ mới</button>
+                    <button type="button" class="btn-add-address" @click="themKhoiDiaChiMoi()">Thêm địa chỉ mới</button>
                 </div>
+
+
 
                 <div class="address-list-container">
                     <template x-for="(item, index) in khachHang.listDiaChi" :key="item.uid">
                         <div class="address-box-item">
                             <div class="address-box-header">
-                                <span class="badge-title">địa chỉ #<span x-text="index + 1"></span></span>
+                                <span class="badge-title">địa chỉ <span x-text="index + 1"></span></span>
                                 <button x-show="khachHang.listDiaChi.length > 1" type="button" class="btn-remove-address" @click="xoaKhoiDiaChi(index)">✕ Xóa khối</button>
                             </div>
 
@@ -99,7 +101,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label>SĐT người nhận <span>*</span></label>
-                                    <input type="text" x-model="item.sdtNguoiNhan" placeholder="Nhập SĐT nhận hàng" required />
+                                    <input type="text" x-model="item.sdtNguoiNhan" maxlength="10"
+                                           placeholder="Nhập SĐT nhận hàng"
+                                           @input="item.sdtNguoiNhan = item.sdtNguoiNhan.replace(/[^0-9]/g, '')"
+                                           required />
                                 </div>
                             </div>
 
@@ -299,13 +304,17 @@
                 const sdtHopLe = this.validateSdt();
                 const emailHopLe = this.validateEmail();
                 const tuoiHopLe = this.validateNgaySinh();
+
                 if (!hoTenHopLe || !sdtHopLe || !emailHopLe || !tuoiHopLe) return alert('Vui lòng hoàn thiện đúng các trường hiển thị lỗi đỏ!');
 
-                const trong = this.khachHang.listDiaChi.some(a => !a.tenNguoiNhan.trim() || !a.sdtNguoiNhan.trim() || !a.tinhThanh || !a.quanHuyen || !a.phuongXa || !a.chiTietCuThe.trim());
+                const sdtRegex = /^(0[3|5|7|8|9])([0-9]{8})$/;
+                const trong = this.khachHang.listDiaChi.some(a =>
+                    !a.tenNguoiNhan.trim() || !a.sdtNguoiNhan.trim() || !a.tinhThanh || !a.quanHuyen || !a.phuongXa || !a.chiTietCuThe.trim()
+                );
                 if (trong) return alert('Vui lòng không để trống bất kì thông tin nào trong khối sổ địa chỉ!');
 
-                const xacNhan = confirm(`Bạn có chắc chắn muốn thêm khách hàng "${this.khachHang.tenKh.trim()}" không?`);
-                if (!xacNhan) return;
+                const sdtSai = this.khachHang.listDiaChi.some(a => !sdtRegex.test(a.sdtNguoiNhan.trim()));
+                if (sdtSai) return alert('Số điện thoại người nhận trong sổ địa chỉ không đúng định dạng nhà mạng VN (10 số, đầu số 03/05/07/08/09)!');
 
                 try {
                     const checkTrungRes = await axios.get('http://localhost:8080/public/khach-hang/check-trung', {

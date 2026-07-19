@@ -15,4 +15,9 @@ public class PageController {
     public String trangDangKyKhachHang() {
         return "dang-ky-khach-hang"; // trỏ tới templates/dang-ky-khach-hang.html
     }
+
+    @GetMapping("/quen-mat-khau")
+    public String trangQuenMatKhau() {
+        return "quen-mat-khau";
+    }
 }
