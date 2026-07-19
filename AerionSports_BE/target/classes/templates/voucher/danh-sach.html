@@ -211,7 +211,7 @@
                         <td th:text="${phieu.tenPhieuGiamGia}"></td>
                         <td>
                             <span th:if="${phieu.loaiPhieuGiamGia == 'Sale %'}" th:text="${phieu.giaTriGiam + ' %'}"></span>
-                            <span th:unless="${phieu.loaiPhieuGiamGia == 'Sale %'}" th:text="${phieu.giaTriGiam + ' đ'}"></span>
+                            <span th:unless="${phieu.loaiPhieuGiamGia == 'Sale %'}" th:text="${#numbers.formatInteger(phieu.giaTriGiam, 0, 'POINT') + ' đ'}"></span>
                         </td>
                         <td th:text="${phieu.soLuong}"></td>
                         <td th:text="${phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0}"></td>
@@ -222,7 +222,10 @@
                         </td>
                         <td>
                             <span class="status"
-                                  th:with="isActive=${phieu.trangThai == 1 && phieu.ngayKetThuc != null && !phieu.ngayKetThuc.toLocalDate().isBefore(T(java.time.LocalDate).now())}"
+                                  th:with="isActive=${phieu.trangThai == 1
+                                                     && phieu.ngayKetThuc != null
+                                                     && !phieu.ngayKetThuc.toLocalDate().isBefore(T(java.time.LocalDate).now())
+                                                     && phieu.soLuong > (phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0)}"
                                   th:classappend="${isActive} ? 'active' : 'inactive'"
                                   th:text="${isActive} ? 'Hoạt động' : 'Ngừng hoạt động'">
                             </span>
@@ -233,7 +236,10 @@
 
                             <a th:href="@{/phieu-giam-gia/toggle/{id}(id=${phieu.id}, page=${currentPage}, keyword=${param.keyword}, trangThai=${param.trangThai}, tuNgay=${param.tuNgay}, denNgay=${param.denNgay})}"
                                class="action-btn"
-                               th:with="isActive=${phieu.trangThai == 1 && phieu.ngayKetThuc != null && !phieu.ngayKetThuc.toLocalDate().isBefore(T(java.time.LocalDate).now())}"
+                               th:with="isActive=${phieu.trangThai == 1
+                                                     && phieu.ngayKetThuc != null
+                                                     && !phieu.ngayKetThuc.toLocalDate().isBefore(T(java.time.LocalDate).now())
+                                                     && phieu.soLuong > (phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0)}"
                                th:classappend="${isActive} ? 'toggle-on-btn' : 'toggle-off-btn'"
                                th:text="${isActive} ? 'Tắt' : 'Bật'">
                             </a>

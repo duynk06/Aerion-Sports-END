@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#tracking-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="tracking-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/theo-doi.css}" />
+
+    <section class="tracking-page-wrapper">
+        <div class="container tracking-container">
+            <h1 class="tracking-main-title">THEO DÕI ĐƠN HÀNG</h1>
+
+            <div class="tracking-box">
+                <form th:action="@{/cua-hang/theo-doi-don-hang}" method="get" class="tracking-form">
+                    <div class="tracking-input-group">
+                        <label for="orderCode">Mã hoá đơn</label>
+                        <input type="text" id="orderCode" name="code" th:value="${param.code}" placeholder="VD: HD260630123456789" required autocomplete="off">
+                    </div>
+
+                    <div class="tracking-btn-group">
+                        <button type="submit" class="tracking-btn">Tra cứu</button>
+                    </div>
+                </form>
+            </div>
+
+            <div th:if="${trackingOrder != null}" class="tracking-result-wrapper">
+                <div class="tracking-result-box">
+                    <div class="tracking-header">
+                        <div class="tracking-header-left">
+                            <h2>Mã đơn: <span th:text="${trackingOrder.maHoaDon}">HD260701065600577</span></h2>
+                            <p th:text="${'Đặt lúc: ' + #temporals.format(trackingOrder.ngayTao, 'HH:mm:ss dd/MM/yyyy')}">Đặt lúc: 06:56:00 01/07/2026</p>
+                        </div>
+                        <div class="tracking-header-right">
+                            <span class="status-badge-blue" th:text="${trackingOrder.trangThaiName}">Chờ giao hàng</span>
+                        </div>
+                    </div>
+
+                    <div class="tracking-timeline">
+                        <div class="timeline-step" th:classappend="${trackingStep >= 1} ? (${trackingStep == 1} ? ' active' : ' completed') : ''">
+                            <div class="timeline-icon"><i class="ph ph-hourglass-high"></i></div>
+                            <div class="timeline-label">Chờ xác nhận</div>
+                        </div>
+                        <div class="timeline-step" th:classappend="${trackingStep >= 2} ? (${trackingStep == 2} ? ' active' : ' completed') : ''">
+                            <div class="timeline-icon"><i class="ph ph-check-circle"></i></div>
+                            <div class="timeline-label">Đã xác nhận</div>
+                        </div>
+                        <div class="timeline-step" th:classappend="${trackingStep >= 3} ? (${trackingStep == 3} ? ' active' : ' completed') : ''">
+                            <div class="timeline-icon"><i class="ph ph-package"></i></div>
+                            <div class="timeline-label">Chờ giao hàng</div>
+                        </div>
+                        <div class="timeline-step" th:classappend="${trackingStep >= 4} ? (${trackingStep == 4} ? ' active' : ' completed') : ''">
+                            <div class="timeline-icon"><i class="ph ph-truck"></i></div>
+                            <div class="timeline-label">Đang giao hàng</div>
+                        </div>
+                        <div class="timeline-step" th:classappend="${trackingStep >= 5} ? (${trackingStep == 5} ? ' active' : ' completed') : ''">
+                            <div class="timeline-icon"><i class="ph ph-house"></i></div>
+                            <div class="timeline-label">Đã giao hàng</div>
+                        </div>
+                        <div class="timeline-step" th:classappend="${trackingStep >= 6} ? (${trackingStep == 6} ? ' active' : ' completed') : ''">
+                            <div class="timeline-icon"><i class="ph ph-flag-checkered"></i></div>
+                            <div class="timeline-label">Đã hoàn thành</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tracking-grid">
+                    <div class="tracking-result-box tracking-info-box">
+                        <h3 class="tracking-box-title">Thông tin đơn hàng</h3>
+                        <div class="tracking-info-grid">
+                            <div class="info-group">
+                                <label>KHÁCH HÀNG</label>
+                                <p th:text="${trackingOrder.tenKhachHang != null ? trackingOrder.tenKhachHang : trackingOrder.tenNguoiNhan}">Nguyễn Văn A</p>
+                            </div>
+                            <div class="info-group">
+                                <label>SĐT ĐẶT HÀNG</label>
+                                <p th:text="${trackingOrder.sdtKhachHang != null ? trackingOrder.sdtKhachHang : trackingOrder.sdtNguoiNhan}">0123456789</p>
+                            </div>
+                            <div class="info-group">
+                                <label>NGƯỜI NHẬN</label>
+                                <p th:text="${trackingOrder.tenNguoiNhan}">Nguyễn Văn A</p>
+                            </div>
+                            <div class="info-group">
+                                <label>SĐT NGƯỜI NHẬN</label>
+                                <p th:text="${trackingOrder.sdtNguoiNhan}">0123456789</p>
+                            </div>
+                            <div class="info-group full-width">
+                                <label>ĐỊA CHỈ GIAO HÀNG</label>
+                                <p th:text="${trackingOrder.diaChiNhan}">Hà Nội</p>
+                            </div>
+                            <div class="info-group">
+                                <label>TRẠNG THÁI</label>
+                                <p th:text="${trackingOrder.trangThaiName}">Chờ xác nhận</p>
+                            </div>
+                            <div class="info-group">
+                                <label>GHI CHÚ</label>
+                                <p th:text="${trackingOrder.ghiChu != null && !trackingOrder.ghiChu.isBlank() ? trackingOrder.ghiChu : 'Không có ghi chú'}">Không có ghi chú</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tracking-result-box tracking-payment-box">
+                        <h3 class="tracking-box-title">Tóm tắt thanh toán</h3>
+                        <div class="payment-summary-list">
+                            <div class="payment-row">
+                                <span>Tiền hàng</span>
+                                <strong th:text="${#numbers.formatDecimal(trackingOrder.tongTienHang, 0, 'POINT', 0, 'COMMA') + ' đ'}">3.600.000 đ</strong>
+                            </div>
+                            <div class="payment-row text-green">
+                                <span>Giảm giá</span>
+                                <strong th:text="${'- ' + #numbers.formatDecimal(trackingOrder.tienGiam, 0, 'POINT', 0, 'COMMA') + ' đ'}">- 0 đ</strong>
+                            </div>
+                            <div class="payment-row">
+                                <span>Phí vận chuyển</span>
+                                <strong th:text="${#numbers.formatDecimal(trackingOrder.tienVanChuyen, 0, 'POINT', 0, 'COMMA') + ' đ'}">31.000 đ</strong>
+                            </div>
+                        </div>
+                        <div class="payment-total-row">
+                            <span>Tổng thanh toán</span>
+                            <strong class="total-price" th:text="${#numbers.formatDecimal(trackingOrder.tongTienThanhToan, 0, 'POINT', 0, 'COMMA') + ' đ'}">3.631.000 đ</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tracking-result-box tracking-products-box">
+                    <h3 class="tracking-box-title">Sản phẩm trong đơn</h3>
+                    <div class="tracking-product-list">
+                        <div class="tracking-product-item" th:each="item : ${trackingItems}">
+                            <img th:src="${item.anh != null && !item.anh.isBlank() ? item.anh : '/images/default_racket.jpg'}"
+                                 th:data-fallback="'/images/default_racket.jpg'"
+                                 onerror="this.src=this.getAttribute('data-fallback');"
+                                 th:alt="${item.tenSanPham}"
+                                 class="tracking-product-img">
+                            <div class="tracking-product-details">
+                                <div class="tracking-product-name" th:text="${item.tenSanPham}">Victor Thruster K</div>
+                                <div class="tracking-product-meta"
+                                     th:utext="${'Phân loại: ' + (item.mauSac != null ? item.mauSac : 'Mặc định') + ' / ' + (item.trongLuong != null ? item.trongLuong : 'Mặc định') + '<br>SL: ' + item.soLuong}">
+                                    Phân loại: Xanh / 4U<br>SL: 1
+                                </div>
+                            </div>
+                            <div class="tracking-product-price" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'POINT', 0, 'COMMA') + ' đ'}">1.800.000 đ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+</html>

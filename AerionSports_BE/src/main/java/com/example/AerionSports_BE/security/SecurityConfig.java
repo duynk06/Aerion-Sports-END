@@ -67,11 +67,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/auth/**").permitAll()
                         .requestMatchers("/public/client-auth/**", "/api/public/client-auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/ban-hang-online/**").permitAll()
 
                         .requestMatchers("/ban-hang", "/ban-hang/**").permitAll()
                         .requestMatchers("/hoa-don", "/hoa-don/**").permitAll()
                         .requestMatchers("/dot-giam-gia", "/dot-giam-gia/**").permitAll()
+                        .requestMatchers("/", "/cua-hang", "/cua-hang/**").permitAll()
                         .requestMatchers("/chi-tiet-hoa-don/**").permitAll()
                         .requestMatchers("/lich-su-hoa-don/**").permitAll()
                         .requestMatchers("/lich-su-thanh-toan/**").permitAll()
@@ -137,3 +138,4 @@ public class SecurityConfig {
         return httpSecurity.build();
     }
 }
+

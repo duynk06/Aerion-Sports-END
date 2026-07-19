@@ -4,6 +4,8 @@ import com.example.AerionSports_BE.dto.ChiTietEmailDTO;
 import com.example.AerionSports_BE.dto.response.ChiTietHoaDonResponse;
 import com.example.AerionSports_BE.dto.response.LichSuHoaDonResponse;
 import com.example.AerionSports_BE.dto.response.LichSuThanhToanResponse;
+import com.example.AerionSports_BE.entity.ChiTietHoaDon;
+import com.example.AerionSports_BE.entity.ChiTietSanPham;
 import com.example.AerionSports_BE.entity.HoaDon;
 import com.example.AerionSports_BE.entity.LichSuHoaDon;
 import com.example.AerionSports_BE.entity.LichSuThanhToan;
@@ -120,6 +122,13 @@ public class HoaDonServiceImpl implements HoaDonService {
         Integer trangThaiCu = hoaDon.getTrangThai();
         validateChuyenTrangThai(trangThaiCu, trangThaiMoi, hoaDon.getLoaiHoaDon());
 
+        if (laHoaDonOnline(hoaDon) && trangThaiCu != null && trangThaiCu == 0 && trangThaiMoi != null && trangThaiMoi == 1) {
+            truTonKhoKhiXacNhanDonOnline(hoaDon.getId());
+        }
+        if (laHoaDonOnline(hoaDon) && trangThaiCu != null && trangThaiCu >= 1 && trangThaiMoi != null && trangThaiMoi == 6) {
+            hoanTonKhoKhiHuyDonOnlineDaXacNhan(hoaDon.getId());
+        }
+
         hoaDon.setTrangThai(trangThaiMoi);
         hoaDon.setNgayCapNhat(LocalDateTime.now());
         hoaDonRepository.save(hoaDon);
@@ -186,6 +195,48 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         return new HoaDonResponse(hoaDonRepository.findById(id).orElse(hoaDon));
     }
+    private boolean laHoaDonOnline(HoaDon hoaDon) {
+        return hoaDon != null && hoaDon.getLoaiHoaDon() != null && hoaDon.getLoaiHoaDon() == 1;
+    }
+
+    private void truTonKhoKhiXacNhanDonOnline(Integer idHoaDon) {
+        List<ChiTietHoaDon> chiTietHoaDons = chiTietHoaDonRepository.findByHoaDonIdWithDetail(idHoaDon);
+        for (ChiTietHoaDon chiTietHoaDon : chiTietHoaDons) {
+            ChiTietSanPham bienThe = chiTietHoaDon.getChiTietSanPham();
+            if (bienThe == null) {
+                continue;
+            }
+
+            int tonKho = bienThe.getSoLuong() == null ? 0 : bienThe.getSoLuong();
+            int soLuongCanTru = chiTietHoaDon.getSoLuong() == null ? 0 : chiTietHoaDon.getSoLuong();
+            if (soLuongCanTru <= 0) {
+                throw new RuntimeException("So luong san pham trong hoa don khong hop le.");
+            }
+            if (tonKho < soLuongCanTru) {
+                String tenSanPham = bienThe.getIdSanPham() == null ? "San pham" : bienThe.getIdSanPham().getTenSanPham();
+                throw new RuntimeException(tenSanPham + " khong du ton kho de xac nhan don hang.");
+            }
+
+            bienThe.setSoLuong(tonKho - soLuongCanTru);
+            bienThe.setNgayCapNhat(java.time.Instant.now());
+        }
+    }
+
+    private void hoanTonKhoKhiHuyDonOnlineDaXacNhan(Integer idHoaDon) {
+        List<ChiTietHoaDon> chiTietHoaDons = chiTietHoaDonRepository.findByHoaDonIdWithDetail(idHoaDon);
+        for (ChiTietHoaDon chiTietHoaDon : chiTietHoaDons) {
+            ChiTietSanPham bienThe = chiTietHoaDon.getChiTietSanPham();
+            if (bienThe == null) {
+                continue;
+            }
+
+            int tonKho = bienThe.getSoLuong() == null ? 0 : bienThe.getSoLuong();
+            int soLuongHoan = chiTietHoaDon.getSoLuong() == null ? 0 : chiTietHoaDon.getSoLuong();
+            bienThe.setSoLuong(tonKho + Math.max(0, soLuongHoan));
+            bienThe.setNgayCapNhat(java.time.Instant.now());
+        }
+    }
+
     private void validateChuyenTrangThai(Integer cu, Integer moi, Integer loaiHoaDon) {
         if (cu == 6 || cu == 5) {
             throw new RuntimeException("Không thể chuyển trạng thái từ trạng thái này!");
