@@ -75,7 +75,10 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/login/**", "/logout", "/access-denied").permitAll()
                         .requestMatchers("/public/client-auth/**", "/api/public/client-auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/ban-hang-online/**").permitAll()
+                        .requestMatchers("/", "/cua-hang", "/cua-hang/**").permitAll()
+                        .requestMatchers("/public/online-orders/**").permitAll()
+                        .requestMatchers("/api/public/online-orders/**").permitAll()
 
                         // =========================================================
                         // 🔒 NHÓM 2: CẦN ĐĂNG NHẬP — DÙNG CHUNG CHO ADMIN, QL, NV
