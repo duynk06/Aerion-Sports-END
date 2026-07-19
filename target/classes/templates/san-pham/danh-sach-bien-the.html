@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main-layout(~{::content})}">
+<head>
+</head>
+<body>
+
+<div th:fragment="content">
+    <link class="stat-style" rel="stylesheet" th:href="@{/san-pham/bien-the.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Đồng bộ hóa giao diện bộ lọc theo cấu trúc trang Phiếu giảm giá */
+        .filter-box-custom {
+            background: #ffffff; padding: 25px; border-radius: 12px;
+            border: 1px solid #edf2f7; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); margin-bottom: 20px;
+        }
+        .card-header-custom {
+            display: flex; align-items: center; gap: 10px;
+            background: #f79b66; color: white; padding: 12px 18px;
+            border-radius: 8px; margin-bottom: 18px; font-weight: 600; font-size: 15px; text-align: left;
+        }
+        .filter-grid-custom {
+            display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; text-align: left;
+        }
+        .form-group-custom { display: flex; flex-direction: column; align-items: stretch; }
+        .form-group-custom label { margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #4a5568; }
+        .form-group-custom input, .form-group-custom select {
+            width: 100%; height: 40px; box-sizing: border-box; border: 1px solid #cbd5e1;
+            border-radius: 8px; padding: 0 12px; color: #333; font-size: 14px; outline: none;
+            transition: border-color 0.2s; font-family: Arial, sans-serif;
+        }
+        .form-group-custom input:focus, .form-group-custom select:focus { border-color: #f79b66; }
+
+        /* Đồng bộ nút bấm hành động chuẩn màn phiếu giảm giá */
+        .filter-action-custom {
+            display: flex; justify-content: flex-end; gap: 12px;
+            margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9;
+        }
+        .btn-reset-custom, .btn-search-custom {
+            border: none; border-radius: 8px; padding: 10px 22px;
+            cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease; text-decoration: none;
+        }
+        .btn-reset-custom { background: #f3f4f6; color: #4b5563; text-decoration: none; text-align: center; display: inline-block; line-height: 20px; }
+        .btn-reset-custom:hover { background: #e5e7eb; }
+        .btn-search-custom { background: #e6f7f0; color: #0aa06e; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-search-custom:hover { background: #ccefe3; transform: translateY(-1px); }
+    </style>
+
+    <div class="breadcrumb-container">
+        <button type="button" class="btn-toggle-filter" onclick="toggleFilterPanel()">Ẩn/Hiện bộ lọc</button>
+    </div>
+
+    <div class="filter-box-custom" id="filterPanel">
+        <div class="card-header-custom">
+            <i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm biến thể
+        </div>
+
+        <form method="get" th:action="@{/san-pham/danh-sach-bien-the}">
+            <input type="hidden" name="page" value="0"/>
+            <input type="hidden" name="size" value="5"/>
+
+            <div class="filter-grid-custom">
+                <div class="form-group-custom" style="grid-column: span 2;">
+                    <label>Từ khóa tìm kiếm:</label>
+                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Mã SKU, mã sản phẩm hoặc tên sản phẩm cha..."/>
+                </div>
+
+                <div class="form-group-custom" style="grid-column: span 2;">
+                    <label>Trạng thái biến thể:</label>
+                    <select name="trangThai">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="1" th:selected="${trangThai != null and trangThai == 1}">Đang hoạt động</option>
+                        <option value="0" th:selected="${trangThai != null and trangThai == 0}">Ngừng hoạt động</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-action-custom">
+                <a class="btn-reset-custom" th:href="@{/san-pham/danh-sach-bien-the}">Đặt lại</a>
+                <button type="submit" class="btn-search-custom">Lọc dữ liệu</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="data-table-container">
+        <div class="table-header-flex">
+            <div class="table-summary-title">Danh Sách Toàn Bộ Biến Thể Hệ Thống</div>
+            <button type="button" class="btn-action-excel" onclick="exportToExcel()">Xuất Excel</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="custom-data-table" id="tblTatCaBienThe">
+                <thead>
+                <tr>
+                    <th style="width: 50px; text-align: center;">STT</th>
+                    <th style="width: 80px; text-align: center;">Hình ảnh</th>
+                    <th>Mã sản phẩm cha</th>
+                    <th>Tên sản phẩm cha</th>
+                    <th>Mã biến thể (SKU)</th>
+                    <th>Màu sắc</th>
+                    <th>Trọng lượng</th>
+                    <th style="text-align: center; width: 75px;">Tồn kho</th>
+                    <th style="width: 90px; text-align: center;">% Giảm</th>
+                    <th style="width: 130px;">Giá bán lẻ</th>
+                    <th style="width: 120px; text-align: center;">Trạng thái</th>
+                    <th style="text-align: center; width: 140px;">Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(danhSachBienThe)}" class="empty-row">
+                    <td colspan="12" class="empty-table-row">Không tìm thấy biến thể nào khớp với bộ lọc!</td>
+                </tr>
+                <tr th:each="bt, iter : ${danhSachBienThe}">
+                    <td style="text-align: center;" th:text="${currentPage * pageSize + iter.count}"></td>
+                    <td style="text-align: center; vertical-align: middle;">
+                        <div class="variant-image-wrapper">
+                            <img th:src="${bt.hinhAnh != null and !bt.hinhAnh.isEmpty()} ? ('http://localhost:8080' + ${bt.hinhAnh}) : 'https://placehold.co/50x50?text=No+Image'"
+                                 alt="Ảnh" class="variant-img-thumb-table"/>
+                            <span th:if="${bt.phanTramGiam != null and bt.phanTramGiam > 0}" class="badge-corner-discount"
+                                  th:text="'-' + ${bt.phanTramGiam} + '%'"></span>
+                        </div>
+                    </td>
+                    <td class="product-code-text" th:text="${bt.maSanPham}"></td>
+                    <td th:text="${bt.tenSanPham}"></td>
+                    <td class="product-code-text" th:text="${bt.maCtsp}"></td>
+                    <td><span class="badge-prop orange" th:text="${bt.tenMauSac} ?: 'Mặc định'"></span></td>
+                    <td><span class="badge-prop cyan" th:text="${bt.tenTrongLuong} ?: 'Mặc định'"></span></td>
+                    <td style="font-weight: bold; text-align: center;" th:text="${bt.soLuong} ?: 0"></td>
+                    <td style="text-align: center;">
+                        <span th:if="${bt.phanTramGiam != null and bt.phanTramGiam > 0}" class="badge-discount-percent"
+                              th:text="'-' + ${bt.phanTramGiam} + '%'"></span>
+                        <span th:unless="${bt.phanTramGiam != null and bt.phanTramGiam > 0}" class="text-muted-dash">-</span>
+                    </td>
+                    <td>
+                        <div th:if="${bt.phanTramGiam != null and bt.phanTramGiam > 0}">
+                            <del class="original-price-strike" th:text="${#numbers.formatDecimal(bt.giaBan, 1, 'POINT', 0, 'NONE')} + ' đ'"></del>
+                            <div class="discounted-price-text" th:text="${#numbers.formatDecimal(bt.giaDaGiam, 1, 'POINT', 0, 'NONE')} + ' đ'"></div>
+                        </div>
+                        <div th:unless="${bt.phanTramGiam != null and bt.phanTramGiam > 0}" class="normal-price-text"
+                             th:text="${#numbers.formatDecimal(bt.giaBan, 1, 'POINT', 0, 'NONE')} + ' đ'"></div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="badge-status-text" th:classappend="${bt.trangThai == 1} ? 'status-active' : 'status-stopped'"
+                              th:text="${bt.trangThai == 1} ? 'Đang hoạt động' : 'Ngừng hoạt động'"></span>
+                    </td>
+                    <td style="text-align: center;">
+                        <div class="action-buttons-flex-group" style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                            <button type="button" class="icon-btn-circle view-eye" title="Xem thông tin & Mã QR"
+                                    th:attr="onclick='moModalXemQr(' + ${bt.id} + ')'">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                            <button type="button" class="icon-btn-circle edit-pen" title="Chỉnh sửa biến thể"
+                                    th:attr="onclick=|openFullEditModal('${bt.id}', '${bt.maCtsp}', '${bt.giaBan}', '${bt.soLuong}', '${bt.idMauSac}', '${bt.idTrongLuong}')|">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td hidden class="qr-data-holder"
+                        th:data-id="${bt.id}"
+                        th:data-ma="${bt.maCtsp}"
+                        th:data-mau="${bt.tenMauSac} ?: 'Mặc định'"
+                        th:data-trong-luong="${bt.tenTrongLuong} ?: 'Mặc định'"
+                        th:data-anh="${bt.hinhAnh != null and !bt.hinhAnh.isEmpty()} ? ('http://localhost:8080' + ${bt.hinhAnh}) : 'https://placehold.co/120x120?text=No+Image'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="custom-pagination-container" style="display: flex !important; justify-content: space-between !important; align-items: center !important; margin-top: 15px; padding: 10px 0;">
+            <div class="pagination-left-summary" style="font-size: 14px; color: #475569;">
+                Tổng số: <strong th:text="${totalElements}">0</strong> biến thể hệ thống
+            </div>
+            <div class="custom-pagination-wrapper" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                <a class="page-arrow-btn" th:classappend="${currentPage == 0} ? 'disabled'"
+                   th:href="@{/san-pham/danh-sach-bien-the(keyword=${keyword}, trangThai=${trangThai}, page=${currentPage - 1}, size=5)}">&lt;</a>
+                <span class="page-text-indicator" th:text="'Trang ' + (${currentPage} + 1) + ' / ' + (${totalPages} > 0 ? ${totalPages} : 1)"></span>
+                <a class="page-arrow-btn" th:classappend="${currentPage >= totalPages - 1 or totalPages <= 1} ? 'disabled'"
+                   th:href="@{/san-pham/danh-sach-bien-the(keyword=${keyword}, trangThai=${trangThai}, page=${currentPage + 1}, size=5)}">&gt;</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="fullEditModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 25px; border-radius: 8px; width: 440px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+            <h3 style="margin-top: 0; color: #f97316; border-bottom: 2px solid #fed7aa; padding-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Biến Thể</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Mã SKU: <strong id="modalSkuLabel"></strong></p>
+
+            <form id="fullEditForm" onsubmit="submitFullEdit(event)" enctype="multipart/form-data">
+                <input type="hidden" id="modalVariantId"/>
+
+                <div style="margin-bottom: 12px; display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Màu sắc</label>
+                        <select id="modalMauSac" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            <option th:each="ms : ${danhSachMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Trọng lượng</label>
+                        <select id="modalTrongLuong" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            <option th:each="tl : ${danhSachTrongLuong}" th:value="${tl.id}" th:text="${tl.tenTrongLuong}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px; display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Giá bán lẻ (đ)</label>
+                        <input type="number" id="modalGiaBan" min="0" required style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;"/>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Số lượng tồn</label>
+                        <input type="number" id="modalSoLuong" min="0" required style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;"/>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Hình ảnh biến thể</label>
+                    <input type="file" id="modalFileAnh" accept="image/*" style="width: 100%; font-size: 13px;"/>
+                    <small style="color: #64748b; display: block; margin-top: 4px;">Để trống nếu muốn giữ nguyên ảnh cũ</small>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                    <button type="button" onclick="closeFullEditModal()" style="padding: 6px 14px; background: #e2e8f0; border: none; border-radius: 4px; cursor: pointer;">Hủy</button>
+                    <button type="submit" style="padding: 6px 14px; background: #f97316; color: white; border: none; border-radius: 4px; cursor: pointer;">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="qr-modal-backdrop" id="qrModal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;" onclick="if(event.target===this) closeQrModal()">
+        <div class="qr-modal-content" style="background: white; border-radius: 8px; width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); overflow: hidden;">
+            <div class="modal-header-orange" style="background: #f97316; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0; font-size: 16px;"><i class="fa-solid fa-qrcode"></i> Thông tin chi tiết & Mã QR Biến thể</h4>
+                <button type="button" class="btn-close-modal" onclick="closeQrModal()" style="background: none; border: none; color: white; font-size: 22px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body-layout" style="padding: 20px; display: flex; gap: 20px;">
+                <div class="info-specs-column" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="text-align: left; margin-bottom: 5px;">
+                        <img id="qrAnhSanPham" src="" alt="Ảnh sản phẩm" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;"/>
+                    </div>
+                    <div class="spec-row-item" style="font-size: 13.5px;">Mã CTSP (SKU): <strong id="qrMaCtsp" style="color:#0f172a;"></strong></div>
+                    <div class="spec-row-item" style="font-size: 13.5px;">Màu sắc: <strong id="qrMauSac" style="color:#0f172a;"></strong></div>
+                    <div class="spec-row-item" style="font-size: 13.5px;">Trọng lượng: <strong id="qrTrongLuong" style="color:#0f172a;"></strong></div>
+                </div>
+                <div class="qr-code-column" style="width: 180px; display: flex; flex-direction: column; align-items: center; gap: 12px; border-left: 1px dashed #e2e8f0; padding-left: 20px;">
+                    <div class="qr-canvas-holder" id="qrCanvasHolder" style="padding: 5px; background: white; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
+                    <div class="qr-action-footer">
+                        <button type="button" class="btn-print-qr-code" onclick="inMaQRCode()" style="background: #0f172a; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-print"></i> In mã sản phẩm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script th:src="@{/san-pham/danh-sach-bien-the.js}"></script>
+    <script>
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filterPanel');
+            panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+        }
+    </script>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quên mật khẩu - Aerion Sports</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
+</head>
+<body>
+
+<div class="login-page">
+    <div class="login-card">
+
+        <div class="login-logo">
+            <img src="/images/Logo_Da.jpg" alt="Aerion Sports" class="logo-image" />
+        </div>
+
+        <h2 class="login-title">Quên mật khẩu</h2>
+        <p class="login-subtitle">Nhập email đã đăng ký, hệ thống sẽ gửi mật khẩu mới cho bạn</p>
+
+        <form id="quen-mk-form" onsubmit="return false;">
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope input-icon"></i>
+                    <input type="email" id="email" placeholder="Nhập email đã đăng ký" />
+                </div>
+            </div>
+
+            <div id="error-message" class="error-message" style="display:none;"></div>
+            <div id="success-message" class="success-message" style="display:none;"></div>
+
+            <button type="submit" class="btn-login" id="submitBtn" onclick="guiYeuCau()">
+                <span id="submitBtnText">Gửi yêu cầu</span>
+                <i class="fa-solid fa-spinner fa-spin" id="submitBtnSpinner" style="display:none;"></i>
+            </button>
+        </form>
+
+        <div class="back-link">
+            <a th:href="@{/login}"><i class="fa-solid fa-arrow-left"></i> Quay lại đăng nhập</a>
+        </div>
+
+        <div class="login-footer">
+            © 2026 Aerion Sports. Hệ thống quản lý cửa hàng vợt cầu lông.
+        </div>
+    </div>
+</div>
+
+<script>
+    function showError(message) {
+        hideMessages();
+        const el = document.getElementById('error-message');
+        el.innerText = message;
+        el.style.display = 'block';
+    }
+
+    function showSuccess(message) {
+        hideMessages();
+        const el = document.getElementById('success-message');
+        el.innerText = message;
+        el.style.display = 'block';
+    }
+
+    function hideMessages() {
+        document.getElementById('error-message').style.display = 'none';
+        document.getElementById('success-message').style.display = 'none';
+    }
+
+    function setLoading(isLoading) {
+        const btn = document.getElementById('submitBtn');
+        const text = document.getElementById('submitBtnText');
+        const spinner = document.getElementById('submitBtnSpinner');
+        btn.disabled = isLoading;
+        text.style.display = isLoading ? 'none' : 'inline';
+        spinner.style.display = isLoading ? 'inline-block' : 'none';
+    }
+
+    async function guiYeuCau() {
+        hideMessages();
+
+        const email = document.getElementById('email').value.trim();
+
+        if (!email) {
+            showError('Vui lòng nhập email!');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await axios.post('/api/auth/quen-mat-khau', { email });
+            showSuccess(res.data.message || 'Nếu email tồn tại, mật khẩu mới đã được gửi.');
+            document.getElementById('quen-mk-form').reset();
+        } catch (e) {
+            showError(e.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    document.getElementById('quen-mk-form').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            guiYeuCau();
+        }
+    });
+</script>
+
+<style>
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #fff7ed 0%, #ffe8d6 100%);
+        min-height: 100vh;
+    }
+
+    .login-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .login-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 400px;
+        padding: 40px 36px 32px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(247, 155, 102, 0.18), 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .login-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 28px;
+    }
+
+    .logo-image {
+        max-width: 240px;
+        height: auto;
+    }
+
+    .login-title {
+        text-align: center;
+        font-size: 20px;
+        color: #1f2937;
+        margin: 0 0 6px;
+        font-weight: 700;
+    }
+
+    .login-subtitle {
+        text-align: center;
+        font-size: 13px;
+        color: #9ca3af;
+        margin: 0 0 28px;
+        line-height: 1.5;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        color: #9ca3af;
+        font-size: 14px;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        height: 44px;
+        padding: 0 14px 0 42px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color .15s ease, box-shadow .15s ease;
+        background: #f9fafb;
+    }
+
+    .input-wrapper input:focus {
+        border-color: #f79b66;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(247, 155, 102, 0.12);
+    }
+
+    .error-message {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        font-size: 13px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        margin-bottom: 18px;
+    }
+
+    .success-message {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #16a34a;
+        font-size: 13px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        margin-bottom: 18px;
+    }
+
+    .btn-login {
+        width: 100%;
+        height: 46px;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #f79b66, #f07b3f);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: opacity .15s ease, transform .1s ease;
+        box-shadow: 0 4px 12px rgba(247, 155, 102, 0.3);
+    }
+
+    .btn-login:hover:not(:disabled) {
+        opacity: 0.92;
+    }
+
+    .btn-login:active:not(:disabled) {
+        transform: translateY(1px);
+    }
+
+    .btn-login:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .back-link {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 13px;
+    }
+
+    .back-link a {
+        color: #6b7280;
+        text-decoration: none;
+    }
+
+    .back-link a:hover {
+        color: #f79b66;
+    }
+
+    .login-footer {
+        text-align: center;
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 20px;
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#register-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="register-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/auth.css(v=2)}">
+
+    <div class="container-wide">
+        <div class="auth-breadcrumb">
+            <a th:href="@{/cua-hang}">Trang chủ</a> &gt; <span>Đăng ký</span>
+        </div>
+
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1 class="auth-title">Tạo tài khoản</h1>
+
+                <div th:if="${authError != null}" class="auth-message auth-message--error" th:text="${authError}"></div>
+                <div th:if="${authSuccess != null}" class="auth-message auth-message--success" th:text="${authSuccess}"></div>
+
+                <form th:action="@{/cua-hang/dang-ky}" method="post">
+                    <div class="auth-form-group">
+                        <input type="text"
+                               name="hoTen"
+                               class="auth-input"
+                               placeholder="Họ và tên"
+                               th:value="${registerHoTen}"
+                               autocomplete="name"
+                               required>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <input type="tel"
+                               name="soDienThoai"
+                               class="auth-input"
+                               placeholder="Số điện thoại"
+                               th:value="${registerSoDienThoai}"
+                               autocomplete="tel"
+                               required>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <input type="email"
+                               name="email"
+                               class="auth-input"
+                               placeholder="Email"
+                               th:value="${registerEmail}"
+                               autocomplete="email"
+                               required>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <input type="password"
+                               name="matKhau"
+                               class="auth-input"
+                               placeholder="Mật khẩu"
+                               autocomplete="new-password"
+                               required>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <input type="password"
+                               name="xacNhanMatKhau"
+                               class="auth-input"
+                               placeholder="Xác nhận mật khẩu"
+                               autocomplete="new-password"
+                               required>
+                    </div>
+
+                    <button type="submit" class="auth-btn">ĐĂNG KÝ</button>
+                </form>
+
+                <div class="auth-footer">
+                    Đã có tài khoản? <a th:href="@{/cua-hang/dang-nhap}">Đăng nhập</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

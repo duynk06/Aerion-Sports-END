@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: BE_DATN
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=QUANLYVOTCAULONG16;encrypt=true;trustServerCertificate=true
+    username: sa
+    password: 123456
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    open-in-view: false
+
+  # 🌟 ĐÃ SỬA: Đưa "mail" lùi vào 2 dấu cách để làm con của "spring"
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: vietphan0925@gmail.com
+    password: rvhsceruswmjadzj
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+server:
+  port: 8080
+
+
