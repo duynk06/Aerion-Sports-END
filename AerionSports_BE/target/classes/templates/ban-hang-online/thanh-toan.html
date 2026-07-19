@@ -1,0 +1,532 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#checkout-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="checkout-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/thanh-toan.css(v=2)}">
+
+    <div class="container-wide" style="padding-top: 40px; padding-bottom: 80px;">
+        <h1 class="checkout-page-title">THÔNG TIN THANH TOÁN</h1>
+
+        <div class="checkout-grid">
+            <div>
+                <div class="checkout-section">
+                    <h2 class="checkout-section-title">
+                        <i class="ph ph-user"></i> Thông tin giao hàng
+                    </h2>
+
+                    <div class="checkout-form-grid">
+                        <div class="checkout-form-group">
+                            <label>Họ và tên <span class="required">*</span></label>
+                            <input type="text" name="hoTen" form="checkout-order-form" class="checkout-input"
+                                   placeholder="Nhập họ tên" th:value="${thongTinDatHang.hoTen}" required>
+                        </div>
+                        <div class="checkout-form-group">
+                            <label>Số điện thoại <span class="required">*</span></label>
+                            <input type="text" name="soDienThoai" form="checkout-order-form" class="checkout-input"
+                                   placeholder="Nhập số điện thoại" th:value="${thongTinDatHang.soDienThoai}" required>
+                        </div>
+
+                        <div class="checkout-form-group checkout-form-full">
+                            <label>Email <span class="required">*</span></label>
+                            <input type="email" name="email" form="checkout-order-form" class="checkout-input"
+                                   placeholder="Nhập email" th:value="${thongTinDatHang.email}" required>
+                        </div>
+
+                        <div class="checkout-form-group">
+                            <label>Tỉnh/Thành phố <span class="required">*</span></label>
+                            <select id="checkout-province" class="checkout-input" name="tinhThanh"
+                                    form="checkout-order-form"
+                                    th:attr="data-selected=${thongTinDatHang.tinhThanh}" required>
+                                <option value="" selected>Đang tải tỉnh/thành phố...</option>
+                            </select>
+                        </div>
+                        <div class="checkout-form-group">
+                            <label>Quận/Huyện <span class="required">*</span></label>
+                            <select id="checkout-district" class="checkout-input" name="quanHuyen"
+                                    form="checkout-order-form"
+                                    th:attr="data-selected=${thongTinDatHang.quanHuyen}" disabled required>
+                                <option value="" selected>Chọn tỉnh/thành phố trước</option>
+                            </select>
+                        </div>
+
+                        <div class="checkout-form-group">
+                            <label>Phường/Xã <span class="required">*</span></label>
+                            <select id="checkout-ward" class="checkout-input" name="phuongXa"
+                                    form="checkout-order-form"
+                                    th:attr="data-selected=${thongTinDatHang.phuongXa}" disabled required>
+                                <option value="" selected>Chọn quận/huyện trước</option>
+                            </select>
+                        </div>
+
+                        <div class="checkout-form-group checkout-form-full">
+                            <label>Địa chỉ cụ thể</label>
+                            <input type="text" name="diaChiChiTiet" form="checkout-order-form" class="checkout-input"
+                                   placeholder="Nhập địa chỉ cụ thể" th:value="${thongTinDatHang.diaChiChiTiet}">
+                        </div>
+
+                        <div class="checkout-form-group checkout-form-full">
+                            <label>Ghi chú đơn hàng (Tùy chọn)</label>
+                            <textarea name="ghiChu" form="checkout-order-form" class="checkout-input"
+                                      placeholder="Ghi chú về mức căng dây, thời gian giao hàng..."
+                                      th:text="${thongTinDatHang.ghiChu}"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout-section">
+                    <h2 class="checkout-section-title">
+                        <i class="ph ph-credit-card"></i> Phương thức thanh toán
+                    </h2>
+
+                    <label class="payment-method-card">
+                        <input type="radio" name="phuongThucThanhToan" value="COD" form="checkout-order-form"
+                               class="payment-radio"
+                               th:checked="${thongTinDatHang.phuongThucThanhToan == null or thongTinDatHang.phuongThucThanhToan == 'COD'}">
+                        <div class="payment-method-info">
+                            <h4>Thanh toán khi nhận hàng (COD)</h4>
+                            <p>Khách hàng trả tiền mặt khi giao hàng</p>
+                        </div>
+                    </label>
+
+                    <label class="payment-method-card">
+                        <input type="radio" name="phuongThucThanhToan" value="BANK" form="checkout-order-form"
+                               class="payment-radio"
+                               th:checked="${thongTinDatHang.phuongThucThanhToan == 'BANK'}">
+                        <div class="payment-method-info">
+                            <h4>Chuyển khoản qua ngân hàng</h4>
+                            <p>Thanh toán an toàn qua VNPAY / Momo</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="checkout-summary-card checkout-summary-card-white">
+                <h2 class="checkout-summary-title">
+                    <i class="ph ph-shopping-cart"></i> Đơn hàng của bạn
+                </h2>
+
+                <div class="checkout-item-row" th:each="item : ${duLieuGioHang.items}">
+                    <div>
+                        <div class="checkout-item-name"
+                             th:text="${item.tenSanPham + ' x ' + item.soLuong}">Yonex Astrox 99 x 1</div>
+                        <div class="checkout-item-meta"
+                             th:text="${(item.mauSac != null ? item.mauSac : 'Mặc định') + ' - ' + (item.trongLuong != null ? item.trongLuong : 'Mặc định')}">Do - 4U</div>
+                    </div>
+                    <div class="checkout-item-price"
+                         th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'POINT', 0, 'COMMA') + ' đ'}">2.695.000 d</div>
+                </div>
+
+                <div class="checkout-coupon-group">
+                    <label>Phiếu giảm giá</label>
+                    <form th:action="@{/cua-hang/checkout/ap-dung-phieu}" method="post" class="checkout-coupon-form js-sync-checkout-form">
+                        <input type="hidden" name="hoTen" th:value="${thongTinDatHang.hoTen}">
+                        <input type="hidden" name="soDienThoai" th:value="${thongTinDatHang.soDienThoai}">
+                        <input type="hidden" name="email" th:value="${thongTinDatHang.email}">
+                        <input type="hidden" name="tinhThanh" th:value="${thongTinDatHang.tinhThanh}">
+                        <input type="hidden" name="quanHuyen" th:value="${thongTinDatHang.quanHuyen}">
+                        <input type="hidden" name="phuongXa" th:value="${thongTinDatHang.phuongXa}">
+                        <input type="hidden" name="diaChiChiTiet" th:value="${thongTinDatHang.diaChiChiTiet}">
+                        <input type="hidden" name="ghiChu" th:value="${thongTinDatHang.ghiChu}">
+                        <input type="hidden" name="phuongThucThanhToan" th:value="${thongTinDatHang.phuongThucThanhToan}">
+
+                        <div class="checkout-coupon-input-wrap">
+                            <input type="text"
+                                   id="checkout-coupon-input"
+                                   name="maPhieuGiamGia"
+                                   autocomplete="off"
+                                   class="checkout-coupon-input"
+                                   th:value="${phieuDangAp != null ? phieuDangAp.maPhieuGiamGia : ''}"
+                                   placeholder="Nhập hoặc chọn mã giảm giá">
+                            <div id="checkout-coupon-dropdown"
+                                 class="checkout-coupon-dropdown"
+                                 th:classappend="${#lists.isEmpty(danhSachPhieuCoTheDung)} ? ' is-empty' : ''">
+                                <div class="checkout-coupon-dropdown-header">
+                                    <span class="checkout-coupon-dropdown-title">Voucher có thể dùng</span>
+                                    <button type="button"
+                                            class="checkout-coupon-dropdown-close"
+                                            onclick="document.getElementById('checkout-coupon-dropdown').classList.remove('is-visible')">Đóng</button>
+                                </div>
+
+                                <div class="checkout-coupon-dropdown-list">
+                                    <button type="button"
+                                            class="checkout-coupon-option"
+                                            th:each="phieu : ${danhSachPhieuCoTheDung}"
+                                            th:attr="data-code=${phieu.maPhieuGiamGia}">
+                                        <div class="checkout-coupon-option-left">
+                                            <span class="checkout-coupon-option-title"
+                                                  th:with="
+                                                      isPercent=${phieu.loaiPhieuGiamGia != null and (#strings.equalsIgnoreCase(phieu.loaiPhieuGiamGia, 'PHAN_TRAM') or #strings.contains(phieu.loaiPhieuGiamGia, '%'))},
+                                                      isShipping=${phieu.loaiPhieuGiamGia != null and #strings.equalsIgnoreCase(phieu.loaiPhieuGiamGia, 'VAN_CHUYEN')}
+                                                  "
+                                                  th:text="${(isShipping ? 'Giảm vận chuyển ' : 'Giảm ') + (phieu.giaTriGiam != null ? #numbers.formatDecimal(phieu.giaTriGiam, 0, 'POINT', 0, 'COMMA') : '0') + (isPercent ? '%' : ' đ') + (phieu.giaTriGiamToiDa != null ? ' (tối đa ' + #numbers.formatDecimal(phieu.giaTriGiamToiDa, 0, 'POINT', 0, 'COMMA') + ' d)' : '')}">
+                                                Giam 20% (tối đa 1.000.000 d)
+                                            </span>
+                                            <span class="checkout-coupon-option-code" th:text="${'Mã: ' + phieu.maPhieuGiamGia}">Ma: PGG04</span>
+                                            <span class="checkout-coupon-option-min"
+                                                  th:if="${phieu.giaTriDonToiThieu != null}"
+                                                  th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(phieu.giaTriDonToiThieu, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                                                Don toi thieu 2.000.000 d
+                                            </span>
+                                        </div>
+
+                                        <div class="checkout-coupon-option-right">
+                                            <span class="checkout-coupon-option-discount"
+                                                  th:with="
+                                                      bd100=${new java.math.BigDecimal('100')},
+                                                      isPercent=${phieu.loaiPhieuGiamGia != null and (#strings.equalsIgnoreCase(phieu.loaiPhieuGiamGia, 'PHAN_TRAM') or #strings.contains(phieu.loaiPhieuGiamGia, '%'))},
+                                                      isShipping=${phieu.loaiPhieuGiamGia != null and #strings.equalsIgnoreCase(phieu.loaiPhieuGiamGia, 'VAN_CHUYEN')},
+                                                      rawDiscount=${isPercent ? duLieuGioHang.tongCong.multiply(phieu.giaTriGiam).divide(bd100, 0, T(java.math.RoundingMode).HALF_UP) : (isShipping ? (phieu.giaTriGiam.compareTo(phiVanChuyen) < 0 ? phieu.giaTriGiam : phiVanChuyen) : phieu.giaTriGiam)},
+                                                      actualDiscount=${phieu.giaTriGiamToiDa != null and rawDiscount.compareTo(phieu.giaTriGiamToiDa) > 0 ? phieu.giaTriGiamToiDa : rawDiscount}
+                                                  "
+                                                  th:text="${'-' + #numbers.formatDecimal(actualDiscount, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                                                -1.000.000 d
+                                            </span>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <div th:if="${#lists.isEmpty(danhSachPhieuCoTheDung)}"
+                                     class="checkout-coupon-empty">
+                                    Chưa có mã giảm giá phù hợp với đơn hàng này.
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="checkout-coupon-btn">Áp dụng</button>
+                    </form>
+
+                    <div th:if="${checkoutSuccess != null}" class="checkout-coupon-msg success" th:text="${checkoutSuccess}">
+                        Áp dụng thành công mã giảm giá.
+                    </div>
+                    <div th:if="${checkoutError != null}" class="checkout-coupon-msg error" th:text="${checkoutError}">
+                        Mã giảm giá không hợp lệ.
+                    </div>
+
+                    <div th:if="${phieuDangAp != null}" class="checkout-applied-voucher">
+                        <div class="checkout-applied-voucher-info">
+                            <strong>Đã áp dụng mã <span th:text="${phieuDangAp.maPhieuGiamGia}">PGG01</span></strong>
+                            <span th:with="
+                                isPercent=${phieuDangAp.loaiPhieuGiamGia != null and (#strings.equalsIgnoreCase(phieuDangAp.loaiPhieuGiamGia, 'PHAN_TRAM') or #strings.contains(phieuDangAp.loaiPhieuGiamGia, '%'))},
+                                isShipping=${phieuDangAp.loaiPhieuGiamGia != null and #strings.equalsIgnoreCase(phieuDangAp.loaiPhieuGiamGia, 'VAN_CHUYEN')}
+                            "
+                                  th:text="${(isShipping ? 'Giảm vận chuyển ' : 'Giảm ') + (phieuDangAp.giaTriGiam != null ? #numbers.formatDecimal(phieuDangAp.giaTriGiam, 0, 'POINT', 0, 'COMMA') : '0') + (isPercent ? '%' : ' đ') + (phieuDangAp.giaTriGiamToiDa != null ? ', tối đa ' + #numbers.formatDecimal(phieuDangAp.giaTriGiamToiDa, 0, 'POINT', 0, 'COMMA') + ' đ' : '')}">
+                                Giam 29%, tối đa 1.000.000 d
+                            </span>
+                        </div>
+                        <form th:action="@{/cua-hang/checkout/xoa-phieu}" method="post" class="js-sync-checkout-form">
+                            <input type="hidden" name="hoTen" th:value="${thongTinDatHang.hoTen}">
+                            <input type="hidden" name="soDienThoai" th:value="${thongTinDatHang.soDienThoai}">
+                            <input type="hidden" name="email" th:value="${thongTinDatHang.email}">
+                            <input type="hidden" name="tinhThanh" th:value="${thongTinDatHang.tinhThanh}">
+                            <input type="hidden" name="quanHuyen" th:value="${thongTinDatHang.quanHuyen}">
+                            <input type="hidden" name="phuongXa" th:value="${thongTinDatHang.phuongXa}">
+                            <input type="hidden" name="diaChiChiTiet" th:value="${thongTinDatHang.diaChiChiTiet}">
+                            <input type="hidden" name="ghiChu" th:value="${thongTinDatHang.ghiChu}">
+                            <input type="hidden" name="phuongThucThanhToan" th:value="${thongTinDatHang.phuongThucThanhToan}">
+                            <button type="submit" class="checkout-remove-voucher">Bỏ</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="checkout-summary-row">
+                    <span>Tạm tính</span>
+                    <span class="checkout-summary-val-bold"
+                          th:text="${#numbers.formatDecimal(duLieuGioHang.tamTinh, 0, 'POINT', 0, 'COMMA') + ' đ'}">2.695.000 d</span>
+                </div>
+                <div class="checkout-summary-row">
+                    <span>Tiết kiệm</span>
+                    <span class="checkout-summary-val-green"
+                          th:text="${'- ' + #numbers.formatDecimal(duLieuGioHang.tongGiamGia, 0, 'POINT', 0, 'COMMA') + ' đ'}">- 805.000 d</span>
+                </div>
+                <div class="checkout-summary-row">
+                    <span>Phiếu giảm giá</span>
+                    <span class="checkout-summary-val-green"
+                          th:text="${'- ' + #numbers.formatDecimal(tienGiamVoucher, 0, 'POINT', 0, 'COMMA') + ' đ'}">- 0 d</span>
+                </div>
+                <div class="checkout-summary-row">
+                    <span>Phí vận chuyển <img th:src="@{/images/image.png}" alt="GHTK" style="height: 14px; margin-left: 4px; vertical-align: middle;"></span>
+                    <span class="checkout-summary-val-green"
+                          th:text="${#numbers.formatDecimal(phiVanChuyen, 0, 'POINT', 0, 'COMMA') + ' đ'}">31.000 d</span>
+                </div>
+
+                <div class="checkout-summary-divider"></div>
+
+                <div class="checkout-total-row">
+                    <span class="checkout-total-label">Tổng cộng</span>
+                    <span class="checkout-total-value"
+                          th:text="${#numbers.formatDecimal(tongThanhToan, 0, 'POINT', 0, 'COMMA') + ' đ'}">1.921.000 d</span>
+                </div>
+
+                <button type="submit" form="checkout-order-form" class="btn-place-order">
+                    <i class="ph ph-check-circle"></i> ĐẶT HÀNG NGAY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <form id="checkout-order-form" th:action="@{/cua-hang/checkout/dat-hang}" method="post"></form>
+
+    <script>
+        document.querySelectorAll('.payment-method-card').forEach(card => {
+            const radio = card.querySelector('input[name="phuongThucThanhToan"]');
+            if (radio && radio.checked) {
+                card.classList.add('active');
+            }
+        });
+
+        document.querySelectorAll('input[name="phuongThucThanhToan"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                document.querySelectorAll('.payment-method-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                if (this.checked) {
+                    this.closest('.payment-method-card').classList.add('active');
+                }
+            });
+        });
+
+        (function () {
+            const provinceSelect = document.getElementById('checkout-province');
+            const districtSelect = document.getElementById('checkout-district');
+            const wardSelect = document.getElementById('checkout-ward');
+            const selectedProvinceName = provinceSelect?.dataset.selected || '';
+            const selectedDistrictName = districtSelect?.dataset.selected || '';
+            const selectedWardName = wardSelect?.dataset.selected || '';
+
+            if (!provinceSelect || !districtSelect || !wardSelect) {
+                return;
+            }
+
+            const API_BASE = 'https://provinces.open-api.vn/api/v1';
+
+            function renderOptions(selectElement, items, placeholder) {
+                const options = [`<option value="">${placeholder}</option>`];
+                items.forEach(function (item) {
+                    options.push(`<option value="${item.name}" data-code="${item.code}">${item.name}</option>`);
+                });
+                selectElement.innerHTML = options.join('');
+            }
+
+            function setLoading(selectElement, message, disabled) {
+                selectElement.innerHTML = `<option value="">${message}</option>`;
+                selectElement.disabled = disabled;
+            }
+
+            function chonTheoGiaTri(selectElement, giaTri) {
+                if (!giaTri) {
+                    return false;
+                }
+                const option = Array.from(selectElement.options).find(item => item.value === giaTri);
+                if (!option) {
+                    return false;
+                }
+                selectElement.value = giaTri;
+                return true;
+            }
+
+            async function loadProvinces() {
+                try {
+                    setLoading(provinceSelect, 'Đang tải tỉnh/thành phố...', true);
+                    const response = await fetch(`${API_BASE}/p/`);
+                    if (!response.ok) {
+                        throw new Error('Khong tai duoc danh sach tinh/thanh pho');
+                    }
+
+                    const provinces = await response.json();
+                    renderOptions(provinceSelect, provinces, 'Chon tinh/thanh pho');
+                    provinceSelect.disabled = false;
+
+                    if (chonTheoGiaTri(provinceSelect, selectedProvinceName)) {
+                        const provinceCode = provinceSelect.selectedOptions[0]?.dataset.code || '';
+                        if (provinceCode) {
+                            await loadDistricts(provinceCode, true);
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    setLoading(provinceSelect, 'Khong tai duoc tinh/thanh pho', true);
+                }
+            }
+
+            async function loadDistricts(provinceCode, laKhoiPhuc = false) {
+                try {
+                    setLoading(districtSelect, 'Dang tai quan/huyen...', true);
+                    setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+
+                    const response = await fetch(`${API_BASE}/p/${provinceCode}?depth=2`);
+                    if (!response.ok) {
+                        throw new Error('Khong tai duoc danh sach quan/huyen');
+                    }
+
+                    const province = await response.json();
+                    const districts = Array.isArray(province.districts) ? province.districts : [];
+                    renderOptions(districtSelect, districts, 'Chọn quận/huyện');
+                    districtSelect.disabled = false;
+
+                    if (laKhoiPhuc && chonTheoGiaTri(districtSelect, selectedDistrictName)) {
+                        const districtCode = districtSelect.selectedOptions[0]?.dataset.code || '';
+                        if (districtCode) {
+                            await loadWards(districtCode, true);
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    setLoading(districtSelect, 'Khong tai duoc quan/huyen', true);
+                }
+            }
+
+            async function loadWards(districtCode, laKhoiPhuc = false) {
+                try {
+                    setLoading(wardSelect, 'Dang tai phuong/xa...', true);
+
+                    const response = await fetch(`${API_BASE}/d/${districtCode}?depth=2`);
+                    if (!response.ok) {
+                        throw new Error('Khong tai duoc danh sach phuong/xa');
+                    }
+
+                    const district = await response.json();
+                    const wards = Array.isArray(district.wards) ? district.wards : [];
+                    renderOptions(wardSelect, wards, 'Chọn phường/xã');
+                    wardSelect.disabled = false;
+
+                    if (laKhoiPhuc) {
+                        chonTheoGiaTri(wardSelect, selectedWardName);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    setLoading(wardSelect, 'Khong tai duoc phuong/xa', true);
+                }
+            }
+
+            provinceSelect.addEventListener('change', function () {
+                const provinceCode = this.selectedOptions[0]?.dataset.code || '';
+                if (!provinceCode) {
+                    setLoading(districtSelect, 'Chọn tỉnh/thành phố trước', true);
+                    setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                    return;
+                }
+
+                loadDistricts(provinceCode);
+            });
+
+            districtSelect.addEventListener('change', function () {
+                const districtCode = this.selectedOptions[0]?.dataset.code || '';
+                if (!districtCode) {
+                    setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                    return;
+                }
+
+                loadWards(districtCode);
+            });
+
+            loadProvinces();
+        })();
+
+        (function () {
+            const truongCanDongBo = [
+                'hoTen',
+                'soDienThoai',
+                'email',
+                'tinhThanh',
+                'quanHuyen',
+                'phuongXa',
+                'diaChiChiTiet',
+                'ghiChu',
+                'phuongThucThanhToan'
+            ];
+            const cacFormCanDongBo = document.querySelectorAll('.js-sync-checkout-form');
+
+            function layGiaTriHienTai(tenTruong) {
+                const radioDangChon = document.querySelector(`input[name="${tenTruong}"][form="checkout-order-form"]:checked`);
+                if (radioDangChon) {
+                    return radioDangChon.value;
+                }
+
+                const truong = document.querySelector(`[name="${tenTruong}"][form="checkout-order-form"]`);
+                return truong ? truong.value : '';
+            }
+
+            function dongBoDuLieuChoForm(formElement) {
+                truongCanDongBo.forEach(function (tenTruong) {
+                    const hiddenInput = formElement.querySelector(`[name="${tenTruong}"]`);
+                    if (hiddenInput) {
+                        hiddenInput.value = layGiaTriHienTai(tenTruong);
+                    }
+                });
+            }
+
+            cacFormCanDongBo.forEach(function (formElement) {
+                formElement.addEventListener('submit', function () {
+                    dongBoDuLieuChoForm(formElement);
+                });
+            });
+        })();
+
+        (function () {
+            const couponInput = document.getElementById('checkout-coupon-input');
+            const couponDropdown = document.getElementById('checkout-coupon-dropdown');
+
+            if (!couponInput || !couponDropdown) {
+                return;
+            }
+
+            function showDropdown() {
+                couponDropdown.classList.add('is-visible');
+            }
+
+            function hideDropdown() {
+                couponDropdown.classList.remove('is-visible');
+            }
+
+            couponInput.addEventListener('focus', showDropdown);
+            couponInput.addEventListener('click', showDropdown);
+
+            couponInput.addEventListener('input', function () {
+                showDropdown();
+                const keyword = this.value.trim().toLowerCase();
+                const options = couponDropdown.querySelectorAll('.checkout-coupon-option');
+                let hasVisibleOption = false;
+
+                options.forEach(function (option) {
+                    const code = (option.dataset.code || '').toLowerCase();
+                    const text = option.textContent.toLowerCase();
+                    const isMatch = !keyword || code.includes(keyword) || text.includes(keyword);
+                    option.style.display = isMatch ? 'flex' : 'none';
+                    if (isMatch) {
+                        hasVisibleOption = true;
+                    }
+                });
+
+                couponDropdown.classList.toggle('is-empty-result', !hasVisibleOption && options.length > 0);
+            });
+
+            couponDropdown.querySelectorAll('.checkout-coupon-option').forEach(function (option) {
+                option.addEventListener('click', function () {
+                    couponInput.value = this.dataset.code || '';
+                    hideDropdown();
+                    const formElement = couponInput.closest('form');
+                    if (formElement.requestSubmit) {
+                        formElement.requestSubmit();
+                    } else {
+                        const submitEvent = new Event('submit', {cancelable: true, bubbles: true});
+                        if (formElement.dispatchEvent(submitEvent)) {
+                            formElement.submit();
+                        }
+                    }
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!couponDropdown.contains(event.target) && event.target !== couponInput) {
+                    hideDropdown();
+                }
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>
+

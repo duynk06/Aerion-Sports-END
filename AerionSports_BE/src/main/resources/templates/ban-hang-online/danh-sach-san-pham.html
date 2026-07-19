@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#products-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="products-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/danh-sach-san-pham.css(v=1)}">
+    <section class="section">
+        <div class="container-wide">
+            <div class="products-breadcrumb">
+                <i class="ph ph-house"></i> / Vợt Cầu Lông
+            </div>
+            
+            <div class="section__head products-head">
+                <div>
+                    <h1 class="products-title">VỢT CẦU LÔNG</h1>
+                    <p class="section-subtitle" th:text="${totalItems + ' sản phẩm phù hợp'}">19 sản phẩm phù hợp</p>
+                </div>
+                <div class="products-sort-wrapper">
+                    <select class="filter-select products-sort-select" id="sort" name="sort" onchange="this.form.submit()">
+                        <option value="newest" th:selected="${selectedSort == 'newest'}">Mới nhất</option>
+                        <option value="price-asc" th:selected="${selectedSort == 'price-asc'}">Giá tăng dần</option>
+                        <option value="price-desc" th:selected="${selectedSort == 'price-desc'}">Giá giảm dần</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="products-divider"></div>
+
+            <form method="get" th:action="@{/cua-hang/san-pham}" class="layout-grid">
+                <aside class="filter-panel">
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="brand">THƯƠNG HIỆU</label>
+                        <div class="filter-stack">
+                            <label class="filter-option" th:each="brand : ${brandOptions}">
+                                <input type="checkbox" name="brand" th:value="${brand.label}" th:checked="${selectedBrand == brand.label}" onchange="this.form.submit()">
+                                <span th:text="${brand.label + ' (' + brand.count + ')'}">Brand (0)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="weight">TRỌNG LƯỢNG</label>
+                        <div class="filter-stack">
+                            <label class="filter-option" th:each="item : ${weightOptions}">
+                                <input type="checkbox" name="weight" th:value="${item}" th:checked="${selectedWeight == item}" onchange="this.form.submit()">
+                                <span th:text="${item}">3U</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="price">MỨC GIÁ</label>
+                        <div class="filter-stack">
+                            <label class="filter-option">
+                                <input type="checkbox" name="price" value="under-1m" onchange="this.form.submit()" th:checked="${selectedPrice == 'under-1m'}">
+                                Dưới 1 triệu
+                            </label>
+                            <label class="filter-option">
+                                <input type="checkbox" name="price" value="1-2m" onchange="this.form.submit()" th:checked="${selectedPrice == '1-2m'}">
+                                1 triệu - 2 triệu
+                            </label>
+                            <label class="filter-option">
+                                <input type="checkbox" name="price" value="2-3m" onchange="this.form.submit()" th:checked="${selectedPrice == '2-3m'}">
+                                2 triệu - 3 triệu
+                            </label>
+                            <label class="filter-option">
+                                <input type="checkbox" name="price" value="over-3m" onchange="this.form.submit()" th:checked="${selectedPrice == 'over-3m'}">
+                                Trên 3 triệu
+                            </label>
+                        </div>
+                    </div>
+                </aside>
+
+                <div>
+                    <div class="product-grid" th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
+                        <article class="product-card" th:each="product : ${featuredProducts}">
+                            <div class="product-card__media">
+                                <a th:href="@{/cua-hang/san-pham/{id}(id=${product.productId})}">
+                                    <img th:src="${product.imageUrl != null and product.imageUrl != '' ? product.imageUrl : '/images/default_racket.jpg'}"
+                                         th:data-fallback="'/images/default_racket.jpg'"
+                                         onerror="this.src=this.getAttribute('data-fallback');"
+                                         th:alt="${product.name}">
+                                </a>
+                                <span class="badge" th:if="${product.onSale}" th:text="${'-' + product.discountPercent.intValue() + '%'}">-0%</span>
+                                <div class="product-card__action">
+                                    <button type="button" class="btn-action-full" th:onclick="'window.location.href=\'/cua-hang/san-pham/' + ${product.productId} + '\''">
+                                        <i class="ph ph-shopping-cart"></i> THÊM GIỎ HÀNG
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="product-card__body">
+                                <h3 class="product-card__name">
+                                    <a th:href="@{/cua-hang/san-pham/{id}(id=${product.productId})}" th:text="${product.name}" class="products-product-name-link">Ten san pham</a>
+                                </h3>
+                                
+                                <div class="price-row" style="margin-top: 4px;">
+                                    <div class="products-price-row-wrapper">
+                                        <span class="price" th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA') + ' đ'}">1.000.000 đ</span>
+                                        <span class="price--old" th:if="${product.onSale}" th:text="${#numbers.formatDecimal(product.originalPrice, 0, 'POINT', 0, 'COMMA') + ' đ'}">1.200.000 đ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(featuredProducts)}" class="products-empty-state">
+                        <h3 class="products-empty-title">Khong tim thay san pham nao</h3>
+                        <p>Thu bo bot mot vai bo loc hoac tim kiem bang tu khoa khac.</p>
+                    </div>
+
+                    <div th:if="${totalPages > 1}" class="products-pagination">
+                        <button th:if="${currentPage > 0}" type="submit" name="page" th:value="${currentPage - 1}" class="page-btn">
+                            <i class="ph ph-caret-left"></i>
+                        </button>
+                        
+                        <button th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                                type="submit" name="page" th:value="${i}" 
+                                class="page-btn" 
+                                th:classappend="${currentPage == i ? 'active' : ''}" 
+                                th:text="${i + 1}">1</button>
+
+                        <button th:if="${currentPage < totalPages - 1}" type="submit" name="page" th:value="${currentPage + 1}" class="page-btn">
+                            <i class="ph ph-caret-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+</body>
+</html>

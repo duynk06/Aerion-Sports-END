@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#home-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="home-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/trang-chu.css(v=1)}">
+    <section class="hero home-hero-section">
+        <div class="home-hero-slider-wrapper">
+            <div id="hero-slides" class="home-hero-slides">
+                <img src="/images/banner_1.png" class="home-hero-slide-img" alt="Banner 1" onerror="this.src='/images/logo_Da.jpg';">
+                <img src="/images/banner_2.png" class="home-hero-slide-img" alt="Banner 2" onerror="this.src='/images/logo_Da.jpg';">
+                <img src="/images/banner_3.png" class="home-hero-slide-img" alt="Banner 3" onerror="this.src='/images/logo_Da.jpg';">
+                <img src="/images/banner_4.png" class="home-hero-slide-img" alt="Banner 4" onerror="this.src='/images/logo_Da.jpg';">
+                <img src="/images/banner_5.png" class="home-hero-slide-img" alt="Banner 5" onerror="this.src='/images/logo_Da.jpg';">
+                <img src="/images/banner_6.png" class="home-hero-slide-img" alt="Banner 6" onerror="this.src='/images/logo_Da.jpg';">
+            </div>
+            
+            <div id="hero-dots" class="home-hero-dots-wrapper">
+                <div class="slider-dot active" data-index="0"></div>
+                <div class="slider-dot" data-index="1"></div>
+                <div class="slider-dot" data-index="2"></div>
+                <div class="slider-dot" data-index="3"></div>
+                <div class="slider-dot" data-index="4"></div>
+                <div class="slider-dot" data-index="5"></div>
+            </div>
+        </div>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const slidesContainer = document.getElementById('hero-slides');
+                const dots = document.querySelectorAll('.slider-dot');
+                const totalSlides = 6;
+                let currentSlide = 0;
+                
+                function goToSlide(index) {
+                    if (index < 0) index = totalSlides - 1;
+                    if (index >= totalSlides) index = 0;
+                    currentSlide = index;
+                    
+                    slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+                    
+                    dots.forEach(dot => dot.classList.remove('active'));
+                    dots[currentSlide].classList.add('active');
+                }
+                
+                dots.forEach(dot => {
+                    dot.addEventListener('click', function() {
+                        goToSlide(parseInt(this.getAttribute('data-index')));
+                    });
+                });
+                
+                setInterval(() => { goToSlide(currentSlide + 1); }, 5000);
+            });
+        </script>
+    </section>
+
+    <div class="container-wide">
+        <section class="section home-section">
+            <div class="section__head home-section-head">
+                <div>
+                    <h2 class="home-section-title">
+                        VỢT BÁN CHẠY
+                        <span class="home-section-title-underline"></span>
+                    </h2>
+                </div>
+                <a class="section-link home-section-link" th:href="@{/cua-hang/san-pham}">
+                    Xem tất cả <i class="ph ph-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="product-grid" th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
+                <article class="product-card" th:each="product : ${featuredProducts}">
+                    <div class="product-card__media">
+                        <a th:href="@{/cua-hang/san-pham/{id}(id=${product.productId})}">
+                            <img th:src="${product.imageUrl != null and product.imageUrl != '' ? product.imageUrl : '/images/default_racket.jpg'}"
+                                 th:data-fallback="'/images/default_racket.jpg'"
+                                 onerror="this.src=this.getAttribute('data-fallback');"
+                                 th:alt="${product.name}">
+                        </a>
+                        <span class="badge" th:if="${product.onSale}" th:text="${'-' + product.discountPercent.intValue() + '%'}">-0%</span>
+                        <div class="product-card__action">
+                            <button class="btn-action-full" th:onclick="'window.location.href=\'/cua-hang/san-pham/' + ${product.productId} + '\''">
+                                <i class="ph ph-shopping-cart"></i> THÊM GIỎ HÀNG
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="product-card__body">
+                        <h3 class="product-card__name">
+                            <a th:href="@{/cua-hang/san-pham/{id}(id=${product.productId})}" th:text="${product.name}" class="home-product-name-link">Ten san pham</a>
+                        </h3>
+                        
+                        <div class="price-row home-price-row">
+                            <div class="home-price-row-wrapper">
+                                <div class="price" th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</div>
+                                <div class="price--old" th:if="${product.onSale}" th:text="${#numbers.formatDecimal(product.originalPrice, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+            <div th:if="${#lists.isEmpty(featuredProducts)}" class="home-empty-state">
+                Chua co du lieu san pham noi bat tu API.
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

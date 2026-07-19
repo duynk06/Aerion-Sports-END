@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#my-orders-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="my-orders-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/don-hang.css(v=2)}">
+
+    <div class="my-orders-container">
+        <div class="my-orders-header">
+            <h1 class="my-orders-title">Đơn hàng của tôi</h1>
+            <a th:href="@{/cua-hang/theo-doi-don-hang}" class="btn-public-track">Tra cứu đơn hàng công khai</a>
+        </div>
+
+
+
+        <div class="my-orders-tabs">
+            <a th:each="option : ${trangThaiOptions}"
+               th:href="@{/cua-hang/don-hang-cua-toi(trangThai=${option.value})}"
+               class="order-tab"
+               th:classappend="${(trangThai == null and option.value == null) or (trangThai != null and option.value != null and trangThai == option.value)} ? ' active' : ''"
+               th:text="${option.label}">
+                Tất cả
+            </a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(danhSachDonHang)}" class="orders-empty">
+            <i class="ph ph-package"></i>
+            <h2>Chưa tìm thấy đơn hàng nào</h2>
+            <p>Không có đơn hàng phù hợp với bộ lọc hiện tại.</p>
+            <a th:href="@{/cua-hang/san-pham}" class="btn-public-track">Tiếp tục mua hàng</a>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(danhSachDonHang)}" class="my-orders-layout">
+            <div class="orders-list">
+                <a class="order-card"
+                   th:each="donHang : ${danhSachDonHang}"
+                   th:href="@{/cua-hang/don-hang-cua-toi(trangThai=${trangThai},code=${donHang.hoaDon.maHoaDon})}"
+                   th:classappend="${donHangDangChon != null and donHangDangChon.hoaDon.maHoaDon == donHang.hoaDon.maHoaDon} ? ' active' : ''">
+                    <div class="order-card-header">
+                        <span class="order-code" th:text="${donHang.hoaDon.maHoaDon}">HD001</span>
+                        <span class="order-badge"
+                              th:classappend="${donHang.statusClass}"
+                              th:text="${donHang.hoaDon.trangThaiName}">Chờ xác nhận</span>
+                    </div>
+                    <div class="order-datetime"
+                         th:text="${donHang.hoaDon.ngayTao != null ? #temporals.format(donHang.hoaDon.ngayTao, 'HH:mm:ss dd/MM/yyyy') : 'Chưa có thời gian'}">
+                        12:00:00 17/07/2026
+                    </div>
+                    <div class="order-info-grid">
+                        <span class="label">Người nhận:</span>
+                        <span class="val" th:text="${donHang.hoaDon.tenNguoiNhan ?: 'Chưa cập nhật'}">Người nhận</span>
+                        <span class="label">SĐT nhận:</span>
+                        <span class="val" th:text="${donHang.hoaDon.sdtNguoiNhan ?: 'Chưa cập nhật'}">0123456789</span>
+                        <span class="label">Sản phẩm:</span>
+                        <span class="val" th:text="${donHang.tongSanPham}">1</span>
+                        <span class="label">Thanh toán:</span>
+                        <span class="val">
+                            COD
+                            <span class="payment-badge"
+                                  th:classappend="${donHang.hoaDon.trangThai != null and donHang.hoaDon.trangThai >= 4 and donHang.hoaDon.trangThai != 6 and donHang.hoaDon.trangThai != 7} ? ' payment-badge-paid' : ''"
+                                  th:text="${donHang.hoaDon.trangThai != null and donHang.hoaDon.trangThai >= 4 and donHang.hoaDon.trangThai != 6 and donHang.hoaDon.trangThai != 7 ? 'Đã thanh toán' : 'Chưa thanh toán'}">
+                                Chưa thanh toán
+                            </span>
+                        </span>
+                    </div>
+                    <div class="order-price"
+                         th:text="${#numbers.formatDecimal(donHang.hoaDon.tongTienThanhToan, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                        0 đ
+                    </div>
+                </a>
+            </div>
+
+            <div class="order-detail-view" th:if="${donHangDangChon != null}">
+                <div class="detail-header">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <h2 class="detail-code" style="margin: 0;">
+                                Mã đơn:
+                                <span th:text="${donHangDangChon.hoaDon.maHoaDon}">HD001</span>
+                            </h2>
+                            <span class="order-badge"
+                                  th:classappend="${donHangDangChon.statusClass}"
+                                  th:text="${donHangDangChon.hoaDon.trangThaiName}">
+                                Chờ xác nhận
+                            </span>
+                        </div>
+                        <div class="detail-datetime"
+                             th:text="${donHangDangChon.hoaDon.ngayTao != null ? 'Đặt lúc: ' + #temporals.format(donHangDangChon.hoaDon.ngayTao, 'HH:mm:ss dd/MM/yyyy') : 'Chưa có thời gian'}">
+                            Đặt lúc: 12:00:00 17/07/2026
+                        </div>
+                    </div>
+                    <div class="order-action-stack" th:if="${donHangDangChon.hoaDon.trangThai == 0}">
+                        <a href="#sua-thong-tin-giao-hang" class="btn-edit-delivery">Cập nhật thông tin</a>
+                        <form method="post"
+                              th:action="@{/cua-hang/don-hang-cua-toi/{maHoaDon}/huy(maHoaDon=${donHangDangChon.hoaDon.maHoaDon})}">
+                            <button type="submit"
+                                    class="btn-cancel-order"
+                                    onclick="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                                Hủy đơn hàng
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3 class="section-title">Thông tin giao hàng</h3>
+                    <div class="delivery-grid">
+                        <span class="label">Khách hàng:</span>
+                        <span class="val" th:text="${donHangDangChon.hoaDon.tenKhachHang ?: donHangDangChon.hoaDon.tenNguoiNhan}">Khách hàng</span>
+                        <span class="label">SĐT đặt:</span>
+                        <span class="val" th:text="${donHangDangChon.hoaDon.sdtKhachHang ?: donHangDangChon.hoaDon.sdtNguoiNhan}">0123456789</span>
+                        <span class="label">Người nhận:</span>
+                        <span class="val" th:text="${donHangDangChon.hoaDon.tenNguoiNhan ?: 'Chưa cập nhật'}">Người nhận</span>
+                        <span class="label">SĐT nhận:</span>
+                        <span class="val" th:text="${donHangDangChon.hoaDon.sdtNguoiNhan ?: 'Chưa cập nhật'}">0123456789</span>
+                        <span class="label">Địa chỉ:</span>
+                        <span class="val delivery-address" th:text="${donHangDangChon.hoaDon.diaChiNhan ?: 'Chưa cập nhật'}">Địa chỉ</span>
+                        <span class="label">Ghi chú:</span>
+                        <span class="val delivery-address"
+                              th:text="${donHangDangChon.hoaDon.ghiChu != null && !donHangDangChon.hoaDon.ghiChu.isBlank() ? donHangDangChon.hoaDon.ghiChu : 'Không có ghi chú'}">
+                            Không có ghi chú
+                        </span>
+                    </div>
+
+                    <form id="sua-thong-tin-giao-hang"
+                          th:if="${donHangDangChon.hoaDon.trangThai == 0}"
+                          method="post"
+                          class="delivery-edit-form"
+                          th:action="@{/cua-hang/don-hang-cua-toi/{maHoaDon}/cap-nhat-giao-hang(maHoaDon=${donHangDangChon.hoaDon.maHoaDon})}">
+                        <div class="edit-form-title">Sửa thông tin giao hàng</div>
+                        <div class="edit-form-grid">
+                            <label>
+                                <span>Người nhận</span>
+                                <input type="text"
+                                       name="tenNguoiNhan"
+                                       required
+                                       th:value="${donHangDangChon.hoaDon.tenNguoiNhan}">
+                            </label>
+                            <label>
+                                <span>Số điện thoại</span>
+                                <input type="text"
+                                       name="sdtNguoiNhan"
+                                       required
+                                       th:value="${donHangDangChon.hoaDon.sdtNguoiNhan}">
+                            </label>
+                            <label class="edit-form-full">
+                                <span>Địa chỉ nhận hàng</span>
+                                <textarea name="diaChiNhan"
+                                          rows="3"
+                                          required
+                                          th:text="${donHangDangChon.hoaDon.diaChiNhan}"></textarea>
+                            </label>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                            <button type="submit" class="btn-save-delivery">Cập nhật</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="detail-section">
+                    <h3 class="section-title">Sản phẩm</h3>
+                    <div th:if="${#lists.isEmpty(donHangDangChon.chiTiet)}" class="orders-empty-small">
+                        Chưa có sản phẩm trong đơn.
+                    </div>
+                    <div class="product-item" th:each="item : ${donHangDangChon.chiTiet}">
+                        <img th:src="${item.anh != null && !item.anh.isBlank() ? item.anh : '/images/Logo_Da.jpg'}"
+                             alt="Sản phẩm"
+                             class="product-img">
+                        <div class="product-info">
+                            <div class="product-name" th:text="${item.tenSanPham}">Tên sản phẩm</div>
+                            <div class="product-variant"
+                                 th:text="${'Phân loại: ' + (item.mauSac != null ? item.mauSac : 'Mặc định') + ' / ' + (item.trongLuong != null ? item.trongLuong : 'Mặc định')}">
+                                Phân loại
+                            </div>
+                            <div class="product-qty" th:text="${'Số lượng: ' + item.soLuong}">Số lượng: 1</div>
+                        </div>
+                        <div class="product-price"
+                             th:text="${#numbers.formatDecimal(item.thanhTien != null ? item.thanhTien : 0, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                            0 đ
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section payment-section">
+                    <h3 class="section-title">Thanh toán</h3>
+                    <div class="payment-row">
+                        <span>Tiền hàng</span>
+                        <span th:text="${#numbers.formatDecimal(donHangDangChon.hoaDon.tongTienHang, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Giảm giá</span>
+                        <span th:text="${'- ' + #numbers.formatDecimal(donHangDangChon.hoaDon.tienGiam, 0, 'POINT', 0, 'COMMA') + ' đ'}">- 0 đ</span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Phí vận chuyển</span>
+                        <span th:text="${#numbers.formatDecimal(donHangDangChon.hoaDon.tienVanChuyen, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Phương thức</span>
+                        <div>
+                            COD
+                            <span class="payment-badge"
+                                  th:classappend="${donHangDangChon.hoaDon.trangThai != null and donHangDangChon.hoaDon.trangThai >= 4 and donHangDangChon.hoaDon.trangThai != 6 and donHangDangChon.hoaDon.trangThai != 7} ? ' payment-badge-paid' : ''"
+                                  th:text="${donHangDangChon.hoaDon.trangThai != null and donHangDangChon.hoaDon.trangThai >= 4 and donHangDangChon.hoaDon.trangThai != 6 and donHangDangChon.hoaDon.trangThai != 7 ? 'Đã thanh toán' : 'Chưa thanh toán'}">
+                                Chưa thanh toán
+                            </span>
+                        </div>
+                    </div>
+                    <hr class="payment-divider">
+                    <div class="payment-row total-row">
+                        <span>Tổng thanh toán</span>
+                        <span class="total-price"
+                              th:text="${#numbers.formatDecimal(donHangDangChon.hoaDon.tongTienThanhToan, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                            0 đ
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#profile-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="profile-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/ho-so.css(v=3)}">
+
+    <div class="container-wide" style="padding-top: 40px; padding-bottom: 80px;">
+        <div class="profile-breadcrumb">
+            <a th:href="@{/cua-hang}">Trang chủ</a> &gt; <span>Hồ sơ</span>
+        </div>
+
+        <h1 class="profile-page-title">Hồ sơ của tôi</h1>
+
+
+
+        <div class="profile-layout">
+            <div class="profile-sidebar">
+                <div class="profile-sidebar-header">
+                    <div class="profile-avatar">
+                        <span th:text="${#strings.isEmpty(khachHang.hoTen) ? 'K' : #strings.substring(khachHang.hoTen, 0, 1)}">K</span>
+                    </div>
+                    <h3 class="profile-name" th:text="${khachHang.hoTen}">Khách hàng</h3>
+                    <p class="profile-email" th:text="${khachHang.email}">email@example.com</p>
+                </div>
+
+                <div class="profile-sidebar-info">
+                    <div class="info-group">
+                        <label>Mã khách hàng</label>
+                        <div class="info-val" th:text="${khachHang.maKhachHang}">KH001</div>
+                    </div>
+                    <div class="info-group">
+                        <label>Tài khoản</label>
+                        <div class="info-val" th:text="${khachHang.email}">email@example.com</div>
+                    </div>
+                    <div class="info-group">
+                        <label>Điện thoại</label>
+                        <div class="info-val" th:text="${khachHang.sdt ?: 'Chưa cập nhật'}">Chưa cập nhật</div>
+                    </div>
+                    <div class="info-group">
+                        <label>Địa chỉ mặc định</label>
+                        <div class="info-val info-val-light"
+                             th:if="${diaChiMacDinh != null}"
+                             th:text="${(#strings.isEmpty(diaChiMacDinh.diaChiChiTiet) ? '' : diaChiMacDinh.diaChiChiTiet + ', ') + diaChiMacDinh.phuongXa + ', ' + diaChiMacDinh.tinhThanh}">
+                            Địa chỉ mặc định
+                        </div>
+                        <div class="info-val info-val-light" th:if="${diaChiMacDinh == null}">
+                            Chưa có địa chỉ
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-main">
+                <section>
+                    <h2 class="profile-section-title">Thông tin cá nhân</h2>
+
+                    <form th:action="@{/cua-hang/ho-so/thong-tin}" method="post">
+                        <div class="profile-grid-2">
+                            <div class="form-group">
+                                <label>Họ và tên</label>
+                                <input type="text" class="form-input" name="hoTen" required th:value="${khachHang.hoTen}">
+                            </div>
+                            <div class="form-group">
+                                <label>Mã khách hàng</label>
+                                <input type="text" class="form-input disabled-input" readonly th:value="${khachHang.maKhachHang}">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="text" class="form-input disabled-input" readonly th:value="${khachHang.email}">
+                            </div>
+                            <div class="form-group">
+                                <label>Số điện thoại</label>
+                                <input type="tel" class="form-input" name="sdt" required th:value="${khachHang.sdt}">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Giới tính</label>
+                                <select class="form-input" name="gioiTinh">
+                                    <option value="" th:selected="${khachHang.gioiTinh == null}">Chưa cập nhật</option>
+                                    <option value="1" th:selected="${khachHang.gioiTinh == 1}">Nam</option>
+                                    <option value="0" th:selected="${khachHang.gioiTinh == 0}">Nữ</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày sinh</label>
+                                <input type="date"
+                                       class="form-input"
+                                       name="ngaySinh"
+                                       th:value="${khachHang.ngaySinh}">
+                            </div>
+                        </div>
+                        <div class="profile-form-actions">
+                            <button type="submit" class="btn-save-profile">Lưu thông tin</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section>
+                    <div class="profile-section-head">
+                        <h2 class="profile-section-title">Địa chỉ nhận hàng</h2>
+                        <details class="address-add-panel">
+                            <summary>+ Thêm địa chỉ mới</summary>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                <strong style="font-size: 16px; color: var(--text-main);">Thêm địa chỉ mới</strong>
+                                <button type="button" class="btn-address-action" onclick="this.closest('details').removeAttribute('open')" title="Đóng">
+                                    <i class="ph ph-x" style="font-size: 20px;"></i>
+                                </button>
+                            </div>
+                            <form class="address-form" th:action="@{/cua-hang/ho-so/dia-chi}" method="post">
+                                <div class="profile-grid-2">
+                                    <div class="form-group">
+                                        <label>Người nhận *</label>
+                                        <input class="form-input" name="nguoiNhan" required th:value="${khachHang.hoTen}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Số điện thoại *</label>
+                                        <input class="form-input" name="sdt" required th:value="${khachHang.sdt}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tỉnh/Thành phố *</label>
+                                        <select class="form-input js-address-province" name="tinhThanh" required>
+                                            <option value="">Đang tải tỉnh/thành phố...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Quận/Huyện *</label>
+                                        <select class="form-input js-address-district" name="quanHuyen" required disabled>
+                                            <option value="">Chọn tỉnh/thành phố trước</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Phường/Xã *</label>
+                                        <select class="form-input js-address-ward" name="phuongXa" required disabled>
+                                            <option value="">Chọn quận/huyện trước</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Địa chỉ cụ thể</label>
+                                    <input class="form-input" name="diaChiChiTiet" placeholder="Số nhà, tên đường...">
+                                </div>
+                                <div class="address-form-actions">
+                                    <button type="submit" class="btn-save-profile">Lưu địa chỉ</button>
+                                </div>
+                            </form>
+                        </details>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(danhSachDiaChi)}" class="empty-address">
+                        Chưa có địa chỉ nhận hàng. Bạn có thể thêm địa chỉ mới ngay tại hồ sơ.
+                    </div>
+
+                    <div th:if="${!#lists.isEmpty(danhSachDiaChi)}" class="address-list">
+                        <article class="address-card" th:each="diaChi : ${danhSachDiaChi}">
+                            <div class="address-card__content">
+                                <div class="address-card__left">
+                                    <div class="address-card__top">
+                                        <strong th:text="${diaChi.nguoiNhan}">Người nhận</strong>
+                                        <span th:text="${diaChi.sdt}">0123456789</span>
+                                        <span class="address-badge" th:if="${diaChi.macDinh}">Mặc định</span>
+                                    </div>
+                                    <p th:text="${(#strings.isEmpty(diaChi.diaChiChiTiet) ? '' : diaChi.diaChiChiTiet + ', ') + diaChi.phuongXa + ', ' + diaChi.tinhThanh}">
+                                        Địa chỉ chi tiết
+                                    </p>
+                                </div>
+                                <div class="address-card__right">
+                                    <form th:action="@{/cua-hang/ho-so/dia-chi/mac-dinh/{idDiaChi}(idDiaChi=${diaChi.id})}" method="post" style="margin: 0; display: flex; align-items: center;">
+                                        <label class="toggle-switch" style="margin: 0; padding-right: 12px; border-right: 1px solid #e5e7eb;">
+                                            <input type="checkbox" onchange="this.form.submit()" th:checked="${diaChi.macDinh}">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </form>
+                                    <button type="button" class="btn-address-action" th:onclick="'document.getElementById(\'edit-form-' + ${diaChi.id} + '\').style.display = \'block\''" title="Sửa địa chỉ">
+                                        <i class="ph ph-pencil-simple" style="font-size: 22px;"></i>
+                                    </button>
+                                    <form th:action="@{/cua-hang/ho-so/dia-chi/xoa/{idDiaChi}(idDiaChi=${diaChi.id})}" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa địa chỉ này?');" style="margin: 0;">
+                                        <button type="submit" class="btn-address-action text-danger" title="Xóa địa chỉ">
+                                            <i class="ph ph-trash" style="font-size: 22px;"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <!-- Bảng sửa địa chỉ (ẩn mặc định) -->
+                            <div th:id="'edit-form-' + ${diaChi.id}" class="address-edit-panel" style="display: none;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <strong style="font-size: 15px; color: var(--text-main);">Sửa địa chỉ</strong>
+                                    <button type="button" class="btn-address-action" th:onclick="'document.getElementById(\'edit-form-' + ${diaChi.id} + '\').style.display = \'none\''">
+                                        <i class="ph ph-x text-xl"></i>
+                                    </button>
+                                </div>
+                                <form class="address-form"
+                                      th:action="@{/cua-hang/ho-so/dia-chi/{idDiaChi}(idDiaChi=${diaChi.id})}"
+                                      method="post">
+                                    <div class="profile-grid-2">
+                                        <div class="form-group">
+                                            <label>Người nhận *</label>
+                                            <input class="form-input" name="nguoiNhan" required th:value="${diaChi.nguoiNhan}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Số điện thoại *</label>
+                                            <input class="form-input" name="sdt" required th:value="${diaChi.sdt}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Tỉnh/Thành phố *</label>
+                                            <select class="form-input js-address-province"
+                                                    name="tinhThanh"
+                                                    required
+                                                    th:attr="data-selected=${diaChi.tinhThanh},data-detail=${diaChi.diaChiChiTiet},data-combined=${diaChi.phuongXa}">
+                                                <option value="">Đang tải tỉnh/thành phố...</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Quận/Huyện *</label>
+                                            <select class="form-input js-address-district" name="quanHuyen" required disabled>
+                                                <option value="">Chọn tỉnh/thành phố trước</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Phường/Xã *</label>
+                                            <select class="form-input js-address-ward" name="phuongXa" required disabled>
+                                                <option value="">Chọn quận/huyện trước</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Địa chỉ cụ thể</label>
+                                        <input class="form-input" name="diaChiChiTiet" th:value="${diaChi.diaChiChiTiet}">
+                                    </div>
+                                    <div class="address-form-actions">
+                                        <button type="submit" class="btn-save-profile">Cập nhật</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+<script>
+    (function () {
+        const API_BASE = 'https://provinces.open-api.vn/api';
+        let provincePromise = null;
+
+        function splitAddress(value) {
+            return (value || '')
+                .split(',')
+                .map(item => item.trim())
+                .filter(Boolean);
+        }
+
+        function laQuanHuyen(value) {
+            return /^(Quận|Huyện|Thành phố|Thị xã)\b/i.test(value || '');
+        }
+
+        function laPhuongXa(value) {
+            return /^(Phường|Xã|Thị trấn)\b/i.test(value || '');
+        }
+
+        function tachDiaChiDaLuu(combinedValue, detailValue) {
+            const parts = splitAddress(combinedValue);
+            const detailParts = splitAddress(detailValue);
+            let wardName = '';
+            let districtName = '';
+
+            parts.forEach(function (part) {
+                if (!districtName && laQuanHuyen(part)) {
+                    districtName = part;
+                } else if (!wardName && laPhuongXa(part)) {
+                    wardName = part;
+                }
+            });
+
+            if (!wardName && parts.length === 1) {
+                wardName = parts[0];
+            }
+            if (!wardName && parts.length >= 2) {
+                wardName = parts[0];
+            }
+            if (!districtName && parts.length >= 2) {
+                districtName = parts[parts.length - 1];
+            }
+            if (!districtName && detailParts.length > 0) {
+                const lastDetail = detailParts[detailParts.length - 1];
+                if (laQuanHuyen(lastDetail)) {
+                    districtName = lastDetail;
+                }
+            }
+
+            return { wardName, districtName };
+        }
+
+        function boQuanHuyenKhoiDiaChiChiTiet(detailValue, districtName) {
+            const parts = splitAddress(detailValue);
+            if (!districtName || parts.length === 0) {
+                return detailValue || '';
+            }
+            const lastPart = parts[parts.length - 1];
+            if (lastPart === districtName) {
+                return parts.slice(0, -1).join(', ');
+            }
+            return detailValue || '';
+        }
+
+        function setLoading(selectElement, message, disabled) {
+            if (!selectElement) {
+                return;
+            }
+            selectElement.innerHTML = `<option value="">${message}</option>`;
+            selectElement.disabled = disabled;
+        }
+
+        function renderOptions(selectElement, items, placeholder) {
+            const options = [`<option value="">${placeholder}</option>`];
+            items.forEach(function (item) {
+                options.push(`<option value="${item.name}" data-code="${item.code}">${item.name}</option>`);
+            });
+            selectElement.innerHTML = options.join('');
+        }
+
+        function chonTheoTen(selectElement, tenCanChon) {
+            if (!tenCanChon) {
+                return false;
+            }
+            const option = Array.from(selectElement.options).find(item => item.value === tenCanChon);
+            if (!option) {
+                return false;
+            }
+            selectElement.value = tenCanChon;
+            return true;
+        }
+
+        async function layDanhSachTinhThanh() {
+            if (!provincePromise) {
+                provincePromise = fetch(`${API_BASE}/p/`).then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Khong tai duoc danh sach tinh/thanh pho');
+                    }
+                    return response.json();
+                });
+            }
+            return provincePromise;
+        }
+
+        async function layDanhSachQuanHuyen(provinceCode) {
+            const response = await fetch(`${API_BASE}/p/${provinceCode}?depth=2`);
+            if (!response.ok) {
+                throw new Error('Khong tai duoc danh sach quan/huyen');
+            }
+            const province = await response.json();
+            return Array.isArray(province.districts) ? province.districts : [];
+        }
+
+        async function layDanhSachPhuongXa(districtCode) {
+            const response = await fetch(`${API_BASE}/d/${districtCode}?depth=2`);
+            if (!response.ok) {
+                throw new Error('Khong tai duoc danh sach phuong/xa');
+            }
+            const district = await response.json();
+            return Array.isArray(district.wards) ? district.wards : [];
+        }
+
+        async function napQuanHuyen(provinceSelect, districtSelect, wardSelect, selectedDistrictName, selectedWardName) {
+            const provinceCode = provinceSelect.selectedOptions[0]?.dataset.code || '';
+            if (!provinceCode) {
+                setLoading(districtSelect, 'Chọn tỉnh/thành phố trước', true);
+                setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                return;
+            }
+
+            try {
+                setLoading(districtSelect, 'Đang tải quận/huyện...', true);
+                setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                const districts = await layDanhSachQuanHuyen(provinceCode);
+                renderOptions(districtSelect, districts, 'Chọn quận/huyện');
+                districtSelect.disabled = false;
+
+                if (chonTheoTen(districtSelect, selectedDistrictName)) {
+                    await napPhuongXa(districtSelect, wardSelect, selectedWardName);
+                }
+            } catch (error) {
+                console.error(error);
+                setLoading(districtSelect, 'Không tải được quận/huyện', true);
+            }
+        }
+
+        async function napPhuongXa(districtSelect, wardSelect, selectedWardName) {
+            const districtCode = districtSelect.selectedOptions[0]?.dataset.code || '';
+            if (!districtCode) {
+                setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                return;
+            }
+
+            try {
+                setLoading(wardSelect, 'Đang tải phường/xã...', true);
+                const wards = await layDanhSachPhuongXa(districtCode);
+                renderOptions(wardSelect, wards, 'Chọn phường/xã');
+                wardSelect.disabled = false;
+                chonTheoTen(wardSelect, selectedWardName);
+            } catch (error) {
+                console.error(error);
+                setLoading(wardSelect, 'Không tải được phường/xã', true);
+            }
+        }
+
+        async function khoiTaoFormDiaChi(formElement) {
+            const provinceSelect = formElement.querySelector('.js-address-province');
+            const districtSelect = formElement.querySelector('.js-address-district');
+            const wardSelect = formElement.querySelector('.js-address-ward');
+            if (!provinceSelect || !districtSelect || !wardSelect) {
+                return;
+            }
+
+            const selectedProvinceName = provinceSelect.dataset.selected || '';
+            const savedAddress = tachDiaChiDaLuu(provinceSelect.dataset.combined || '', provinceSelect.dataset.detail || '');
+            const detailInput = formElement.querySelector('[name="diaChiChiTiet"]');
+            if (detailInput && savedAddress.districtName) {
+                detailInput.value = boQuanHuyenKhoiDiaChiChiTiet(detailInput.value, savedAddress.districtName);
+            }
+
+            provinceSelect.addEventListener('change', function () {
+                napQuanHuyen(provinceSelect, districtSelect, wardSelect, '', '');
+            });
+            districtSelect.addEventListener('change', function () {
+                napPhuongXa(districtSelect, wardSelect, '');
+            });
+
+            try {
+                setLoading(provinceSelect, 'Đang tải tỉnh/thành phố...', true);
+                const provinces = await layDanhSachTinhThanh();
+                renderOptions(provinceSelect, provinces, 'Chọn tỉnh/thành phố');
+                provinceSelect.disabled = false;
+
+                if (chonTheoTen(provinceSelect, selectedProvinceName)) {
+                    await napQuanHuyen(provinceSelect, districtSelect, wardSelect, savedAddress.districtName, savedAddress.wardName);
+                } else {
+                    setLoading(districtSelect, 'Chọn tỉnh/thành phố trước', true);
+                    setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                }
+            } catch (error) {
+                console.error(error);
+                setLoading(provinceSelect, 'Không tải được tỉnh/thành phố', true);
+            }
+        }
+
+        document.querySelectorAll('.address-form').forEach(khoiTaoFormDiaChi);
+    })();
+</script>
+</div>
+</body>
+</html>
