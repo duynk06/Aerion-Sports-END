@@ -4,11 +4,14 @@ import com.example.AerionSports_BE.dto.ChiTietEmailDTO;
 import com.example.AerionSports_BE.dto.response.ChiTietHoaDonResponse;
 import com.example.AerionSports_BE.dto.response.LichSuHoaDonResponse;
 import com.example.AerionSports_BE.dto.response.LichSuThanhToanResponse;
+import com.example.AerionSports_BE.entity.ChiTietHoaDon;
+import com.example.AerionSports_BE.entity.ChiTietSanPham;
 import com.example.AerionSports_BE.entity.HoaDon;
 import com.example.AerionSports_BE.entity.LichSuHoaDon;
 import com.example.AerionSports_BE.entity.LichSuThanhToan;
 import com.example.AerionSports_BE.entity.NhanVien;
 import com.example.AerionSports_BE.repository.*;
+import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineLichSuThanhToanRepository;
 import com.example.AerionSports_BE.dto.response.HoaDonResponse;
 import com.example.AerionSports_BE.service.EmailService;
 import com.example.AerionSports_BE.service.HoaDonService;
@@ -19,10 +22,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Sort;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,10 +43,14 @@ public class HoaDonServiceImpl implements HoaDonService {
     @Autowired
     private ChiTietHoaDonRepository chiTietHoaDonRepository;
     @Autowired
+    private ChiTietSanPhamRepository chiTietSanPhamRepository;
+    @Autowired
     private EmailService emailService;
 
     @Autowired
     private LichSuThanhToanRepository lichSuThanhToanRepository;
+    @Autowired
+    private BanHangOnlineLichSuThanhToanRepository banHangOnlineLichSuThanhToanRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -148,6 +158,22 @@ public class HoaDonServiceImpl implements HoaDonService {
         lichSuHoaDonRepository.save(lichSu);
 
         HoaDon hdSauKhiSave = hoaDonRepository.findByIdWithChiTiet(id);
+        if (hdSauKhiSave != null && laHoaDonOnline(hdSauKhiSave)) {
+            if (Objects.equals(trangThaiCu, 0) && Objects.equals(trangThaiMoi, 1)) {
+                truTonKhoKhiXacNhanDonOnline(hdSauKhiSave);
+            }
+            if (trangThaiCu != null && trangThaiCu >= 1 && Objects.equals(trangThaiMoi, 6)) {
+                hoanTonKhoKhiHuyDonOnlineDaXacNhan(hdSauKhiSave);
+            }
+        }
+
+        if (hdSauKhiSave != null
+                && laHoaDonOnline(hdSauKhiSave)
+                && !Objects.equals(trangThaiCu, 4)
+                && Objects.equals(trangThaiMoi, 4)) {
+            ghiNhanThanhToanKhiDonOnlineDaGiao(hdSauKhiSave);
+        }
+
         if (hdSauKhiSave != null
                 && hdSauKhiSave.getKhachHang() != null
                 && hdSauKhiSave.getKhachHang().getEmail() != null
@@ -190,6 +216,92 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         return new HoaDonResponse(hoaDonRepository.findById(id).orElse(hoaDon));
     }
+
+    private void ghiNhanThanhToanKhiDonOnlineDaGiao(HoaDon hoaDon) {
+        if (hoaDon == null || hoaDon.getId() == null) {
+            return;
+        }
+        if (banHangOnlineLichSuThanhToanRepository.existsByHoaDon_IdAndTrangThaiThanhToan(
+                hoaDon.getId(), "Đã thanh toán")) {
+            return;
+        }
+
+        LichSuThanhToan lichSuThanhToan = banHangOnlineLichSuThanhToanRepository
+                .findFirstByHoaDon_IdAndTrangThaiThanhToanOrderByNgayThanhToanDesc(
+                        hoaDon.getId(), "Chưa thanh toán")
+                .orElseGet(LichSuThanhToan::new);
+
+        lichSuThanhToan.setHoaDon(hoaDon);
+        lichSuThanhToan.setSoTien(
+                hoaDon.getTongTienThanhToan() == null ? BigDecimal.ZERO : hoaDon.getTongTienThanhToan()
+        );
+        if (lichSuThanhToan.getPhuongThucThanhToan() == null
+                || lichSuThanhToan.getPhuongThucThanhToan().isBlank()) {
+            lichSuThanhToan.setPhuongThucThanhToan("Thanh toán khi nhận hàng");
+        }
+        lichSuThanhToan.setTrangThaiThanhToan("Đã thanh toán");
+        lichSuThanhToan.setNgayThanhToan(LocalDateTime.now());
+        lichSuThanhToan.setGhiChu("Đơn online đã giao hàng, tự động ghi nhận thanh toán.");
+        banHangOnlineLichSuThanhToanRepository.save(lichSuThanhToan);
+    }
+
+    private boolean laHoaDonOnline(HoaDon hoaDon) {
+        return hoaDon != null && Objects.equals(hoaDon.getLoaiHoaDon(), 1);
+    }
+
+    private void truTonKhoKhiXacNhanDonOnline(HoaDon hoaDon) {
+        List<ChiTietHoaDon> chiTietHoaDons = layChiTietHoaDonDeCapNhatKho(hoaDon);
+        for (ChiTietHoaDon chiTietHoaDon : chiTietHoaDons) {
+            ChiTietSanPham bienThe = chiTietHoaDon.getChiTietSanPham();
+            if (bienThe == null || bienThe.getId() == null) {
+                throw new RuntimeException("Không tìm thấy biến thể sản phẩm trong hóa đơn.");
+            }
+
+            int soLuongDat = chiTietHoaDon.getSoLuong() == null ? 0 : chiTietHoaDon.getSoLuong();
+            int tonKhoHienTai = bienThe.getSoLuong() == null ? 0 : bienThe.getSoLuong();
+            if (soLuongDat <= 0) {
+                throw new RuntimeException("Số lượng sản phẩm trong hóa đơn không hợp lệ.");
+            }
+            if (tonKhoHienTai < soLuongDat) {
+                throw new RuntimeException("Sản phẩm " + layTenBienThe(bienThe) + " không đủ tồn kho để xác nhận đơn.");
+            }
+
+            bienThe.setSoLuong(tonKhoHienTai - soLuongDat);
+            bienThe.setNgayCapNhat(Instant.now());
+            chiTietSanPhamRepository.save(bienThe);
+        }
+    }
+
+    private void hoanTonKhoKhiHuyDonOnlineDaXacNhan(HoaDon hoaDon) {
+        List<ChiTietHoaDon> chiTietHoaDons = layChiTietHoaDonDeCapNhatKho(hoaDon);
+        for (ChiTietHoaDon chiTietHoaDon : chiTietHoaDons) {
+            ChiTietSanPham bienThe = chiTietHoaDon.getChiTietSanPham();
+            if (bienThe == null || bienThe.getId() == null) {
+                continue;
+            }
+
+            int soLuongDat = chiTietHoaDon.getSoLuong() == null ? 0 : chiTietHoaDon.getSoLuong();
+            int tonKhoHienTai = bienThe.getSoLuong() == null ? 0 : bienThe.getSoLuong();
+            bienThe.setSoLuong(tonKhoHienTai + Math.max(soLuongDat, 0));
+            bienThe.setNgayCapNhat(Instant.now());
+            chiTietSanPhamRepository.save(bienThe);
+        }
+    }
+
+    private List<ChiTietHoaDon> layChiTietHoaDonDeCapNhatKho(HoaDon hoaDon) {
+        if (hoaDon == null || hoaDon.getId() == null) {
+            return List.of();
+        }
+        return chiTietHoaDonRepository.findByHoaDonIdWithDetail(hoaDon.getId());
+    }
+
+    private String layTenBienThe(ChiTietSanPham bienThe) {
+        if (bienThe == null || bienThe.getIdSanPham() == null) {
+            return "không xác định";
+        }
+        return bienThe.getIdSanPham().getTenSanPham();
+    }
+
     private void validateChuyenTrangThai(Integer cu, Integer moi, Integer loaiHoaDon) {
         if (cu == 6 || cu == 5) {
             throw new RuntimeException("Không thể chuyển trạng thái từ trạng thái này!");
@@ -257,7 +369,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     }
     @Override
     public List<LichSuThanhToanResponse> getLichSuThanhToan(Integer idHoaDon) {
-        return lichSuThanhToanRepository.findByHoaDonId(idHoaDon)
+        return lichSuThanhToanRepository.findByHoaDon_IdOrderByNgayThanhToanDesc(idHoaDon)
                 .stream()
                 .map(LichSuThanhToanResponse::new)
                 .collect(Collectors.toList());

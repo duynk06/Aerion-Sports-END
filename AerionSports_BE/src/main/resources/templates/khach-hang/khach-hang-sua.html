@@ -136,7 +136,10 @@
                                 <div class="form-row">
                                     <div class="form-cell">
                                         <label>SĐT người nhận <span class="required">*</span></label>
-                                        <input type="text" x-model="addr.sdt" placeholder="Nhập số điện thoại nhận" required />
+                                        <input type="text" x-model="addr.sdt" maxlength="10"
+                                               placeholder="Nhập số điện thoại nhận"
+                                               @input="addr.sdt = addr.sdt.replace(/[^0-9]/g, '')"
+                                               required />
                                     </div>
                                     <div class="form-cell">
                                         <label>Địa chỉ chi tiết <span class="required">*</span></label>
@@ -146,8 +149,7 @@
 
                                 <div class="checkbox-default-wrapper">
                                     <label class="toggle-control">
-                                        <input type="checkbox" :checked="addr.macDinh" @change="setFormDefaultAddress(idx)" />
-                                        <span class="control-label">Đặt làm địa chỉ mặc định</span>
+                                        <input type="checkbox" x-model="addr.macDinh" @change="setFormDefaultAddress(idx, $event)" />                                        <span class="control-label">Đặt làm địa chỉ mặc định</span>
                                     </label>
                                 </div>
                             </div>
@@ -195,9 +197,23 @@
 
             async load63TinhThanh() {
                 try {
-                    const res = await axios.get('https://provinces.open-api.vn/api/p/');
+                    const res = await axios.get('/data/vn-provinces.json');
                     this.listTinhThanhAPI = res.data || [];
-                } catch (e) { console.error('Lỗi tải 63 tỉnh thành: ', e); }
+                } catch (e) { console.error('Lỗi tải dữ liệu tỉnh/thành: ', e); }
+            },
+
+            handleThayDoiTinhThanh(addr) {
+                addr.quanHuyen = ''; addr.phuongXa = ''; addr.listQuanHuyenTmp = []; addr.listPhuongXaTmp = [];
+                if (!addr.tinhThanh) return;
+                const tinh = this.listTinhThanhAPI.find(t => t.name === addr.tinhThanh);
+                addr.listQuanHuyenTmp = tinh ? (tinh.districts || []) : [];
+            },
+
+            handleThayDoiQuanHuyen(addr) {
+                addr.phuongXa = ''; addr.listPhuongXaTmp = [];
+                if (!addr.quanHuyen) return;
+                const quan = addr.listQuanHuyenTmp.find(q => q.name === addr.quanHuyen);
+                addr.listPhuongXaTmp = quan ? (quan.wards || []) : [];
             },
 
             async loadDuLieuKhachHangCu() {
@@ -220,14 +236,10 @@
                             if (addr.tinhThanh && this.listTinhThanhAPI.length > 0) {
                                 const tinh = this.listTinhThanhAPI.find(t => t.name.trim() === addr.tinhThanh.trim());
                                 if (tinh) {
-                                    const resHuyen = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                                    huyenList = resHuyen.data.districts || [];
+                                    huyenList = tinh.districts || [];
                                     if (qHuyen && huyenList.length > 0) {
                                         const quan = huyenList.find(q => q.name.trim() === qHuyen.trim());
-                                        if (quan) {
-                                            const resXa = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                                            xaList = resXa.data.wards || [];
-                                        }
+                                        if (quan) xaList = quan.wards || [];
                                     }
                                 }
                             }
@@ -256,33 +268,15 @@
                 }
             },
 
-            async handleThayDoiTinhThanh(addr) {
-                addr.quanHuyen = ''; addr.phuongXa = ''; addr.listQuanHuyenTmp = []; addr.listPhuongXaTmp = [];
-                if (!addr.tinhThanh) return;
-                const tinh = this.listTinhThanhAPI.find(t => t.name === addr.tinhThanh);
-                if (tinh) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                    addr.listQuanHuyenTmp = res.data.districts || [];
-                }
-            },
-            async handleThayDoiQuanHuyen(addr) {
-                addr.phuongXa = ''; addr.listPhuongXaTmp = [];
-                if (!addr.quanHuyen) return;
-                const quan = addr.listQuanHuyenTmp.find(q => q.name === addr.quanHuyen);
-                if (quan) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                    addr.listPhuongXaTmp = res.data.wards || [];
-                }
-            },
-
             addNewAddressRow() {
                 this.customerForm.addresses.push({ uid: 'new-' + Date.now(), id: null, tinhThanh: '', quanHuyen: '', phuongXa: '', diaChiChiTiet: '', nguoiNhan: '', sdt: '', macDinh: this.customerForm.addresses.length === 0, listQuanHuyenTmp: [], listPhuongXaTmp: [] });
             },
-            setFormDefaultAddress(index) { this.customerForm.addresses.forEach((a, idx) => a.macDinh = idx === index); },
-            removeAddressRow(index) {
-                const wasDef = this.customerForm.addresses[index].macDinh;
-                this.customerForm.addresses.splice(index, 1);
-                if (wasDef && this.customerForm.addresses.length > 0) this.customerForm.addresses[0].macDinh = true;
+            setFormDefaultAddress(index, event) {
+                if (event.target.checked) {
+                    this.customerForm.addresses.forEach((a, idx) => a.macDinh = idx === index);
+                } else {
+                    this.customerForm.addresses[index].macDinh = false;
+                }
             },
 
             avatarFile: null,
@@ -330,11 +324,17 @@
                 const tuoiHopLe = this.validateNgaySinh();
                 if (!hoTenHopLe || !sdtHopLe || !emailHopLe || !tuoiHopLe) return alert('Vui lòng hoàn thiện đúng các trường hiển thị lỗi đỏ!');
 
-                const trong = this.customerForm.addresses.some(a => !a.nguoiNhan.trim() || !a.sdt.trim() || !a.tinhThanh || !a.quanHuyen || !a.phuongXa || !a.diaChiChiTiet.trim());
+                const sdtRegex = /^(0[3|5|7|8|9])([0-9]{8})$/;
+                const trong = this.customerForm.addresses.some(a =>
+                    !a.nguoiNhan.trim() || !a.sdt.trim() || !a.tinhThanh || !a.quanHuyen || !a.phuongXa || !a.diaChiChiTiet.trim()
+                );
                 if (trong) return alert('Vui lòng không để trống bất kì thông tin nào trong khối sổ địa chỉ!');
 
-                const xacNhan = confirm(`Bạn có chắc chắn muốn lưu thay đổi thông tin khách hàng "${this.customerForm.hoTen}" không?`);
-                if (!xacNhan) return;
+                const sdtSai = this.customerForm.addresses.some(a => !sdtRegex.test(a.sdt.trim()));
+                if (sdtSai) return alert('Số điện thoại người nhận trong sổ địa chỉ không đúng định dạng nhà mạng VN (10 số, đầu số 03/05/07/08/09)!');
+
+                const coDiaChiMacDinh = this.customerForm.addresses.some(a => a.macDinh);
+                if (!coDiaChiMacDinh) return alert('Vui lòng chọn 1 địa chỉ mặc định!');
 
                 try {
                     const checkTrungRes = await axios.get('http://localhost:8080/public/khach-hang/check-trung', {
@@ -403,6 +403,7 @@
     .select-box, .form-cell input { padding:9px 12px;border:1px solid #dcdfe6;border-radius:4px;font-size:13px;outline:none;width:100%;box-sizing:border-box;height:38px; }
     .radio-flex { display:flex;gap:20px;padding:8px 12px;background:#ffffff;height:38px;align-items:center; }
     .radio-flex label { display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px; }
+    .radio-flex input[type="radio"] { accent-color:#f79b66; }
     .border-box { border:1px solid #dcdfe6;border-radius:4px; }
     .address-section-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:20px; }
     .btn-add-address-item { background-color:#f79b66;border:none;color:#ffffff;padding:6px 14px;border-radius:4px;font-size:13px;cursor:pointer; }
@@ -410,6 +411,7 @@
     .address-item-title { display:flex;justify-content:space-between;font-weight:bold;font-size:13px;color:#606266;margin-bottom:12px; }
     .btn-delete-address { background:none;border:none;color:#f79b66;cursor:pointer;font-size:13px; }
     .toggle-control { display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#606266; }
+    .toggle-control input[type="checkbox"] { accent-color:#f79b66; }
     .form-submit-bar { display:flex;justify-content:flex-end;gap:12px;margin-top:10px; }
     .btn-cancel-action { background-color:#ffffff;border:1px solid #dcdfe6;color:#606266;padding:10px 24px;border-radius:4px;cursor:pointer;height:38px; }
     .btn-submit-action { background-color:#1a2942;border:none;color:#ffffff;padding:10px 24px;border-radius:4px;cursor:pointer;height:38px; }

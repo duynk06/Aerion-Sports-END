@@ -12,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -166,7 +168,9 @@ public class HoaDonController {
             RedirectAttributes redirectAttributes
     ) {
         try {
-            hoaDonService.chuyenTrangThai(id, trangThaiMoi, ghiChu, "admin@example.com");
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth != null ? auth.getName() : null;
+            hoaDonService.chuyenTrangThai(id, trangThaiMoi, ghiChu, username);
             redirectAttributes.addFlashAttribute("successMessage", "Chuyển trạng thái thành công!");
             return "redirect:/hoa-don/chi-tiet/" + id;
         } catch (RuntimeException e) {

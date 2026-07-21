@@ -79,7 +79,6 @@
                             <div class="form-group">
                                 <label>Vai trò hệ thống</label>
                                 <select x-model="nhanVien.vaiTro">
-                                    <option value="1">Quản trị viên</option>
                                     <option value="2">Quản lý</option>
                                     <option value="3">Nhân viên</option>
                                 </select>
@@ -132,7 +131,7 @@
                 </div>
 
                 <div class="button-group" style="margin-top:30px;">
-                    <button type="submit" class="btn-save">💾 Lưu thông tin nhân viên</button>
+                    <button type="submit" class="btn-save">Lưu thông tin nhân viên</button>
                     <button type="button" class="btn-cancel" onclick="location.href='/nhan-vien'">✖ Hủy bỏ</button>
                 </div>
             </form>
@@ -170,9 +169,25 @@
 
             async load63TinhThanh() {
                 try {
-                    const res = await axios.get('https://provinces.open-api.vn/api/p/');
+                    const res = await axios.get('/data/vn-provinces.json');   // 🌟 SỬA: dùng file tĩnh local
                     this.listTinhThanh = res.data || [];
                 } catch (e) { console.error(e); }
+            },
+
+// 🌟 Không còn async/gọi API — chỉ lọc từ dữ liệu đã có sẵn
+            handleThayDoiTinhThanh() {
+                this.diaChi.quanHuyen = ''; this.diaChi.phuongXa = '';
+                this.listQuanHuyenTmp = []; this.listPhuongXaTmp = [];
+                if (!this.diaChi.tinhThanh) return;
+                const tinh = this.listTinhThanh.find(t => t.name === this.diaChi.tinhThanh);
+                this.listQuanHuyenTmp = tinh ? (tinh.districts || []) : [];
+            },
+
+            handleThayDoiQuanHuyen() {
+                this.diaChi.phuongXa = ''; this.listPhuongXaTmp = [];
+                if (!this.diaChi.quanHuyen) return;
+                const quan = this.listQuanHuyenTmp.find(q => q.name === this.diaChi.quanHuyen);
+                this.listPhuongXaTmp = quan ? (quan.wards || []) : [];
             },
 
             onAvatarFileChange(e) {
@@ -210,26 +225,6 @@
                     }
                 }
             },
-
-            async handleThayDoiTinhThanh() {
-                this.diaChi.quanHuyen = ''; this.diaChi.phuongXa = ''; this.listQuanHuyenTmp = []; this.listPhuongXaTmp = [];
-                if (!this.diaChi.tinhThanh) return;
-                const tinh = this.listTinhThanh.find(t => t.name === this.diaChi.tinhThanh);
-                if (tinh) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                    this.listQuanHuyenTmp = res.data.districts || [];
-                }
-            },
-            async handleThayDoiQuanHuyen() {
-                this.diaChi.phuongXa = ''; this.listPhuongXaTmp = [];
-                if (!this.diaChi.quanHuyen) return;
-                const quan = this.listQuanHuyenTmp.find(q => q.name === this.diaChi.quanHuyen);
-                if (quan) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                    this.listPhuongXaTmp = res.data.wards || [];
-                }
-            },
-
             validateSdt() {
                 if (!/^(0[3|5|7|8|9])([0-9]{8})$/.test(this.nhanVien.sdt.trim())) { this.errors.sdt = 'SĐT không đúng định dạng nhà mạng VN!'; return false; }
                 this.errors.sdt = ''; return true;
@@ -269,6 +264,9 @@
                     return alert('Vui lòng điền đầy đủ thông tin địa chỉ!');
                 }
 
+                const xacNhan = confirm(`Bạn có chắc chắn muốn thêm nhân viên "${this.nhanVien.tenNv.trim()}" không?`);
+                if (!xacNhan) return;
+
                 try {
                     const isDuplicate = (await axios.get('http://localhost:8080/nhan-vien/check-duplicate', {
                         params: { sdt: this.nhanVien.sdt.trim(), email: this.nhanVien.email.trim() }
@@ -279,8 +277,13 @@
                     const payload = {
                         tenNv: this.nhanVien.tenNv.trim(), sdt: this.nhanVien.sdt.trim(), email: this.nhanVien.email.trim(),
                         gioiTinh: Number(this.nhanVien.gioiTinh), ngaySinh: this.nhanVien.ngaySinh || null, trangThai: 1,
-                        diaChi: diaChiFull, tinhThanh: d.tinhThanh, phuongXa: `${d.phuongXa}, ${d.quanHuyen}`,
-                        diaChiChiTiet: d.chiTietCuThe.trim(), vaiTro: { id: Number(this.nhanVien.vaiTro) }
+                        diaChi: diaChiFull,
+                        // 🔧 SỬA: gửi riêng từng phần, không gộp phuongXa+quanHuyen nữa
+                        tinhThanh: d.tinhThanh,
+                        quanHuyen: d.quanHuyen,
+                        phuongXa: d.phuongXa,
+                        diaChiChiTiet: d.chiTietCuThe.trim(),
+                        vaiTro: { id: Number(this.nhanVien.vaiTro) }
                     };
 
                     const formData = new FormData();

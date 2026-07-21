@@ -17,6 +17,7 @@ import com.example.AerionSports_BE.entity.DiaChiKhachHang;
 import com.example.AerionSports_BE.entity.HoaDon;
 import com.example.AerionSports_BE.entity.KhachHang;
 import com.example.AerionSports_BE.entity.LichSuHoaDon;
+import com.example.AerionSports_BE.entity.LichSuThanhToan;
 import com.example.AerionSports_BE.entity.NhanVien;
 import com.example.AerionSports_BE.entity.PhieuGiamGia;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineChiTietHoaDonRepository;
@@ -25,7 +26,10 @@ import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineDiaChiK
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineHoaDonRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineKhachHangRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineLichSuHoaDonRepository;
+import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineLichSuThanhToanRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineNhanVienRepository;
+import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlinePhieuGiamGiaKhachHangRepository;
+import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlinePhieuGiamGiaRepository;
 import com.example.AerionSports_BE.service.BanHangOnlineService;
 import com.example.AerionSports_BE.service.ChiTietSanPhamService;
 import com.example.AerionSports_BE.service.EmailService;
@@ -64,7 +68,10 @@ public class BanHangOnlineServiceImpl implements BanHangOnlineService {
     private final BanHangOnlineChiTietHoaDonRepository chiTietHoaDonRepository;
     private final BanHangOnlineChiTietSanPhamRepository chiTietSanPhamRepository;
     private final BanHangOnlineLichSuHoaDonRepository lichSuHoaDonRepository;
+    private final BanHangOnlineLichSuThanhToanRepository lichSuThanhToanRepository;
     private final BanHangOnlineNhanVienRepository nhanVienRepository;
+    private final BanHangOnlinePhieuGiamGiaRepository phieuGiamGiaRepository;
+    private final BanHangOnlinePhieuGiamGiaKhachHangRepository phieuGiamGiaKhachHangRepository;
     private final EmailService emailService;
 
     @Override
@@ -288,6 +295,9 @@ public class BanHangOnlineServiceImpl implements BanHangOnlineService {
 
         }
 
+        capNhatLuotSuDungPhieuGiamGiaOnline(phieuDangAp, khachHang);
+        luuLichSuThanhToanChoDonOnline(hoaDonDaLuu, thongTinDatHang);
+
         NhanVien nhanVienMacDinh = nhanVienRepository.findById(1)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nhan vien mac dinh de luu lich su hoa don."));
 
@@ -305,6 +315,63 @@ public class BanHangOnlineServiceImpl implements BanHangOnlineService {
         guiEmailDatHangThanhCong(khachHang, hoaDonDaLuu, duLieuGioHang, thongTinDatHang);
 
         return hoaDonDaLuu.getMaHoaDon();
+    }
+
+    private void luuLichSuThanhToanChoDonOnline(HoaDon hoaDon, ThongTinDatHangOnlineRequest thongTinDatHang) {
+        if (hoaDon == null || hoaDon.getId() == null) {
+            return;
+        }
+
+        LichSuThanhToan lichSuThanhToan = new LichSuThanhToan();
+        lichSuThanhToan.setHoaDon(hoaDon);
+        lichSuThanhToan.setSoTien(hoaDon.getTongTienThanhToan() == null ? BigDecimal.ZERO : hoaDon.getTongTienThanhToan());
+        lichSuThanhToan.setPhuongThucThanhToan(
+                hienThiPhuongThucThanhToan(thongTinDatHang == null ? null : thongTinDatHang.getPhuongThucThanhToan())
+        );
+        lichSuThanhToan.setTrangThaiThanhToan("Chưa thanh toán");
+        lichSuThanhToan.setNgayThanhToan(LocalDateTime.now());
+        lichSuThanhToan.setGhiChu("Đơn online mới tạo, chờ giao hàng để ghi nhận thanh toán.");
+        lichSuThanhToanRepository.save(lichSuThanhToan);
+    }
+
+    private void capNhatLuotSuDungPhieuGiamGiaOnline(PhieuGiamGia phieuDangAp, KhachHang khachHang) {
+        if (phieuDangAp == null || phieuDangAp.getId() == null) {
+            return;
+        }
+
+        PhieuGiamGia phieu = phieuGiamGiaRepository.findById(phieuDangAp.getId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay phieu giam gia dang ap dung."));
+
+        int soLuongDaDung = phieu.getSoLuongDaSuDung() == null ? 0 : phieu.getSoLuongDaSuDung();
+        Integer soLuongToiDa = phieu.getSoLuong();
+        if (soLuongToiDa != null && soLuongDaDung >= soLuongToiDa) {
+            phieu.setTrangThai(0);
+            phieu.setNgayCapNhat(LocalDateTime.now());
+            phieuGiamGiaRepository.save(phieu);
+            throw new RuntimeException("Ma giam gia da het luot su dung.");
+        }
+
+        int soLuongMoi = soLuongDaDung + 1;
+        phieu.setSoLuongDaSuDung(soLuongMoi);
+        if (soLuongToiDa != null && soLuongMoi >= soLuongToiDa) {
+            phieu.setTrangThai(0);
+        }
+        phieu.setNgayCapNhat(LocalDateTime.now());
+        phieuGiamGiaRepository.save(phieu);
+
+        if (khachHang == null || khachHang.getId() == null) {
+            return;
+        }
+
+        phieuGiamGiaKhachHangRepository
+                .findChuaSuDung(phieu.getId(), khachHang.getId())
+                .ifPresent(phieuKhachHang -> {
+                    LocalDateTime now = LocalDateTime.now();
+                    phieuKhachHang.setDaSuDung(true);
+                    phieuKhachHang.setDaSuDungNgay(now);
+                    phieuKhachHang.setNgaySuDung(now);
+                    phieuGiamGiaKhachHangRepository.save(phieuKhachHang);
+                });
     }
 
     private List<SanPhamBanHangOnlineView> layDanhSachSanPhamDangBan() {

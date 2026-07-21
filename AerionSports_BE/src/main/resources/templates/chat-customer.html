@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Aerion Sports Chat Widget</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: transparent; }
+    .aerion-chat-widget {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      z-index: 999999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    /* Nút bong bóng tròn 💬 */
+    .chat-launcher-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+    }
+    .chat-launcher-btn:hover {
+      transform: scale(1.08);
+      background: #4338ca;
+    }
+
+    /* Khung chat box */
+    .chat-container {
+      position: absolute;
+      bottom: 75px;
+      right: 0;
+      width: 370px;
+      height: 500px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Mặc định ban đầu cho widget đóng lại */
+    .chat-container.closed {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      pointer-events: none;
+    }
+
+    .close-chat-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 10px;
+      transition: color 0.2s;
+    }
+    .close-chat-btn:hover { color: #64748b; }
+
+    /* ==================== PHẦN RUỘT KHUNG CHAT ==================== */
+    .chat-header {
+      padding: 14px 15px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chat-title { font-weight: 700; color: #1e293b; font-size: 14px; }
+    .status-badge {
+      font-size: 11px; padding: 2px 6px; border-radius: 20px; font-weight: 600;
+      background-color: #fef3c7; color: #d97706; display: inline-block; margin-top: 2px;
+      transition: all 0.3s ease;
+    }
+    .request-btn {
+      background: #4f46e5; color: white; border: none; padding: 6px 12px;
+      border-radius: 15px; font-size: 11px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .request-btn:disabled {
+      background: #cbd5e1;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+    .messages-box {
+      flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    /* Bong bóng tin nhắn */
+    .msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.4; word-wrap: break-word; }
+    .msg-me { align-self: flex-end; background: #4f46e5; color: white; border-bottom-right-radius: 4px; }
+    .msg-ai { align-self: flex-start; background: #fef3c7; color: #92400e; border-bottom-left-radius: 4px; font-style: italic; }
+    .msg-staff { align-self: flex-start; background: #ffffff; color: #1e293b; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
+
+    .input-area { padding: 10px 15px; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; }
+    .input-text { flex: 1; padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 13px; outline: none; background: #f8fafc; }
+    .send-btn { background: #4f46e5; color: white; border: none; padding: 0 16px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div class="aerion-chat-widget">
+
+  <!-- Khung chat box ẩn hiện linh hoạt -->
+  <div id="aerion-chat-container" class="chat-container closed">
+    <div class="chat-header">
+      <div>
+        <div class="chat-title">Aerion Sports Support</div>
+        <span id="chat-status-badge" class="status-badge">Hỗ trợ AI</span>
+      </div>
+      <div style="display: flex; align-items: center;">
+        <button id="request-staff-btn" class="request-btn" onclick="requestStaffSupport()">Gặp NV</button>
+        <button class="close-chat-btn" onclick="toggleChatWindow()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+
+    <div id="customer-chat-messages" class="messages-box">
+      <div class="msg msg-ai">Xin chào! Tôi là trợ lý ảo của Aerion Sports. Bạn cần tôi hỗ trợ gì ạ?</div>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="customer-msg-input" class="input-text" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendCustomerMessage()">
+      <button onclick="sendCustomerMessage()" class="send-btn">Gửi</button>
+    </div>
+  </div>
+
+  <!-- Nút launcher hình tròn -->
+  <button id="chat-launcher" class="chat-launcher-btn" onclick="toggleChatWindow()">
+    <i id="launcher-icon" class="fa-solid fa-comment-dots"></i>
+  </button>
+
+</div>
+
+<!-- Thư viện kết nối Realtime SockJS và STOMP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script th:inline="javascript" charset="UTF-8">
+  const khachHangId = 12;
+  let currentRoomId = null;
+  let stompClient = null;
+  let roomSubscription = null;
+  const processedMsgIds = new Set(); // Bộ nhớ tạm để chống hiển thị tin nhắn trùng lặp
+
+  function toggleChatWindow() {
+    const chatBox = document.getElementById('aerion-chat-container');
+    const icon = document.getElementById('launcher-icon');
+
+    chatBox.classList.toggle('closed');
+
+    if(chatBox.classList.contains('closed')) {
+      icon.className = "fa-solid fa-comment-dots";
+    } else {
+      icon.className = "fa-solid fa-chevron-down";
+    }
+  }
+
+  function connectCustomerChat() {
+    const socket = new SockJS('/ws-chat');
+    stompClient = Stomp.over(socket);
+
+    stompClient.debug = function(str) { console.log("STOMP CUSTOMER: " + str); };
+
+    stompClient.connect({}, function (frame) {
+      console.log('✅ Khách hàng kết nối WebSocket thành công!');
+
+      // 1. Subscribe channel cá nhân của Khách hàng
+      if (khachHangId) {
+        stompClient.subscribe('/topic/room/customer/' + khachHangId, function (response) {
+          const msg = JSON.parse(response.body);
+
+          // Nối kênh phòng chung nếu Server trả về roomId
+          if (msg.roomId && !currentRoomId) {
+            subscribeToRoomChannel(msg.roomId);
+          }
+          renderMessage(msg);
+        });
+      }
+    }, function (error) {
+      console.error("❌ Lỗi kết nối WebSocket phía Khách hàng: ", error);
+    });
+  }
+
+  // Đăng ký nghe thêm kênh riêng của Room (Nhân viên gửi tin nhắn sẽ bắn vào đây)
+  function subscribeToRoomChannel(roomId) {
+    if (!roomId || currentRoomId === roomId) return;
+    currentRoomId = roomId;
+
+    if (roomSubscription) {
+      roomSubscription.unsubscribe();
+    }
+
+    roomSubscription = stompClient.subscribe('/topic/room/' + currentRoomId, function (response) {
+      const msg = JSON.parse(response.body);
+      renderMessage(msg);
+    });
+  }
+
+  function sendCustomerMessage() {
+    const input = document.getElementById('customer-msg-input');
+    const content = input.value.trim();
+
+    if (!content) return;
+    if (!stompClient || !stompClient.connected) {
+      alert("Mất kết nối tới máy chủ! Vui lòng làm mới trang.");
+      return;
+    }
+
+    const payload = {
+      roomId: currentRoomId,
+      khachHangId: khachHangId,
+      nguoiGui: "CUSTOMER",
+      noiDung: content,
+      nguoiGuiId: khachHangId
+    };
+
+    stompClient.send("/app/chat.sendFromClient", {}, JSON.stringify(payload));
+    input.value = '';
+  }
+
+  function requestStaffSupport() {
+    if (!stompClient || !stompClient.connected) {
+      alert("Vui lòng đợi hệ thống kết nối trong giây lát!");
+      return;
+    }
+
+    stompClient.send("/app/chat.requestStaff", {}, JSON.stringify({
+      roomId: currentRoomId,
+      khachHangId: khachHangId,
+      nguoiGui: "CUSTOMER",
+      noiDung: "Yêu cầu gặp nhân viên hỗ trợ",
+      nguoiGuiId: khachHangId
+    }));
+
+    // Cập nhật UI trạng thái chờ Nhân viên
+    const badge = document.getElementById('chat-status-badge');
+    badge.innerText = "⏳ Đang đợi NV...";
+    badge.style.backgroundColor = "#fee2e2";
+    badge.style.color = "#ef4444";
+    document.getElementById('request-staff-btn').disabled = true;
+  }
+
+  function renderMessage(msg) {
+    if (!msg || !msg.noiDung) return;
+    if (msg.type === 'MODE_CHANGE') return;
+    const msgKey = (msg.id ? msg.id : '') + '_' + msg.noiDung + '_' + msg.nguoiGui;
+    if (processedMsgIds.has(msgKey)) {
+      return;
+    }
+    processedMsgIds.add(msgKey);
+
+    // Lưu roomId nếu có
+    if (msg.roomId && !currentRoomId) {
+      subscribeToRoomChannel(msg.roomId);
+    }
+
+    const container = document.getElementById('customer-chat-messages');
+    const div = document.createElement('div');
+
+    const sender = msg.nguoiGui ? msg.nguoiGui.toUpperCase() : "";
+
+    if (sender === 'CUSTOMER' || sender === 'KHACH_HANG') {
+      div.className = 'msg msg-me';
+    } else if (sender === 'AI') {
+      div.className = 'msg msg-ai';
+
+      // Đổi Badge khi Server chuyển giao cho Nhân viên
+      if(msg.noiDung.includes("Chuyển giao") || msg.noiDung.includes("tiếp nhận")) {
+        const badge = document.getElementById('chat-status-badge');
+        badge.innerText = "🟢 Đã kết nối NV";
+        badge.style.backgroundColor = "#dcfce7";
+        badge.style.color = "#16a34a";
+        document.getElementById('request-staff-btn').disabled = true;
+      }
+
+    } else if (sender === 'NHAN_VIEN' || sender === 'STAFF') {
+      div.className = 'msg msg-staff';
+
+      // Đổi Badge khi Nhân viên chat
+      const badge = document.getElementById('chat-status-badge');
+      badge.innerText = "🟢 Chat với NV";
+      badge.style.backgroundColor = "#dcfce7";
+      badge.style.color = "#16a34a";
+      document.getElementById('request-staff-btn').disabled = true;
+    } else {
+      div.className = 'msg msg-staff';
+    }
+
+    div.innerText = msg.noiDung;
+    container.appendChild(div);
+
+    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log("Khởi chạy Widget Chat...");
+    connectCustomerChat();
+  });
+</script>
+</body>
+</html>

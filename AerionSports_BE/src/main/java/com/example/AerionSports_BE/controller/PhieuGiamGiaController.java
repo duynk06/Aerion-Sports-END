@@ -43,8 +43,10 @@ public class PhieuGiamGiaController {
             Model model) {
 
         List<PhieuGiamGia> list = service.getAll();
+
         LocalDate homNay = LocalDate.now();
 
+        // === FILTER ===
         if (keyword != null && !keyword.trim().isEmpty()) {
             String kw = keyword.toLowerCase().trim();
             list = list.stream().filter(p ->
@@ -54,31 +56,29 @@ public class PhieuGiamGiaController {
         }
 
         if (trangThai != null) {
-            if (trangThai == 1) { // Lọc Hoạt động
-                list = list.stream().filter(p -> p.getTrangThai() != null && p.getTrangThai() == 1
-                        && (p.getNgayKetThuc() == null || !p.getNgayKetThuc().toLocalDate().isBefore(homNay))
-                        && (p.getNgayBatDau() == null || !homNay.isBefore(p.getNgayBatDau().toLocalDate())) // ngày bắt đầu <= hôm nay
-                        && p.getSoLuong() > (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0)).toList();
-            } else if (trangThai == 2) { // Lọc Sắp diễn ra
-                list = list.stream().filter(p -> p.getTrangThai() != null && p.getTrangThai() == 1
-                        && (p.getNgayKetThuc() == null || !p.getNgayKetThuc().toLocalDate().isBefore(homNay))
-                        && p.getNgayBatDau() != null && homNay.isBefore(p.getNgayBatDau().toLocalDate()) // ngày bắt đầu > hôm nay
-                        && p.getSoLuong() > (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0)).toList();
-            } else if (trangThai == 0) { // Lọc Ngừng hoạt động
-                list = list.stream().filter(p -> p.getTrangThai() != null && (p.getTrangThai() == 0
-                        || (p.getNgayKetThuc() != null && p.getNgayKetThuc().toLocalDate().isBefore(homNay))
-                        || p.getSoLuong() <= (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0))).toList();
-            }
+            list = list.stream().filter(p -> {
+                boolean isActive = p.getTrangThai() != null && p.getTrangThai() == 1;
+                boolean notExpired = p.getNgayKetThuc() == null || !p.getNgayKetThuc().toLocalDate().isBefore(homNay);
+                boolean started = p.getNgayBatDau() == null || !homNay.isBefore(p.getNgayBatDau().toLocalDate());
+                boolean hasStock = p.getSoLuong() > (p.getSoLuongDaSuDung() != null ? p.getSoLuongDaSuDung() : 0);
+
+                if (trangThai == 1) return isActive && notExpired && started && hasStock;
+                if (trangThai == 2) return isActive && notExpired && !started && hasStock;
+                if (trangThai == 0) return !isActive || !notExpired || !hasStock;
+                return true;
+            }).toList();
         }
 
         if (tuNgay != null) {
-            list = list.stream().filter(p -> p.getNgayBatDau() != null && !p.getNgayBatDau().toLocalDate().isBefore(tuNgay)).toList();
+            list = list.stream().filter(p -> p.getNgayBatDau() != null &&
+                    !p.getNgayBatDau().toLocalDate().isBefore(tuNgay)).toList();
         }
-
         if (denNgay != null) {
-            list = list.stream().filter(p -> p.getNgayKetThuc() != null && !p.getNgayKetThuc().toLocalDate().isAfter(denNgay)).toList();
+            list = list.stream().filter(p -> p.getNgayKetThuc() != null &&
+                    !p.getNgayKetThuc().toLocalDate().isAfter(denNgay)).toList();
         }
 
+        // === PHÂN TRANG ===
         int pageSize = 5;
         int totalItems = list.size();
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
@@ -89,17 +89,17 @@ public class PhieuGiamGiaController {
         int fromIndex = (page - 1) * pageSize;
         int toIndex = Math.min(fromIndex + pageSize, totalItems);
 
-        List<PhieuGiamGia> pagedList = Collections.emptyList();
-        if (fromIndex < totalItems) {
-            pagedList = list.subList(fromIndex, toIndex);
-        }
+        List<PhieuGiamGia> pagedList = (fromIndex < totalItems)
+                ? list.subList(fromIndex, toIndex)
+                : Collections.emptyList();
 
         model.addAttribute("listPhieuGiamGia", pagedList);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalElements", totalItems);
+
         return "voucher/danh-sach";
     }
-
     @GetMapping("/form-them")
     public String showFormAdd(Model model) {
         PhieuGiamGia phieuGiamGia = new PhieuGiamGia();

@@ -379,9 +379,9 @@
 
             async load63TinhThanh() {
                 try {
-                    const res = await axios.get('https://provinces.open-api.vn/api/p/');
+                    const res = await axios.get('/data/vn-provinces.json');
                     this.listTinhThanhAPI = res.data || [];
-                } catch (e) { console.error('Lỗi khi gọi API tỉnh thành: ', e); }
+                } catch (e) { console.error('Lỗi tải dữ liệu tỉnh/thành: ', e); }
             },
 
             async fetchAll() {
@@ -484,24 +484,18 @@
                 try { await this.persistSelectedCustomer('Đổi địa chỉ mặc định thành công!'); } catch (e) { alert('Thất bại!'); }
             },
 
-            async handleThayDoiTinhThanhModal() {
+            handleThayDoiTinhThanhModal() {
                 this.newAddress.quanHuyen = ''; this.newAddress.phuongXa = '';
                 this.listQuanHuyenModalTmp = []; this.listPhuongXaModalTmp = [];
                 if (!this.newAddress.tinhThanh) return;
                 const tinh = this.listTinhThanhAPI.find(t => t.name === this.newAddress.tinhThanh);
-                if (tinh) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/p/${tinh.code}?depth=2`);
-                    this.listQuanHuyenModalTmp = res.data.districts || [];
-                }
+                this.listQuanHuyenModalTmp = tinh ? (tinh.districts || []) : [];
             },
-            async handleThayDoiQuanHuyenModal() {
+            handleThayDoiQuanHuyenModal() {
                 this.newAddress.phuongXa = ''; this.listPhuongXaModalTmp = [];
                 if (!this.newAddress.quanHuyen) return;
                 const quan = this.listQuanHuyenModalTmp.find(q => q.name === this.newAddress.quanHuyen);
-                if (quan) {
-                    const res = await axios.get(`https://provinces.open-api.vn/api/d/${quan.code}?depth=2`);
-                    this.listPhuongXaModalTmp = res.data.wards || [];
-                }
+                this.listPhuongXaModalTmp = quan ? (quan.wards || []) : [];
             },
 
             async handleSaveAddress() {

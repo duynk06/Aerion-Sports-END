@@ -17,13 +17,14 @@ import com.example.AerionSports_BE.entity.LichSuHoaDon;
 import com.example.AerionSports_BE.entity.NhanVien;
 import com.example.AerionSports_BE.entity.PhieuGiamGia;
 import com.example.AerionSports_BE.entity.TaiKhoan;
-import com.example.AerionSports_BE.repository.PhieuGiamGiaRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineChiTietHoaDonRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineDiaChiKhachHangRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineHoaDonRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineKhachHangRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineLichSuHoaDonRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineNhanVienRepository;
+import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlinePhieuGiamGiaKhachHangRepository;
+import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlinePhieuGiamGiaRepository;
 import com.example.AerionSports_BE.repository.banhangonline.BanHangOnlineTaiKhoanRepository;
 import com.example.AerionSports_BE.service.BanHangOnlineService;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -65,7 +67,37 @@ public class BanHangOnlineController {
     private static final String KHACH_HANG_ONLINE_ID_SESSION_KEY = "khachHangOnlineId";
     private static final String KHACH_HANG_ONLINE_TEN_SESSION_KEY = "khachHangOnlineTen";
     private static final String KHACH_HANG_ONLINE_EMAIL_SESSION_KEY = "khachHangOnlineEmail";
-    private static final BigDecimal PHI_VAN_CHUYEN_MAC_DINH = BigDecimal.valueOf(31_000);
+    private static final BigDecimal PHI_SHIP_NOI_TINH = BigDecimal.valueOf(22_000);
+    private static final BigDecimal PHI_SHIP_NOI_MIEN = BigDecimal.valueOf(30_000);
+    private static final BigDecimal PHI_SHIP_LIEN_MIEN = BigDecimal.valueOf(32_000);
+    private static final String TINH_THANH_CUA_HANG = "ha noi";
+    private static final List<String> CAC_TINH_MIEN_BAC = List.of(
+            "ha noi",
+            "hai phong",
+            "quang ninh",
+            "bac giang",
+            "bac ninh",
+            "hai duong",
+            "hung yen",
+            "vinh phuc",
+            "phu tho",
+            "thai nguyen",
+            "bac kan",
+            "cao bang",
+            "lang son",
+            "tuyen quang",
+            "ha giang",
+            "lao cai",
+            "yen bai",
+            "dien bien",
+            "lai chau",
+            "son la",
+            "hoa binh",
+            "ha nam",
+            "nam dinh",
+            "thai binh",
+            "ninh binh"
+    );
     private static final Map<Integer, List<MucGioHangOnlineSession>> GIO_HANG_ONLINE_THEO_KHACH = new ConcurrentHashMap<>();
     private static final Pattern EMAIL_HOP_LE = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     private static final Pattern SDT_HOP_LE = Pattern.compile("^0\\d{9}$");
@@ -78,7 +110,8 @@ public class BanHangOnlineController {
      * - Sau do nhat du lieu vao Model de file HTML Thymeleaf render.
      */
     private final BanHangOnlineService banHangOnlineService;
-    private final PhieuGiamGiaRepository phieuGiamGiaRepository;
+    private final BanHangOnlinePhieuGiamGiaRepository phieuGiamGiaRepository;
+    private final BanHangOnlinePhieuGiamGiaKhachHangRepository phieuGiamGiaKhachHangRepository;
     private final BanHangOnlineHoaDonRepository hoaDonRepository;
     private final BanHangOnlineChiTietHoaDonRepository chiTietHoaDonRepository;
     private final BanHangOnlineLichSuHoaDonRepository lichSuHoaDonRepository;
@@ -205,6 +238,47 @@ public class BanHangOnlineController {
         return "redirect:/cua-hang/san-pham/" + productId + "?variantId=" + variantId;
     }
 
+    @PostMapping("/cua-hang/mua-ngay")
+    public String muaNgay(
+            @RequestParam Integer productId,
+            @RequestParam Integer variantId,
+            @RequestParam Integer soLuong,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        SanPhamBanHangOnlineView bienThe = banHangOnlineService.layBienTheSanPham(productId, variantId);
+        if (bienThe == null) {
+            redirectAttributes.addFlashAttribute("cartError", "Khong tim thay bien the san pham de mua ngay.");
+            return "redirect:/cua-hang/san-pham/" + productId;
+        }
+
+        int tonKho = bienThe.getStock() == null ? 0 : bienThe.getStock();
+        if (tonKho <= 0) {
+            redirectAttributes.addFlashAttribute("cartError", "Bien the nay da het hang.");
+            return "redirect:/cua-hang/san-pham/" + productId + "?variantId=" + variantId;
+        }
+
+        int soLuongHopLe = Math.max(1, soLuong == null ? 1 : soLuong);
+        List<MucGioHangOnlineSession> gioHang = layGioHangTuSession(session);
+
+        MucGioHangOnlineSession mucDaCo = null;
+        for (MucGioHangOnlineSession item : gioHang) {
+            if (Objects.equals(item.getProductId(), productId) && Objects.equals(item.getVariantId(), variantId)) {
+                mucDaCo = item;
+                break;
+            }
+        }
+
+        if (mucDaCo == null) {
+            gioHang.add(new MucGioHangOnlineSession(productId, variantId, Math.min(soLuongHopLe, tonKho)));
+        } else {
+            mucDaCo.setSoLuong(Math.min(mucDaCo.getSoLuong() + soLuongHopLe, tonKho));
+        }
+
+        luuGioHangVaoSession(session, gioHang);
+        return "redirect:/cua-hang/checkout";
+    }
+
     @PostMapping("/cua-hang/gio-hang/cap-nhat")
     public String capNhatSoLuongGioHang(
             @RequestParam Integer productId,
@@ -255,7 +329,8 @@ public class BanHangOnlineController {
             return "redirect:/cua-hang/gio-hang";
         }
 
-        BigDecimal phiVanChuyen = PHI_VAN_CHUYEN_MAC_DINH;
+        ThongTinDatHangOnlineRequest thongTinDatHang = layThongTinDatHangChoThanhToan(session);
+        BigDecimal phiVanChuyen = tinhPhiVanChuyenOnline(thongTinDatHang);
         PhieuGiamGia phieuDangAp = layPhieuDangApDung(session, duLieuGioHang, phiVanChuyen);
         BigDecimal tienGiamVoucher = tinhTienGiamVoucher(phieuDangAp, duLieuGioHang, phiVanChuyen);
         BigDecimal tongThanhToan = duLieuGioHang.getTongCong().add(phiVanChuyen).subtract(tienGiamVoucher).max(BigDecimal.ZERO);
@@ -265,10 +340,10 @@ public class BanHangOnlineController {
         model.addAttribute("duLieuGioHang", duLieuGioHang);
         model.addAttribute("phiVanChuyen", phiVanChuyen);
         model.addAttribute("phieuDangAp", phieuDangAp);
-        model.addAttribute("danhSachPhieuCoTheDung", layDanhSachPhieuCoTheDung(duLieuGioHang, phiVanChuyen));
+        model.addAttribute("danhSachPhieuCoTheDung", layDanhSachPhieuCoTheDung(duLieuGioHang, phiVanChuyen, session));
         model.addAttribute("tienGiamVoucher", tienGiamVoucher);
         model.addAttribute("tongThanhToan", tongThanhToan);
-        model.addAttribute("thongTinDatHang", layThongTinDatHangChoThanhToan(session));
+        model.addAttribute("thongTinDatHang", thongTinDatHang);
         model.addAttribute("footerYear", java.time.Year.now().getValue());
         return "ban-hang-online/thanh-toan";
     }
@@ -287,7 +362,7 @@ public class BanHangOnlineController {
             return "redirect:/cua-hang/gio-hang";
         }
 
-        PhieuGiamGia phieu = timPhieuHopLeTheoMa(maPhieuGiamGia);
+        PhieuGiamGia phieu = timPhieuHopLeTheoMa(maPhieuGiamGia, session);
         if (phieu == null) {
             redirectAttributes.addFlashAttribute("checkoutError", "Mã giảm giá không tồn tại hoặc đã hết hiệu lực.");
             return "redirect:/cua-hang/checkout";
@@ -334,7 +409,7 @@ public class BanHangOnlineController {
             return "redirect:/cua-hang/gio-hang";
         }
 
-        BigDecimal phiVanChuyen = PHI_VAN_CHUYEN_MAC_DINH;
+        BigDecimal phiVanChuyen = tinhPhiVanChuyenOnline(thongTinDatHang);
         PhieuGiamGia phieuDangAp = layPhieuDangApDung(session, duLieuGioHang, phiVanChuyen);
         BigDecimal tienGiamVoucher = tinhTienGiamVoucher(phieuDangAp, duLieuGioHang, phiVanChuyen);
         BigDecimal tongThanhToan = duLieuGioHang.getTongCong().add(phiVanChuyen).subtract(tienGiamVoucher).max(BigDecimal.ZERO);
@@ -1336,6 +1411,33 @@ public class BanHangOnlineController {
         session.setAttribute(THONG_TIN_DAT_HANG_ONLINE_SESSION_KEY, duLieuNhap);
     }
 
+    private BigDecimal tinhPhiVanChuyenOnline(ThongTinDatHangOnlineRequest thongTinDatHang) {
+        String tinhThanhNhan = thongTinDatHang == null ? "" : chuanHoaTenTinhThanh(thongTinDatHang.getTinhThanh());
+        if (!StringUtils.hasText(tinhThanhNhan) || TINH_THANH_CUA_HANG.equals(tinhThanhNhan)) {
+            return PHI_SHIP_NOI_TINH;
+        }
+        if (CAC_TINH_MIEN_BAC.contains(tinhThanhNhan)) {
+            return PHI_SHIP_NOI_MIEN;
+        }
+        return PHI_SHIP_LIEN_MIEN;
+    }
+
+    private String chuanHoaTenTinhThanh(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
+        String khongDau = java.text.Normalizer.normalize(value, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('đ', 'd')
+                .replace('Đ', 'D')
+                .toLowerCase(Locale.ROOT);
+        return khongDau
+                .replace("thanh pho", "")
+                .replace("tinh", "")
+                .trim()
+                .replaceAll("\\s+", " ");
+    }
+
     private void dienDiaChiMacDinhVaoThongTinDatHang(Integer idKhachHang, ThongTinDatHangOnlineRequest thongTinDatHang) {
         if (idKhachHang == null || thongTinDatHang == null) {
             return;
@@ -1437,7 +1539,7 @@ public class BanHangOnlineController {
             return null;
         }
 
-        PhieuGiamGia phieuHopLe = timPhieuHopLeTheoMa(phieu.getMaPhieuGiamGia());
+        PhieuGiamGia phieuHopLe = timPhieuHopLeTheoMa(phieu.getMaPhieuGiamGia(), session);
         if (phieuHopLe == null) {
             session.removeAttribute(PHIEU_GIAM_GIA_ONLINE_SESSION_KEY);
             return null;
@@ -1464,17 +1566,18 @@ public class BanHangOnlineController {
         return tinhTienGiamChoDonHang(phieuGiamGia, duLieuGioHang.getTongCong(), phiVanChuyen);
     }
 
-    private PhieuGiamGia timPhieuHopLeTheoMa(String maPhieuGiamGia) {
+    private PhieuGiamGia timPhieuHopLeTheoMa(String maPhieuGiamGia, HttpSession session) {
         if (maPhieuGiamGia == null || maPhieuGiamGia.trim().isEmpty()) {
             return null;
         }
 
         return phieuGiamGiaRepository.findByMaPhieuGiamGia(maPhieuGiamGia.trim())
                 .filter(this::laPhieuDangHopLe)
+                .filter(phieu -> khachHangOnlineDuocDungPhieu(phieu, session))
                 .orElse(null);
     }
 
-    private List<PhieuGiamGia> layDanhSachPhieuCoTheDung(DuLieuGioHangOnline duLieuGioHang, BigDecimal phiVanChuyen) {
+    private List<PhieuGiamGia> layDanhSachPhieuCoTheDung(DuLieuGioHangOnline duLieuGioHang, BigDecimal phiVanChuyen, HttpSession session) {
         if (duLieuGioHang == null || duLieuGioHang.isEmpty()) {
             return List.of();
         }
@@ -1483,6 +1586,7 @@ public class BanHangOnlineController {
 
         return phieuGiamGiaRepository.findPhieuConHieuLuc(LocalDateTime.now()).stream()
                 .filter(this::laPhieuDangHopLe)
+                .filter(phieu -> khachHangOnlineDuocDungPhieu(phieu, session))
                 .filter(phieu -> {
                     BigDecimal giaTriToiThieu = phieu.getGiaTriDonToiThieu() == null
                             ? BigDecimal.ZERO
@@ -1491,6 +1595,21 @@ public class BanHangOnlineController {
                 })
                 .filter(phieu -> tinhTienGiamChoDonHang(phieu, tongTienHang, phiVanChuyen).compareTo(BigDecimal.ZERO) > 0)
                 .toList();
+    }
+
+    private boolean khachHangOnlineDuocDungPhieu(PhieuGiamGia phieuGiamGia, HttpSession session) {
+        if (phieuGiamGia == null || phieuGiamGia.getId() == null) {
+            return false;
+        }
+
+        boolean laPhieuGanRiengChoKhach = phieuGiamGiaKhachHangRepository.existsByPhieuGiamGia_Id(phieuGiamGia.getId());
+        if (!laPhieuGanRiengChoKhach) {
+            return true;
+        }
+
+        return layIdKhachHangOnlineTuSession(session)
+                .flatMap(idKhachHang -> phieuGiamGiaKhachHangRepository.findChuaSuDung(phieuGiamGia.getId(), idKhachHang))
+                .isPresent();
     }
 
     private BigDecimal tinhTienGiamChoDonHang(PhieuGiamGia phieuGiamGia, BigDecimal tongTienHang, BigDecimal phiVanChuyen) {
@@ -1546,8 +1665,8 @@ public class BanHangOnlineController {
         if (phieuGiamGia.getNgayKetThuc() != null && phieuGiamGia.getNgayKetThuc().isBefore(now)) {
             return false;
         }
-        if (phieuGiamGia.getSoLuong() != null && phieuGiamGia.getSoLuongDaSuDung() != null
-                && phieuGiamGia.getSoLuongDaSuDung() >= phieuGiamGia.getSoLuong()) {
+        if (phieuGiamGia.getSoLuong() != null
+                && (phieuGiamGia.getSoLuongDaSuDung() == null ? 0 : phieuGiamGia.getSoLuongDaSuDung()) >= phieuGiamGia.getSoLuong()) {
             return false;
         }
         return true;
@@ -1598,5 +1717,21 @@ public class BanHangOnlineController {
         lichSuDauTien.setTrangThaiMoi(0);
         lichSuHoaDonRepository.save(lichSuDauTien);
         return hoaDon;
+    }
+
+    @GetMapping("/cua-hang/gioi-thieu")
+    public String gioiThieu(Model model) {
+        model.addAttribute("pageTitle", "Aerion Sports | Giới thiệu");
+        model.addAttribute("activePage", "gioi-thieu");
+        model.addAttribute("footerYear", java.time.Year.now().getValue());
+        return "ban-hang-online/gioi-thieu";
+    }
+
+    @GetMapping("/cua-hang/lien-he")
+    public String lienHe(Model model) {
+        model.addAttribute("pageTitle", "Aerion Sports | Liên hệ");
+        model.addAttribute("activePage", "lien-he");
+        model.addAttribute("footerYear", java.time.Year.now().getValue());
+        return "ban-hang-online/lien-he";
     }
 }

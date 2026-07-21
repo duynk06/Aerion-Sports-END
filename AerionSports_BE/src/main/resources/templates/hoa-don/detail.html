@@ -242,7 +242,7 @@
     <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i><span>Lịch sử thanh toán</span></div>
     <table>
       <thead>
-      <tr><th>STT</th><th>Số tiền</th><th>Thời gian</th><th>Phương thức</th><th>Ghi chú</th></tr>
+      <tr><th>STT</th><th>Số tiền</th><th>Thời gian</th><th>Phương thức</th><th>Trạng thái</th><th>Ghi chú</th></tr>
       </thead>
       <tbody>
       <tr th:each="item, st : ${lichSuThanhToan}">
@@ -250,6 +250,7 @@
         <td th:text="${#numbers.formatDecimal(item.soTien,0,'COMMA',0,'POINT')} + ' đ'"></td>
         <td th:text="${#temporals.format(item.ngayThanhToan,'HH:mm dd/MM/yyyy')}"></td>
         <td th:text="${item.phuongThucThanhToan}"></td>
+        <td th:text="${item.trangThaiThanhToan}"></td>
         <td th:text="${item.ghiChu}"></td>
       </tr>
       </tbody>

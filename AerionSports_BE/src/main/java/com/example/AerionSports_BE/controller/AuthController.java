@@ -4,16 +4,17 @@ import com.example.AerionSports_BE.dto.request.DoiMatKhauRequest;
 import com.example.AerionSports_BE.entity.TaiKhoan;
 import com.example.AerionSports_BE.repository.TaiKhoanRepository;
 import com.example.AerionSports_BE.security.JwtTokenProvider;
+import com.example.AerionSports_BE.service.EmailService;
 import jakarta.validation.Valid;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,16 +33,22 @@ public class AuthController {
     private JwtTokenProvider tokenProvider;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private static final String PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    // =========================================================
+    // ĐĂNG NHẬP
+    // =========================================================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         String tenDangNhap = loginRequest.getTenDangNhap();
         String matKhau = loginRequest.getMatKhau();
 
-        // 🌟 BẬC THẦY BÝ PASS TUYỆT ĐỐI: Bất chấp trình duyệt tự điền mật khẩu gì, cứ nhập tài khoản admin_an là cho VÀO!
-
-        // 1. Kiểm tra tài khoản thông thường cho các user khác
         Optional<TaiKhoan> taiKhoanOpt = taiKhoanRepository.findByTenDangNhapAndTrangThai(tenDangNhap, 1);
         if (taiKhoanOpt.isEmpty()) {
             return ResponseEntity.status(401).body(Map.of("message", "Tài khoản không tồn tại hoặc bị khóa!"));
@@ -49,12 +56,12 @@ public class AuthController {
 
         TaiKhoan tk = taiKhoanOpt.get();
 
-        // 2. Kiểm tra mật khẩu mã hóa BCrypt
         if (!passwordEncoder.matches(matKhau, tk.getMatKhauHash())) {
             return ResponseEntity.status(401).body(Map.of("message", "Mật khẩu không chính xác!"));
         }
 
-        String vaiTro = "CUSTOMER";
+        // 🌟 Mặc định là KHACH_HANG (khớp với dữ liệu thực tế trong bảng tai_khoan)
+        String vaiTro = "KHACH_HANG";
         String tenNguoiDung = "";
 
         if ("NHAN_VIEN".equals(tk.getLoaiTaiKhoan())) {
@@ -92,15 +99,15 @@ public class AuthController {
         ));
     }
 
+    // =========================================================
+    // ĐỔI MẬT KHẨU (yêu cầu đã đăng nhập)
+    // =========================================================
     @PutMapping("/doi-mat-khau")
     public ResponseEntity<?> doiMatKhau(@Valid @RequestBody DoiMatKhauRequest request) {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapAndTrangThai(currentUsername, 1)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản hợp lệ!"));
-
-        // Nếu là tài khoản test hệ thống, cho phép đổi trực tiếp luôn
-
 
         boolean isOldPasswordValid = passwordEncoder.matches(request.getMatKhauCu(), taiKhoan.getMatKhauHash());
 
@@ -114,18 +121,195 @@ public class AuthController {
 
         taiKhoan.setMatKhauHash(passwordEncoder.encode(request.getMatKhauMoi()));
         taiKhoanRepository.save(taiKhoan);
-        // PasswordHashGenerator.java — chạy để lấy hash mới
-        System.out.println(new BCryptPasswordEncoder().encode("123456"));
 
         return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công! 🎉"));
-
-
     }
 
+    // =========================================================
+    // ĐĂNG KÝ TÀI KHOẢN NHÂN VIÊN (public, tự sinh mật khẩu, gửi mail)
+    // =========================================================
+    @PostMapping("/dang-ky-nhan-vien")
+    public ResponseEntity<?> dangKyNhanVien(@RequestBody DangKyNhanVienRequest req) {
+
+        if (req.getHoTen() == null || req.getHoTen().isBlank()
+                || req.getEmail() == null || req.getEmail().isBlank()
+                || req.getSdt() == null || req.getSdt().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng nhập đầy đủ họ tên, số điện thoại và email!"));
+        }
+
+        Integer countEmail = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM nhan_vien WHERE email = ?", Integer.class, req.getEmail());
+        if (countEmail != null && countEmail > 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email đã được sử dụng!"));
+        }
+
+        Integer countUser = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tai_khoan WHERE ten_dang_nhap = ?", Integer.class, req.getEmail());
+        if (countUser != null && countUser > 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email này đã có tài khoản đăng nhập!"));
+        }
+
+        Integer idVaiTroNV;
+        try {
+            idVaiTroNV = jdbcTemplate.queryForObject(
+                    "SELECT id FROM vai_tro WHERE ma_vai_tro = 'NV'", Integer.class);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Chưa cấu hình vai trò NV trong hệ thống!"));
+        }
+
+        String maNv = "NV" + System.currentTimeMillis();
+
+        jdbcTemplate.update(
+                "INSERT INTO nhan_vien (id_vai_tro, ma_nv, ten_nv, sdt, email, ngay_tao, trang_thai) " +
+                        "VALUES (?, ?, ?, ?, ?, GETDATE(), 1)",
+                idVaiTroNV, maNv, req.getHoTen(), req.getSdt(), req.getEmail()
+        );
+
+        Integer idNhanVien = jdbcTemplate.queryForObject(
+                "SELECT id FROM nhan_vien WHERE ma_nv = ?", Integer.class, maNv);
+
+        String tenDangNhap = req.getEmail();
+        String matKhauGoc = generateRandomPassword();
+
+        jdbcTemplate.update(
+                "INSERT INTO tai_khoan (ten_dang_nhap, mat_khau_hash, loai_tai_khoan, id_chu_tai_khoan, ngay_tao, ngay_cap_nhat, trang_thai) " +
+                        "VALUES (?, ?, 'NHAN_VIEN', ?, GETDATE(), GETDATE(), 1)",
+                tenDangNhap, passwordEncoder.encode(matKhauGoc), idNhanVien
+        );
+
+        emailService.sendAccountCreationEmail(req.getEmail(), req.getHoTen(), matKhauGoc);
+
+        return ResponseEntity.ok(Map.of("message", "Đăng ký thành công! Thông tin tài khoản đã được gửi qua email."));
+    }
+
+    // =========================================================
+    // ĐĂNG KÝ TÀI KHOẢN KHÁCH HÀNG (public, tự sinh mật khẩu, gửi mail)
+    // =========================================================
+    @PostMapping("/dang-ky-khach-hang")
+    public ResponseEntity<?> dangKyKhachHang(@RequestBody DangKyKhachHangRequest req) {
+
+        if (req.getHoTen() == null || req.getHoTen().isBlank()
+                || req.getEmail() == null || req.getEmail().isBlank()
+                || req.getSdt() == null || req.getSdt().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng nhập đầy đủ họ tên, số điện thoại và email!"));
+        }
+
+        Integer countEmail = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM khach_hang WHERE email = ?", Integer.class, req.getEmail());
+        if (countEmail != null && countEmail > 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email đã được sử dụng!"));
+        }
+
+        Integer countSdt = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM khach_hang WHERE sdt = ?", Integer.class, req.getSdt());
+        if (countSdt != null && countSdt > 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Số điện thoại đã được sử dụng!"));
+        }
+
+        Integer countUser = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tai_khoan WHERE ten_dang_nhap = ?", Integer.class, req.getEmail());
+        if (countUser != null && countUser > 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email này đã có tài khoản đăng nhập!"));
+        }
+
+        String maKhachHang = "KH" + System.currentTimeMillis();
+
+        jdbcTemplate.update(
+                "INSERT INTO khach_hang (ma_khach_hang, ho_ten, sdt, email, diem_tich_luy, ngay_tao, trang_thai) " +
+                        "VALUES (?, ?, ?, ?, 0, GETDATE(), 1)",
+                maKhachHang, req.getHoTen(), req.getSdt(), req.getEmail()
+        );
+
+        Integer idKhachHang = jdbcTemplate.queryForObject(
+                "SELECT id FROM khach_hang WHERE ma_khach_hang = ?", Integer.class, maKhachHang);
+
+        String tenDangNhap = req.getEmail();
+        String matKhauGoc = generateRandomPassword();
+
+        jdbcTemplate.update(
+                "INSERT INTO tai_khoan (ten_dang_nhap, mat_khau_hash, loai_tai_khoan, id_chu_tai_khoan, ngay_tao, ngay_cap_nhat, trang_thai) " +
+                        "VALUES (?, ?, 'KHACH_HANG', ?, GETDATE(), GETDATE(), 1)",
+                tenDangNhap, passwordEncoder.encode(matKhauGoc), idKhachHang
+        );
+
+        emailService.sendKhachHangAccountEmail(req.getEmail(), req.getHoTen(), matKhauGoc);
+
+        return ResponseEntity.ok(Map.of("message", "Đăng ký thành công! Thông tin tài khoản đã được gửi qua email."));
+    }
+
+    // =========================================================
+    // QUÊN MẬT KHẨU (public, tự sinh mật khẩu mới, gửi qua mail)
+    // =========================================================
+    @PostMapping("/quen-mat-khau")
+    public ResponseEntity<?> quenMatKhau(@RequestBody QuenMatKhauRequest req) {
+
+        if (req.getEmail() == null || req.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng nhập email!"));
+        }
+
+        Optional<TaiKhoan> tkOpt = taiKhoanRepository.findByTenDangNhapAndTrangThai(req.getEmail(), 1);
+        if (tkOpt.isEmpty()) {
+            // Không tiết lộ email có tồn tại hay không, tránh dò email người khác
+            return ResponseEntity.ok(Map.of("message", "Nếu email tồn tại trong hệ thống, mật khẩu mới đã được gửi tới hộp thư của bạn."));
+        }
+
+        TaiKhoan tk = tkOpt.get();
+        String matKhauMoi = generateRandomPassword();
+        tk.setMatKhauHash(passwordEncoder.encode(matKhauMoi));
+        taiKhoanRepository.save(tk);
+
+        String tenNguoiDung;
+        if ("NHAN_VIEN".equals(tk.getLoaiTaiKhoan())) {
+            try {
+                tenNguoiDung = jdbcTemplate.queryForObject(
+                        "SELECT ten_nv FROM nhan_vien WHERE id = ?", String.class, tk.getIdChuTaiKhoan());
+            } catch (Exception e) {
+                tenNguoiDung = "Nhân viên Aerion";
+            }
+        } else {
+            try {
+                tenNguoiDung = jdbcTemplate.queryForObject(
+                        "SELECT ho_ten FROM khach_hang WHERE id = ?", String.class, tk.getIdChuTaiKhoan());
+            } catch (Exception e) {
+                tenNguoiDung = "Khách hàng";
+            }
+        }
+
+        emailService.sendResetPasswordEmail(req.getEmail(), tenNguoiDung, matKhauMoi);
+
+        return ResponseEntity.ok(Map.of("message", "Nếu email tồn tại trong hệ thống, mật khẩu mới đã được gửi tới hộp thư của bạn."));
+    }
+
+    private String generateRandomPassword() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            sb.append(PASSWORD_CHARS.charAt(RANDOM.nextInt(PASSWORD_CHARS.length())));
+        }
+        return sb.toString();
+    }
 }
 
 @Data
 class LoginRequest {
     private String tenDangNhap;
     private String matKhau;
+}
+
+@Data
+class DangKyNhanVienRequest {
+    private String hoTen;
+    private String sdt;
+    private String email;
+}
+
+@Data
+class DangKyKhachHangRequest {
+    private String hoTen;
+    private String sdt;
+    private String email;
+}
+
+@Data
+class QuenMatKhauRequest {
+    private String email;
 }

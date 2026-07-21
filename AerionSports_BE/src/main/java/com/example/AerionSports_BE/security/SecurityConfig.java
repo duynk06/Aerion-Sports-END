@@ -1,9 +1,5 @@
 package com.example.AerionSports_BE.security;
 
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +13,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -39,8 +40,10 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 
@@ -50,17 +53,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+
         httpSecurity
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
 
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(customAuthEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
@@ -69,30 +76,66 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // =========================================================
-                        // 🔓 NHÓM 1: PUBLIC — KHÔNG CẦN ĐĂNG NHẬP (permitAll)
-                        // =========================================================
-                        .requestMatchers("/api/auth/**", "/auth/**").permitAll()
-                        .requestMatchers("/login", "/login/**", "/logout", "/access-denied").permitAll()
-                        .requestMatchers("/public/client-auth/**", "/api/public/client-auth/**").permitAll()
-                        .requestMatchers("/error").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/ban-hang-online/**").permitAll()
-                        .requestMatchers("/", "/cua-hang", "/cua-hang/**").permitAll()
-                        .requestMatchers("/public/online-orders/**").permitAll()
-                        .requestMatchers("/api/public/online-orders/**").permitAll()
-
-                        // =========================================================
-                        // 🔒 NHÓM 2: CẦN ĐĂNG NHẬP — DÙNG CHUNG CHO ADMIN, QL, NV
+                        // 🔓 NHÓM 1: PUBLIC - KHÔNG CẦN ĐĂNG NHẬP
                         // =========================================================
                         .requestMatchers(
-                                "/phieu-giam-gia/**",
-                                "/san-pham", "/san-pham/**",
+                                "/",
+                                "/cua-hang",
+                                "/cua-hang/**",
+
+                                "/api/auth/**",
+                                "/auth/**",
+
+                                "/login",
+                                "/login/**",
+                                "/logout",
+                                "/access-denied",
+
+                                "/public/client-auth/**",
+                                "/api/public/client-auth/**",
+
+                                "/public/online-orders/**",
+                                "/api/public/online-orders/**",
+
+                                "/dang-ky-nhan-vien",
+                                "/dang-ky-khach-hang",
+                                "/quen-mat-khau",
+
+                                "/ban-hang-online/**",
+
+                                "/error",
+
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/webjars/**"
+                        ).permitAll()
+
+                        // =========================================================
+                        // 🔒 NHÓM 2: ADMIN + QL + NV
+                        // =========================================================
+                        .requestMatchers(
+
+                                "/ban-hang",
+                                "/ban-hang/**",
+
+                                "/hoa-don",
+                                "/hoa-don/**",
+
+                                "/san-pham",
+                                "/san-pham/**",
+
                                 "/thuoc-tinh/**",
-                                "/lich-lam-viec", "/lich-lam-viec/**",
-                                "/khach-hang", "/khach-hang/**",
-                                "/ban-hang", "/ban-hang/**",          // 🌟 CHUYỂN xuống đây, cho phép NV bán hàng
-                                "/hoa-don", "/hoa-don/**",             // 🌟 CHUYỂN xuống đây, cho phép NV xem/tạo hoá đơn
+
+                                "/khach-hang",
+                                "/khach-hang/**",
+
+                                "/lich-lam-viec",
+                                "/lich-lam-viec/**",
+
                                 "/api/san-pham/**",
                                 "/api/thong-ke/**",
+
                                 "/api/chat-lieu-khung-vot/**",
                                 "/api/chat-lieu-than-vot/**",
                                 "/api/chu-vi-can-vot/**",
@@ -103,30 +146,42 @@ public class SecurityConfig {
                                 "/api/thuong-hieu/**",
                                 "/api/trong-luong/**",
                                 "/api/xuat-xu/**"
+
                         ).hasAnyRole("ADMIN", "QL", "NV")
 
                         // =========================================================
-                        // 🔒 NHÓM 3: CHỈ ADMIN MỚI ĐƯỢC VÀO
+                        // 🔒 NHÓM 3: CHỈ ADMIN + QL
                         // =========================================================
                         .requestMatchers(
+
                                 "/thong-ke",
-                                "/nhan-vien", "/nhan-vien/**",
-                                "/dot-giam-gia", "/dot-giam-gia/**",
+
+                                "/nhan-vien",
+                                "/nhan-vien/**",
+
+                                "/dot-giam-gia",
+                                "/dot-giam-gia/**",
+
                                 "/phieu-giam-gia/**",
+
                                 "/lich-su-thanh-toan/**",
                                 "/lich-su-hoa-don/**",
-                                "/public/online-orders/**",
-                                "/api/public/online-orders/**",
+
                                 "/api/dot-giam-gia/**"
+
                         ).hasAnyRole("ADMIN", "QL")
 
                         // =========================================================
-                        // 🔒 NHÓM 4: MẶC ĐỊNH — CÒN LẠI PHẢI ĐĂNG NHẬP
+                        // 🔒 NHÓM 4: CÒN LẠI PHẢI ĐĂNG NHẬP
                         // =========================================================
                         .anyRequest().authenticated()
+
                 );
 
-        httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+        );
 
         return httpSecurity.build();
     }

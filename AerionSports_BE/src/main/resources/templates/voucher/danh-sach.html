@@ -21,6 +21,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
+        }
 
         .content {
             flex: 1;
@@ -100,154 +101,186 @@
         .toggle-on-btn { color: #f79b66 !important; font-weight: bold; }
         .toggle-off-btn { color: #cbd5e1 !important; font-weight: bold; }
 
-        .pagination { display: flex; justify-content: flex-start; align-items: center; gap: 12px; margin: 25px 0 10px 5px; }
-        .pagination a {
-            width: 32px; height: 32px; border: 1px solid #e2e8f0; background: white;
-            border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #4a5568; text-decoration: none; transition: all 0.2s;
+        /* ĐÃ SỬA: Cấu hình Flexbox để đẩy phân trang sang phải, đếm số sang trái */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 25px 5px 10px 5px;
         }
-        .pagination a:hover:not(.disabled) { background: #f8fafc; border-color: #cbd5e1; }
-        .pagination a.disabled { opacity: 0.4; pointer-events: none; }
-        .pagination span { font-size: 14px; color: #4a5568; font-weight: 500; }
+        .total-elements {
+            font-size: 14px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .pagination-controls a {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .pagination-controls a:hover:not(.disabled) { background: #f8fafc; border-color: #cbd5e1; }
+        .pagination-controls a.disabled { opacity: 0.4; pointer-events: none; }
+        .pagination-controls span { font-size: 14px; color: #4a5568; font-weight: 500; }
         .no-data { text-align: center; padding: 40px 20px; color: #a0aec0; font-style: italic; }
     </style>
 
     <div class="content">
-            <div class="table-box">
-                <form th:action="@{/phieu-giam-gia/hien-thi}" method="GET" class="filter-box">
-                    <div class="card-header">
-                        Bộ lọc tìm kiếm
-                    </div>
-
-                    <div class="filter-grid">
-                        <div class="form-group">
-                            <label>Mã/ tên phiếu giảm giá:</label>
-                            <input type="text" name="keyword" th:value="${param.keyword}" placeholder="Nhập mã hoặc tên phiếu">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Trạng thái:</label>
-                            <select name="trangThai">
-                                <option value="">Tất cả</option>
-                                <option value="1" th:selected="${param.trangThai != null && param.trangThai[0] == '1'}">Hoạt động</option>
-                                <option value="2" th:selected="${param.trangThai != null && param.trangThai[0] == '2'}">Sắp diễn ra</option>
-                                <option value="0" th:selected="${param.trangThai != null && param.trangThai[0] == '0'}">Ngừng hoạt động</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Từ ngày:</label>
-                            <input type="date" name="tuNgay" th:value="${param.tuNgay}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Đến ngày:</label>
-                            <input type="date" name="denNgay" th:value="${param.denNgay}">
-                        </div>
-                    </div>
-
-                    <div class="filter-action">
-                        <a th:href="@{/phieu-giam-gia/hien-thi}" class="btn-reset">Đặt lại</a>
-                        <button class="btn-search" type="submit">Lọc dữ liệu</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="card">
-                <div class="list-header">
-                    <div class="list-title">
-                        <div>
-                            <h3>Danh sách phiếu giảm giá</h3>
-                            <span>Quản lý phiếu giảm giá</span>
-                        </div>
-                    </div>
-                    <a th:href="@{/phieu-giam-gia/form-them}" class="btn-add">Thêm mới</a>
+        <div class="table-box">
+            <form th:action="@{/phieu-giam-gia/hien-thi}" method="GET" class="filter-box">
+                <div class="card-header">
+                    Bộ lọc tìm kiếm
                 </div>
 
-                <table>
-                    <thead>
-                    <tr>
-                        <th style="width: 60px;">STT</th>
-                        <th>Mã phiếu</th>
-                        <th>Tên phiếu</th>
-                        <th>Giá trị giảm</th>
-                        <th>Số lượng</th>
-                        <th>Đã dùng</th>
-                        <th>Thời gian áp dụng</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="phieu, status : ${listPhieuGiamGia}">
-                        <td th:text="${(currentPage - 1) * 5 + status.index + 1}"></td>
-                        <td th:text="${phieu.maPhieuGiamGia}"></td>
-                        <td th:text="${phieu.tenPhieuGiamGia}"></td>
-                        <td>
-                            <span th:if="${phieu.loaiPhieuGiamGia == 'Sale %'}" th:text="${#numbers.formatDecimal(phieu.giaTriGiam, 1, 'POINT', 0, 'POINT') + ' %'}"></span>
-                            <span th:unless="${phieu.loaiPhieuGiamGia == 'Sale %'}" th:text="${#numbers.formatDecimal(phieu.giaTriGiam, 1, 'POINT', 0, 'POINT') + ' đ'}"></span>
-                        </td>
-                        <td th:text="${phieu.soLuong}"></td>
-                        <td th:text="${phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0}"></td>
-                        <td>
-                            <span th:text="${phieu.ngayBatDau != null ? #temporals.format(phieu.ngayBatDau, 'dd/MM/yyyy') : '--/--/----'}"></span>
-                            <br>
-                            <span th:text="${phieu.ngayKetThuc != null ? #temporals.format(phieu.ngayKetThuc, 'dd/MM/yyyy') : '--/--/----'}"></span>
-                        </td>
-                        <td>
-                            <th:block th:with="
-                                totalQty=${phieu.soLuong},
-                                usedQty=${phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0},
-                                isStockOut=${totalQty <= usedQty},
-                                isExpired=${phieu.ngayKetThuc != null && phieu.ngayKetThuc.toLocalDate().isBefore(T(java.time.LocalDate).now())},
-                                isNotStartedYuv=${phieu.ngayBatDau != null && T(java.time.LocalDate).now().isBefore(phieu.ngayBatDau.toLocalDate())}
-                            ">
-                                <span th:if="${phieu.trangThai == 0 || isExpired || isStockOut}" class="status inactive">Ngừng hoạt động</span>
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label>Mã/ tên phiếu giảm giá:</label>
+                        <input type="text" name="keyword" th:value="${param.keyword}" placeholder="Nhập mã hoặc tên phiếu">
+                    </div>
 
-                                <span th:if="${phieu.trangThai == 1 && !isExpired && !isStockOut && isNotStartedYuv}" class="status pending">Sắp diễn ra</span>
+                    <div class="form-group">
+                        <label>Trạng thái:</label>
+                        <select name="trangThai">
+                            <option value="">Tất cả</option>
+                            <option value="1" th:selected="${param.trangThai != null && param.trangThai[0] == '1'}">Hoạt động</option>
+                            <option value="2" th:selected="${param.trangThai != null && param.trangThai[0] == '2'}">Sắp diễn ra</option>
+                            <option value="0" th:selected="${param.trangThai != null && param.trangThai[0] == '0'}">Ngừng hoạt động</option>
+                        </select>
+                    </div>
 
-                                <span th:if="${phieu.trangThai == 1 && !isExpired && !isStockOut && !isNotStartedYuv}" class="status active">Hoạt động</span>
-                            </th:block>
-                        </td>
-                        <td class="action-buttons">
+                    <div class="form-group">
+                        <label>Từ ngày:</label>
+                        <input type="date" name="tuNgay" th:value="${param.tuNgay}">
+                    </div>
 
-                            <a th:href="@{/phieu-giam-gia/chi-tiet/{id}(id=${phieu.id})}"
-                               class="action-btn view-btn"
-                               title="Xem chi tiết">
-                                <i class="fa-solid fa-eye"></i>
-                            </a>
+                    <div class="form-group">
+                        <label>Đến ngày:</label>
+                        <input type="date" name="denNgay" th:value="${param.denNgay}">
+                    </div>
+                </div>
 
-                            <a th:href="@{/phieu-giam-gia/form-sua/{id}(id=${phieu.id})}"
-                               class="action-btn edit-btn"
-                               title="Sửa phiếu">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
+                <div class="filter-action">
+                    <a th:href="@{/phieu-giam-gia/hien-thi}" class="btn-reset">Đặt lại</a>
+                    <button class="btn-search" type="submit">Lọc dữ liệu</button>
+                </div>
+            </form>
+        </div>
 
-                            <a th:href="@{/phieu-giam-gia/toggle/{id}(id=${phieu.id}, page=${currentPage}, keyword=${param.keyword}, trangThai=${param.trangThai}, tuNgay=${param.tuNgay}, denNgay=${param.denNgay})}"
-                               class="action-btn"
-                               th:with="totalQty=${phieu.soLuong},
-                                        usedQty=${phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0},
-                                        isDisable=${phieu.trangThai == 0 || (phieu.ngayKetThuc != null && phieu.ngayKetThuc.toLocalDate().isBefore(T(java.time.LocalDate).now())) || totalQty <= usedQty}"
-                               th:classappend="${!isDisable} ? ' toggle-on-btn' : ' toggle-off-btn'"
-                               th:title="${!isDisable} ? 'Tắt phiếu' : 'Bật phiếu'">
-                                <i th:class="${!isDisable} ? 'fa-solid fa-toggle-on' : 'fa-solid fa-toggle-off'"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(listPhieuGiamGia)}">
-                        <td colspan="9" class="no-data">Không có dữ liệu phiếu giảm giá nào.</td>
-                    </tr>
-                    </tbody>
-                </table>
+        <div class="card">
+            <div class="list-header">
+                <div class="list-title">
+                    <div>
+                        <h3>Danh sách phiếu giảm giá</h3>
+                        <span>Quản lý phiếu giảm giá</span>
+                    </div>
+                </div>
+                <a th:href="@{/phieu-giam-gia/form-them}" class="btn-add">Thêm mới</a>
+            </div>
 
-                <div class="pagination" th:if="${totalPages != null && totalPages > 1}">
+            <table>
+                <thead>
+                <tr>
+                    <th style="width: 60px;">STT</th>
+                    <th>Mã phiếu</th>
+                    <th>Tên phiếu</th>
+                    <th>Giá trị giảm</th>
+                    <th>Số lượng</th>
+                    <th>Đã dùng</th>
+                    <th>Thời gian áp dụng</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="phieu, status : ${listPhieuGiamGia}">
+                    <td th:text="${(currentPage - 1) * 5 + status.index + 1}"></td>
+                    <td th:text="${phieu.maPhieuGiamGia}"></td>
+                    <td th:text="${phieu.tenPhieuGiamGia}"></td>
+                    <td>
+                        <span th:if="${phieu.loaiPhieuGiamGia == 'Sale %'}" th:text="${#numbers.formatDecimal(phieu.giaTriGiam, 1, 'POINT', 0, 'POINT') + ' %'}"></span>
+                        <span th:unless="${phieu.loaiPhieuGiamGia == 'Sale %'}" th:text="${#numbers.formatDecimal(phieu.giaTriGiam, 1, 'POINT', 0, 'POINT') + ' đ'}"></span>
+                    </td>
+                    <td th:text="${phieu.soLuong}"></td>
+                    <td th:text="${phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0}"></td>
+                    <td>
+                        <span th:text="${phieu.ngayBatDau != null ? #temporals.format(phieu.ngayBatDau, 'dd/MM/yyyy') : '--/--/----'}"></span>
+                        <br>
+                        <span th:text="${phieu.ngayKetThuc != null ? #temporals.format(phieu.ngayKetThuc, 'dd/MM/yyyy') : '--/--/----'}"></span>
+                    </td>
+                    <td>
+                        <th:block th:with="
+                            totalQty=${phieu.soLuong},
+                            usedQty=${phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0},
+                            isStockOut=${totalQty <= usedQty},
+                            isExpired=${phieu.ngayKetThuc != null && phieu.ngayKetThuc.toLocalDate().isBefore(T(java.time.LocalDate).now())},
+                            isNotStartedYuv=${phieu.ngayBatDau != null && T(java.time.LocalDate).now().isBefore(phieu.ngayBatDau.toLocalDate())}
+                        ">
+                            <span th:if="${phieu.trangThai == 0 || isExpired || isStockOut}" class="status inactive">Ngừng hoạt động</span>
+                            <span th:if="${phieu.trangThai == 1 && !isExpired && !isStockOut && isNotStartedYuv}" class="status pending">Sắp diễn ra</span>
+                            <span th:if="${phieu.trangThai == 1 && !isExpired && !isStockOut && !isNotStartedYuv}" class="status active">Hoạt động</span>
+                        </th:block>
+                    </td>
+                    <td class="action-buttons">
+                        <a th:href="@{/phieu-giam-gia/chi-tiet/{id}(id=${phieu.id})}"
+                           class="action-btn view-btn"
+                           title="Xem chi tiết">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+
+                        <a th:href="@{/phieu-giam-gia/form-sua/{id}(id=${phieu.id})}"
+                           class="action-btn edit-btn"
+                           title="Sửa phiếu">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
+
+                        <a th:href="@{/phieu-giam-gia/toggle/{id}(id=${phieu.id}, page=${currentPage}, keyword=${param.keyword}, trangThai=${param.trangThai}, tuNgay=${param.tuNgay}, denNgay=${param.denNgay})}"
+                           class="action-btn"
+                           th:with="totalQty=${phieu.soLuong},
+                                    usedQty=${phieu.soLuongDaSuDung != null ? phieu.soLuongDaSuDung : 0},
+                                    isDisable=${phieu.trangThai == 0 || (phieu.ngayKetThuc != null && phieu.ngayKetThuc.toLocalDate().isBefore(T(java.time.LocalDate).now())) || totalQty <= usedQty}"
+                           th:classappend="${!isDisable} ? ' toggle-on-btn' : ' toggle-off-btn'"
+                           th:title="${!isDisable} ? 'Tắt phiếu' : 'Bật phiếu'">
+                            <i th:class="${!isDisable} ? 'fa-solid fa-toggle-on' : 'fa-solid fa-toggle-off'"></i>
+                        </a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(listPhieuGiamGia)}">
+                    <td colspan="9" class="no-data">Không có dữ liệu phiếu giảm giá nào.</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- ĐÃ SỬA: Bỏ th:if để luôn luôn hiển thị thanh phân trang kể cả khi ít dòng -->
+            <div class="pagination-container">
+                <!-- Hiển thị tổng số phần tử ở góc trái -->
+                <div class="total-elements">
+                    Tổng số: <strong th:text="${totalElements != null ? totalElements : 0}">0</strong> phiếu giảm giá
+                </div>
+
+                <!-- Thanh điều hướng phân trang ở góc phải -->
+                <div class="pagination-controls">
                     <a th:href="@{/phieu-giam-gia/hien-thi(page=${currentPage - 1}, keyword=${param.keyword}, trangThai=${param.trangThai}, tuNgay=${param.tuNgay}, denNgay=${param.denNgay})}"
                        th:classappend="${currentPage == 1} ? 'disabled' : ''">◀</a>
-                    <span>Trang [[${currentPage != null ? currentPage : 1}]] / [[${totalPages}]]</span>
+                    <span>Trang [[${currentPage != null ? currentPage : 1}]] / [[${totalPages != null && totalPages > 0 ? totalPages : 1}]]</span>
                     <a th:href="@{/phieu-giam-gia/hien-thi(page=${currentPage + 1}, keyword=${param.keyword}, trangThai=${param.trangThai}, tuNgay=${param.tuNgay}, denNgay=${param.denNgay})}"
-                       th:classappend="${currentPage >= totalPages} ? 'disabled' : ''">▶</a>
+                       th:classappend="${currentPage >= (totalPages != null ? totalPages : 1)} ? 'disabled' : ''">▶</a>
                 </div>
             </div>
         </div>
+    </div>
+
     <script>
         function toggleDropdown(element) {
             element.classList.toggle('active-parent');
@@ -286,6 +319,7 @@
             });
         });
     </script>
-    </div>
+</div>
+
 </body>
 </html>

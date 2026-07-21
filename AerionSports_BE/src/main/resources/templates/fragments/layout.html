@@ -24,14 +24,12 @@
       overflow: hidden;
     }
 
-    /* Sidebar */
     .main-layout-sidebar {
       flex: 0 0 250px;
       width: 250px;
       min-width: 250px;
     }
 
-    /* Phần nội dung bên phải */
     .main-layout-content-shell {
       flex: 1;
       display: flex;
@@ -39,7 +37,6 @@
       min-width: 0;
     }
 
-    /* Header */
     .main-layout-header {
       height: 65px;
       background: #fff;
@@ -101,7 +98,6 @@
       color: #6b7280;
     }
 
-    /* Dropdown */
     .header-user-dropdown {
       position: absolute;
       top: 55px;
@@ -142,7 +138,6 @@
       color: #dc2626;
     }
 
-    /* Content */
     .main-layout-content {
       flex: 1;
       padding: 24px;
@@ -150,7 +145,6 @@
       background: #f3f4f6;
     }
 
-    /* Tab style (dùng chung cho các trang con) */
     .nav-tabs {
       display: flex;
       border-bottom: 2px solid #e5e7eb;
@@ -181,21 +175,18 @@
     const currentPath = window.location.pathname;
     const isLoginPage = currentPath.includes('/login');
 
-    // Kiểm tra token
     const token = sessionStorage.getItem('token');
     if (!token && !isLoginPage) {
       window.location.href = '/login';
       return;
     }
 
-    // Gắn token vào axios
     axios.interceptors.request.use(config => {
       const t = sessionStorage.getItem('token');
       if (t) config.headers.Authorization = 'Bearer ' + t;
       return config;
     });
 
-    // Xử lý lỗi 401
     axios.interceptors.response.use(
             res => res,
             err => {
@@ -207,27 +198,23 @@
             }
     );
 
-    // Đăng xuất
     window.aerionLogout = function () {
       sessionStorage.clear();
       document.cookie = 'jwt_token=; path=/; max-age=0';
       window.location.href = '/login';
     };
 
-    // Toggle dropdown
     window.aerionToggleUserMenu = function (e) {
       e.stopPropagation();
       const dropdown = document.getElementById('header-user-dropdown');
       if (dropdown) dropdown.classList.toggle('open');
     };
 
-    // Click ngoài để đóng dropdown
     document.addEventListener('click', () => {
       const dropdown = document.getElementById('header-user-dropdown');
       if (dropdown) dropdown.classList.remove('open');
     });
 
-    // Hiển thị thông tin user
     document.addEventListener('DOMContentLoaded', () => {
       const nameEl = document.getElementById('header-user-name');
       const roleEl = document.getElementById('header-user-role');
@@ -251,14 +238,10 @@
   })();
 </script>
 
-<!-- Layout chính -->
 <div class="main-layout-shell">
-  <!-- Sidebar -->
   <div class="main-layout-sidebar" th:replace="~{fragments/sidebar :: menu-sidebar}"></div>
 
-  <!-- Nội dung chính -->
   <div class="main-layout-content-shell">
-    <!-- Header -->
     <div class="main-layout-header">
       <h2 class="main-layout-title">Quản lý hệ thống</h2>
 
@@ -275,6 +258,15 @@
         </div>
 
         <div id="header-user-dropdown" class="header-user-dropdown">
+          <button type="button" onclick="window.location.href='/thong-tin-ca-nhan'">
+            <i class="fa-solid fa-user"></i>
+            Thông tin cá nhân
+          </button>
+          <button type="button" onclick="aerionOpenDoiMatKhau()">
+            <i class="fa-solid fa-key"></i>
+            Đổi mật khẩu
+          </button>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 4px 0;">
           <button type="button" class="logout-btn" onclick="aerionLogout()">
             <i class="fa-solid fa-right-from-bracket"></i>
             Đăng xuất
@@ -283,12 +275,143 @@
       </div>
     </div>
 
-    <!-- Nội dung động (nơi các tab sẽ được đặt) -->
     <div class="main-layout-content">
       <div th:replace="${dynamicContent}"></div>
     </div>
   </div>
 </div>
 
+<div id="modal-doi-mat-khau" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:2000; align-items:center; justify-content:center;">
+  <div style="background:#fff; width:400px; max-width:90%; border-radius:10px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.15);">
+    <h3 style="margin-bottom:18px; color:#1f2937;">Đổi mật khẩu</h3>
+
+    <div style="margin-bottom:14px;">
+      <label style="display:block; font-size:13px; color:#374151; margin-bottom:6px;">Mật khẩu hiện tại</label>
+      <div style="position:relative;">
+        <input type="password" id="dmk-mat-khau-cu" style="width:100%; padding:10px 40px 10px 10px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box;">
+        <i class="fa-solid fa-eye" id="dmk-toggle-cu" onclick="aerionTogglePassword('dmk-mat-khau-cu', 'dmk-toggle-cu')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#9ca3af; font-size:14px;"></i>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="display:block; font-size:13px; color:#374151; margin-bottom:6px;">Mật khẩu mới</label>
+      <div style="position:relative;">
+        <input type="password" id="dmk-mat-khau-moi" style="width:100%; padding:10px 40px 10px 10px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box;">
+        <i class="fa-solid fa-eye" id="dmk-toggle-moi" onclick="aerionTogglePassword('dmk-mat-khau-moi', 'dmk-toggle-moi')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#9ca3af; font-size:14px;"></i>
+      </div>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <label style="display:block; font-size:13px; color:#374151; margin-bottom:6px;">Xác nhận mật khẩu mới</label>
+      <div style="position:relative;">
+        <input type="password" id="dmk-xac-nhan" style="width:100%; padding:10px 40px 10px 10px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box;">
+        <i class="fa-solid fa-eye" id="dmk-toggle-xn" onclick="aerionTogglePassword('dmk-xac-nhan', 'dmk-toggle-xn')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#9ca3af; font-size:14px;"></i>
+      </div>
+    </div>
+
+    <div id="dmk-error" style="color:#dc2626; font-size:13px; margin-bottom:12px; display:none;"></div>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" onclick="aerionCloseDoiMatKhau()" style="padding:10px 16px; border:1px solid #d1d5db; background:#fff; border-radius:6px; cursor:pointer;">Hủy</button>
+      <button type="button" id="dmk-submit-btn" onclick="aerionSubmitDoiMatKhau()" style="padding:10px 16px; border:none; background:#f79b66; color:#fff; border-radius:6px; cursor:pointer;">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.aerionOpenDoiMatKhau = function () {
+    document.getElementById('header-user-dropdown').classList.remove('open');
+    document.getElementById('modal-doi-mat-khau').style.display = 'flex';
+  };
+
+  window.aerionCloseDoiMatKhau = function () {
+    document.getElementById('modal-doi-mat-khau').style.display = 'none';
+    document.getElementById('dmk-mat-khau-cu').value = '';
+    document.getElementById('dmk-mat-khau-moi').value = '';
+    document.getElementById('dmk-xac-nhan').value = '';
+    document.getElementById('dmk-error').style.display = 'none';
+
+    // Reset lại về dạng ẩn (password) mỗi khi đóng modal
+    ['dmk-mat-khau-cu', 'dmk-mat-khau-moi', 'dmk-xac-nhan'].forEach(id => {
+      document.getElementById(id).type = 'password';
+    });
+    ['dmk-toggle-cu', 'dmk-toggle-moi', 'dmk-toggle-xn'].forEach(id => {
+      const icon = document.getElementById(id);
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    });
+  };
+
+  // Bật/tắt hiện mật khẩu cho từng ô input
+  window.aerionTogglePassword = function (inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  };
+
+  window.aerionSubmitDoiMatKhau = async function () {
+    const matKhauCu = document.getElementById('dmk-mat-khau-cu').value.trim();
+    const matKhauMoi = document.getElementById('dmk-mat-khau-moi').value.trim();
+    const xacNhanMatKhau = document.getElementById('dmk-xac-nhan').value.trim();
+    const errorEl = document.getElementById('dmk-error');
+    const submitBtn = document.getElementById('dmk-submit-btn');
+
+    errorEl.style.display = 'none';
+
+    if (!matKhauCu || !matKhauMoi || !xacNhanMatKhau) {
+      errorEl.textContent = 'Vui lòng nhập đầy đủ thông tin.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (matKhauMoi.length < 6) {
+      errorEl.textContent = 'Mật khẩu mới phải có ít nhất 6 ký tự.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (matKhauMoi !== xacNhanMatKhau) {
+      errorEl.textContent = 'Mật khẩu xác nhận không khớp.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const xacNhan = confirm('Bạn có chắc chắn muốn đổi mật khẩu không?');
+    if (!xacNhan) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Đang xử lý...';
+
+    try {
+      await axios.put('/api/auth/doi-mat-khau', {
+        matKhauCu: matKhauCu,
+        matKhauMoi: matKhauMoi,
+        xacNhanMatKhau: xacNhanMatKhau
+      });
+      alert('Đổi mật khẩu thành công! 🎉');
+      aerionCloseDoiMatKhau();
+    } catch (err) {
+      let msg = 'Đổi mật khẩu thất bại. Vui lòng thử lại.';
+      if (err.response && err.response.data) {
+        if (err.response.data.message) {
+          msg = err.response.data.message;
+        } else if (err.response.data.errors) {
+          msg = Object.values(err.response.data.errors).join(', ');
+        }
+      }
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Xác nhận';
+    }
+  };
+</script>
 </body>
 </html>

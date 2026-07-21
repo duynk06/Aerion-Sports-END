@@ -71,7 +71,7 @@
   </style>
 
   <!-- 2. Thống kê -->
-  <a th:href="@{/thong-ke}" class="item">
+  <a th:href="@{/thong-ke}" class="item" id="menuThongKe">
     <i class="fa-solid fa-chart-line"></i> <span>Thống kê</span>
   </a>
 
@@ -123,12 +123,12 @@
   </a>
 
   <!-- 8. Đợt giảm giá -->
-  <a th:href="@{/dot-giam-gia}" class="item">
+  <a th:href="@{/dot-giam-gia}" class="item" id="menuDotGiamGia">
     <i class="fa-solid fa-percent"></i> <span>Đợt giảm giá</span>
   </a>
 
   <!-- 9. Nhân viên -->
-  <a th:href="@{/nhan-vien}" class="item">
+  <a th:href="@{/nhan-vien}" class="item" id="menuNhanVien">
     <i class="fa-solid fa-user-tie"></i> <span>Nhân viên</span>
   </a>
 
@@ -137,6 +137,10 @@
     <i class="fa-solid fa-users"></i> <span>Khách hàng</span>
   </a>
 
+  <a th:href="@{/chat-nhan-vien}" class="item" id="menu-chat-sidebar">
+    <i class="fa-solid fa-comments"></i>
+    <span>Chat Hỗ Trợ</span>
+  </a>
   <!-- JS xử lý Đóng/Mở và Tự động Sáng Menu -->
   <script>
     // Hàm đóng mở menu thủ công
@@ -153,8 +157,23 @@
       }
     }
 
-    // Script tự động kích hoạt menu và đổi tiêu đề Header dựa vào URL
+    // Script tự động kích hoạt menu, ẩn menu theo vai trò và đổi tiêu đề Header dựa vào URL
     document.addEventListener("DOMContentLoaded", function() {
+
+      // 🌟 Ẩn các mục quản trị cấp cao nếu người đăng nhập là Nhân viên (NV)
+      const role = sessionStorage.getItem("role");
+
+      if (role === "NV") {
+        const menuThongKe = document.getElementById("menuThongKe");
+        if (menuThongKe) menuThongKe.style.display = "none";
+
+        const menuNhanVien = document.getElementById("menuNhanVien");
+        if (menuNhanVien) menuNhanVien.style.display = "none";
+
+        const menuDotGiamGia = document.getElementById("menuDotGiamGia");
+        if (menuDotGiamGia) menuDotGiamGia.style.display = "none";
+      }
+
       const currentPath = window.location.pathname;
       const links = document.querySelectorAll('.menu-list a');
 

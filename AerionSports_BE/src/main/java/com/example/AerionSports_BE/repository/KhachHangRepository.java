@@ -80,4 +80,6 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
     Object[] findDiaChiMacDinh(@Param("idKhachHang") Integer idKhachHang);
     @Query("SELECT DISTINCT kh FROM KhachHang kh LEFT JOIN FETCH kh.addresses WHERE kh.id = :id")
     Optional<KhachHang> findByIdWithAddresses(@Param("id") Integer id);
+    @EntityGraph(attributePaths = {"addresses"})
+    List<KhachHang> findAllByOrderByNgayTaoDesc();
 }

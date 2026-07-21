@@ -248,7 +248,9 @@
                 </div>
                 <div class="checkout-summary-row">
                     <span>Phí vận chuyển <img th:src="@{/images/image.png}" alt="GHTK" style="height: 14px; margin-left: 4px; vertical-align: middle;"></span>
-                    <span class="checkout-summary-val-green"
+                    <span id="checkout-shipping-fee"
+                          class="checkout-summary-val-green"
+                          th:attr="data-tong-hang=${duLieuGioHang.tongCong},data-giam-voucher=${tienGiamVoucher},data-current-fee=${phiVanChuyen}"
                           th:text="${#numbers.formatDecimal(phiVanChuyen, 0, 'POINT', 0, 'COMMA') + ' đ'}">31.000 d</span>
                 </div>
 
@@ -256,7 +258,8 @@
 
                 <div class="checkout-total-row">
                     <span class="checkout-total-label">Tổng cộng</span>
-                    <span class="checkout-total-value"
+                    <span id="checkout-total-value"
+                          class="checkout-total-value"
                           th:text="${#numbers.formatDecimal(tongThanhToan, 0, 'POINT', 0, 'COMMA') + ' đ'}">1.921.000 d</span>
                 </div>
 
@@ -301,6 +304,37 @@
             }
 
             const API_BASE = 'https://provinces.open-api.vn/api/v1';
+            const PROVINCE_HA_NOI = 'ha noi';
+            const NORTHERN_PROVINCES = [
+                'ha noi',
+                'hai phong',
+                'quang ninh',
+                'bac giang',
+                'bac ninh',
+                'hai duong',
+                'hung yen',
+                'vinh phuc',
+                'phu tho',
+                'thai nguyen',
+                'bac kan',
+                'cao bang',
+                'lang son',
+                'tuyen quang',
+                'ha giang',
+                'lao cai',
+                'yen bai',
+                'dien bien',
+                'lai chau',
+                'son la',
+                'hoa binh',
+                'ha nam',
+                'nam dinh',
+                'thai binh',
+                'ninh binh'
+            ];
+            const SHIPPING_FEE_INTRA_PROVINCE = 22000;
+            const SHIPPING_FEE_SAME_REGION = 30000;
+            const SHIPPING_FEE_CROSS_REGION = 32000;
 
             function renderOptions(selectElement, items, placeholder) {
                 const options = [`<option value="">${placeholder}</option>`];
@@ -327,6 +361,50 @@
                 return true;
             }
 
+            function normalizeProvinceName(value) {
+                return String(value || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/đ/g, 'd')
+                    .replace(/Đ/g, 'D')
+                    .toLowerCase()
+                    .replace('thanh pho', '')
+                    .replace('tinh', '')
+                    .trim()
+                    .replace(/\s+/g, ' ');
+            }
+
+            function calculateShippingFee(provinceName) {
+                const normalizedProvince = normalizeProvinceName(provinceName);
+                if (!normalizedProvince || normalizedProvince === PROVINCE_HA_NOI) {
+                    return SHIPPING_FEE_INTRA_PROVINCE;
+                }
+                return NORTHERN_PROVINCES.includes(normalizedProvince)
+                    ? SHIPPING_FEE_SAME_REGION
+                    : SHIPPING_FEE_CROSS_REGION;
+            }
+
+            function formatCurrency(value) {
+                return new Intl.NumberFormat('vi-VN').format(Math.max(0, Number(value || 0))) + ' đ';
+            }
+
+            function updateShippingPreview() {
+                const shippingElement = document.getElementById('checkout-shipping-fee');
+                const totalElement = document.getElementById('checkout-total-value');
+                if (!shippingElement || !totalElement) {
+                    return;
+                }
+
+                const shippingFee = calculateShippingFee(provinceSelect.value);
+                const orderTotal = Number(shippingElement.dataset.tongHang || 0);
+                const voucherDiscount = Number(shippingElement.dataset.giamVoucher || 0);
+                const totalPayment = Math.max(0, orderTotal + shippingFee - voucherDiscount);
+
+                shippingElement.textContent = formatCurrency(shippingFee);
+                shippingElement.dataset.currentFee = String(shippingFee);
+                totalElement.textContent = formatCurrency(totalPayment);
+            }
+
             async function loadProvinces() {
                 try {
                     setLoading(provinceSelect, 'Đang tải tỉnh/thành phố...', true);
@@ -345,6 +423,7 @@
                             await loadDistricts(provinceCode, true);
                         }
                     }
+                    updateShippingPreview();
                 } catch (error) {
                     console.error(error);
                     setLoading(provinceSelect, 'Khong tai duoc tinh/thanh pho', true);
@@ -406,10 +485,12 @@
                 if (!provinceCode) {
                     setLoading(districtSelect, 'Chọn tỉnh/thành phố trước', true);
                     setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                    updateShippingPreview();
                     return;
                 }
 
                 loadDistricts(provinceCode);
+                updateShippingPreview();
             });
 
             districtSelect.addEventListener('change', function () {

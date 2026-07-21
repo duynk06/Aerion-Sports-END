@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::section}, ${pageTitle})}">
+<head>
+    <title th:text="${pageTitle}">Liên hệ</title>
+</head>
+<body>
+    <section>
+        <link rel="stylesheet" th:href="@{/ban-hang-online/lien-he.css(v=1)}">
+        <div class="contact-header">
+            <div class="container-wide">
+                <h1>Liên hệ với chúng tôi</h1>
+                <p>Aerion Sports luôn lắng nghe và sẵn sàng hỗ trợ bạn</p>
+            </div>
+        </div>
+
+        <div class="container-wide contact-container">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h2>Thông tin liên hệ</h2>
+                    <p class="contact-desc">Hãy để lại lời nhắn hoặc liên hệ trực tiếp với chúng tôi qua các kênh dưới đây. Chúng tôi sẽ phản hồi bạn trong thời gian sớm nhất.</p>
+
+                    <div class="info-item">
+                        <div class="info-icon"><i class="ph ph-map-pin"></i></div>
+                        <div class="info-content">
+                            <h4>Địa chỉ cửa hàng</h4>
+                            <p>36 Đ. Hồ Tùng Mậu, Phú Diễn, Hà Nội</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon"><i class="ph ph-phone"></i></div>
+                        <div class="info-content">
+                            <h4>Điện thoại</h4>
+                            <p>1900 6868 - 0987.654.321</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon"><i class="ph ph-envelope-simple"></i></div>
+                        <div class="info-content">
+                            <h4>Email hỗ trợ</h4>
+                            <p>support@aerionsports.vn</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon"><i class="ph ph-clock"></i></div>
+                        <div class="info-content">
+                            <h4>Giờ làm việc</h4>
+                            <p>Thứ 2 - Chủ Nhật: 8:00 - 21:00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-form-wrapper">
+                    <h2>Gửi tin nhắn cho Aerion</h2>
+                    <form class="contact-form" onsubmit="event.preventDefault(); alert('Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất.'); this.reset();">
+                        <div class="form-group">
+                            <label>Họ và tên</label>
+                            <input type="text" placeholder="Nhập họ tên của bạn" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" placeholder="Nhập địa chỉ email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="tel" placeholder="Nhập số điện thoại" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nội dung tin nhắn</label>
+                            <textarea rows="5" placeholder="Bạn cần hỗ trợ vấn đề gì?" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Gửi tin nhắn <i class="ph ph-paper-plane-right"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <iframe src="https://maps.google.com/maps?q=36%20%C4%90.%20H%E1%BB%93%20T%C3%B9ng%20M%E1%BA%ADu,%20Ph%C3%BA%20Di%E1%BB%85n,%20H%C3%A0%20N%E1%BB%99i&t=&z=17&ie=UTF8&iwloc=&output=embed" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

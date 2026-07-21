@@ -165,7 +165,7 @@
                 </script>
 
 
-                <form th:action="@{/cua-hang/gio-hang/them}" method="post" class="detail-order-form">
+                <form id="add-cart-form" th:action="@{/cua-hang/gio-hang/them}" method="post" class="detail-order-form">
                     <input type="hidden" name="productId" th:value="${product.id}">
                     <input type="hidden" name="variantId" th:value="${selectedVariant != null ? selectedVariant.variantId : ''}">
 
@@ -193,24 +193,50 @@
                                 th:disabled="${selectedVariant == null or selectedVariant.stock == null or selectedVariant.stock <= 0}">
                             <i class="ph ph-shopping-cart text-lg"></i> Thêm vào giỏ
                         </button>
-                        <a th:href="@{/cua-hang/checkout}" class="btn-buy-now">
+                        <button type="button"
+                                id="buy-now-button"
+                                class="btn-buy-now"
+                                th:disabled="${selectedVariant == null or selectedVariant.stock == null or selectedVariant.stock <= 0}">
                             Mua ngay
-                        </a>
+                        </button>
                     </div>
+                </form>
+
+                <form id="buy-now-form" th:action="@{/cua-hang/mua-ngay}" method="post" style="display: none;">
+                    <input type="hidden" name="productId" th:value="${product.id}">
+                    <input type="hidden" name="variantId" th:value="${selectedVariant != null ? selectedVariant.variantId : ''}">
+                    <input id="buy-now-quantity" type="hidden" name="soLuong" th:value="${soLuongMacDinh}">
                 </form>
 
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         const quantityInput = document.getElementById('quantity-input');
+                        const buyNowQuantity = document.getElementById('buy-now-quantity');
+                        const buyNowButton = document.getElementById('buy-now-button');
+                        const buyNowForm = document.getElementById('buy-now-form');
                         if (!quantityInput) return;
 
-                        quantityInput.addEventListener('input', clampQuantity);
-                        quantityInput.addEventListener('change', clampQuantity);
-                        quantityInput.addEventListener('blur', clampQuantity);
+                        function syncQuantity() {
+                            clampQuantity();
+                            if (buyNowQuantity) {
+                                buyNowQuantity.value = quantityInput.value;
+                            }
+                        }
+
+                        quantityInput.addEventListener('input', syncQuantity);
+                        quantityInput.addEventListener('change', syncQuantity);
+                        quantityInput.addEventListener('blur', syncQuantity);
 
                         const form = quantityInput.closest('form');
                         if (form) {
-                            form.addEventListener('submit', clampQuantity);
+                            form.addEventListener('submit', syncQuantity);
+                        }
+
+                        if (buyNowButton && buyNowForm) {
+                            buyNowButton.addEventListener('click', function () {
+                                syncQuantity();
+                                buyNowForm.submit();
+                            });
                         }
                     });
                 </script>

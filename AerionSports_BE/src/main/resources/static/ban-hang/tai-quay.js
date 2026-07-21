@@ -1492,6 +1492,7 @@
           <td class="text-center">${index + 1 + state.pageKh * state.sizeKh}</td>
           <td>${kh.hoTen}</td>
           <td>${kh.sdt}</td>
+          <td>${kh.email || ""}</td>
           <td>${kh.diaChi}</td>
           <td class="text-center">
             <button style="background-color:#222;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:13px;"
