@@ -1,0 +1,38 @@
+package com.example.AerionSports_BE.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Nationalized;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "thuong_hieu")
+public class ThuongHieu {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Column(name = "ma_thuong_hieu", nullable = false, length = 50)
+    private String maThuongHieu;
+
+    @Nationalized
+    @Column(name = "ten_thuong_hieu", nullable = false)
+    private String tenThuongHieu;
+
+    @ColumnDefault("1")
+    @Column(name = "trang_thai")
+    private Integer trangThai;
+
+    @OneToMany(mappedBy = "idThuongHieu")
+    @JsonIgnore
+    private Set<SanPham> sanPhams = new LinkedHashSet<>();
+
+}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#change-password-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="change-password-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/ho-so.css(v=5)}">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/auth.css(v=3)}">
+
+    <div class="container-wide" style="padding-top: 40px; padding-bottom: 80px;">
+        <div class="profile-breadcrumb">
+            <a th:href="@{/cua-hang}">Trang chủ</a> &gt; <span>Đổi mật khẩu</span>
+        </div>
+
+        <h1 class="profile-page-title">Đổi mật khẩu tài khoản</h1>
+
+
+
+        <div class="profile-layout">
+            <!-- Sidebar -->
+            <div class="profile-sidebar">
+                <div class="profile-sidebar-header">
+                    <div class="profile-avatar">
+                        <span th:text="${#strings.isEmpty(khachHang.hoTen) ? 'K' : #strings.substring(khachHang.hoTen, 0, 1)}">K</span>
+                    </div>
+                    <h3 class="profile-name" th:text="${khachHang.hoTen}">Khách hàng</h3>
+                    <p class="profile-email" th:text="${khachHang.email}">email@example.com</p>
+                </div>
+
+                <div class="profile-sidebar-menu" style="display: flex; flex-direction: column; gap: 8px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                    <a th:href="@{/cua-hang/ho-so}" class="sidebar-menu-item" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; color: #4b5563; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+                        <i class="ph ph-user" style="font-size: 20px;"></i> Thông tin hồ sơ
+                    </a>
+                    <a th:href="@{/cua-hang/doi-mat-khau}" class="sidebar-menu-item active" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; background: #fff7ed; color: #ff6b00; text-decoration: none; font-weight: 600;">
+                        <i class="ph ph-key" style="font-size: 20px;"></i> Đổi mật khẩu
+                    </a>
+                    <a th:href="@{/cua-hang/don-hang-cua-toi}" class="sidebar-menu-item" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; color: #4b5563; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+                        <i class="ph ph-package" style="font-size: 20px;"></i> Đơn hàng của tôi
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="profile-main">
+                <section>
+                    <h2 class="profile-section-title">Đổi mật khẩu</h2>
+                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 24px;">
+                        Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác.
+                    </p>
+
+                    <form th:action="@{/cua-hang/doi-mat-khau}" method="post">
+                        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 500px;">
+                            <div class="form-group">
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Mật khẩu hiện tại *</label>
+                                <div class="auth-input-wrapper">
+                                    <input type="password"
+                                           class="form-input auth-input--has-toggle"
+                                           name="matKhauCu"
+                                           placeholder="Nhập mật khẩu hiện tại của bạn"
+                                           autocomplete="current-password"
+                                           required>
+                                    <button type="button" class="auth-toggle-password" title="Hiện/Ẩn mật khẩu">
+                                        <i class="ph ph-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Mật khẩu mới *</label>
+                                <div class="auth-input-wrapper">
+                                    <input type="password"
+                                           class="form-input auth-input--has-toggle"
+                                           name="matKhauMoi"
+                                           placeholder="Tối thiểu 6 ký tự"
+                                           autocomplete="new-password"
+                                           required>
+                                    <button type="button" class="auth-toggle-password" title="Hiện/Ẩn mật khẩu">
+                                        <i class="ph ph-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Xác nhận mật khẩu mới *</label>
+                                <div class="auth-input-wrapper">
+                                    <input type="password"
+                                           class="form-input auth-input--has-toggle"
+                                           name="xacNhanMatKhau"
+                                           placeholder="Nhập lại mật khẩu mới"
+                                           autocomplete="new-password"
+                                           required>
+                                    <button type="button" class="auth-toggle-password" title="Hiện/Ẩn mật khẩu">
+                                        <i class="ph ph-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-form-actions" style="margin-top: 28px;">
+                            <button type="button" class="btn-save-profile" onclick="confirmChangePassword(this)">CẬP NHẬT MẬT KHẨU</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

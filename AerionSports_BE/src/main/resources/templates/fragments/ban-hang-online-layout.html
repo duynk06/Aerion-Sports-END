@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:fragment="ban-hang-online-layout(dynamicContent, pageTitle)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Aerion Sports</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" th:href="@{/ban-hang-online/ban-hang-online.css(v=8)}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .aerion-chat-widget {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-family: 'Inter', sans-serif;
+        }
+        .chat-launcher-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+        .chat-launcher-btn:hover {
+            transform: scale(1.08);
+            background: #4338ca;
+        }
+        .chat-container {
+            position: absolute;
+            bottom: 75px;
+            right: 0;
+            width: 370px;
+            height: 520px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .chat-container.closed {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+        }
+        .close-chat-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+            margin-left: 10px;
+            transition: color 0.2s;
+        }
+        .close-chat-btn:hover { color: #64748b; }
+        .chat-header {
+            padding: 14px 15px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chat-title { font-weight: 700; color: #1e293b; font-size: 14px; }
+        .status-badge {
+            font-size: 11px; padding: 2px 6px; border-radius: 20px; font-weight: 600;
+            background-color: #fef3c7; color: #d97706; display: inline-block; margin-top: 2px;
+            transition: all 0.3s ease;
+        }
+        .request-btn {
+            background: #4f46e5; color: white; border: none; padding: 6px 12px;
+            border-radius: 15px; font-size: 11px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .request-btn:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+        .messages-box {
+            flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.4; word-wrap: break-word; }
+        .msg-me { align-self: flex-end; background: #4f46e5; color: white; border-bottom-right-radius: 4px; }
+        .msg-ai { align-self: flex-start; background: #fef3c7; color: #92400e; border-bottom-left-radius: 4px; font-style: italic; }
+        .msg-staff { align-self: flex-start; background: #ffffff; color: #1e293b; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
+
+        /* ⚡ STYLES CHO NÚT BẤM TIN NHẮN NHANH */
+        .quick-replies-container {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #ffffff;
+            border-top: 1px solid #f1f5f9;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+        .quick-replies-container::-webkit-scrollbar {
+            display: none;
+        }
+        .quick-btn {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .quick-btn:hover {
+            background: #4f46e5;
+            color: #ffffff;
+            border-color: #4f46e5;
+        }
+
+        .input-area { padding: 10px 15px; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; }
+        .input-text { flex: 1; padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 13px; outline: none; background: #f8fafc; }
+        .send-btn { background: #4f46e5; color: white; border: none; padding: 0 16px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="site-shell">
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a th:href="@{/}" class="brand">
+                <div class="brand__logo">
+                    <img th:src="@{/images/Logo_Da.jpg}" alt="Aerion Sports" />
+                </div>
+            </a>
+
+            <nav class="nav-links">
+                <a th:href="@{/}" th:classappend="${activePage == 'home'} ? 'is-active' : ''">TRANG CHỦ</a>
+                <a th:href="@{/cua-hang/san-pham}" th:classappend="${activePage == 'products'} ? 'is-active' : ''">SẢN PHẨM</a>
+                <a th:href="@{/cua-hang/gioi-thieu}" th:classappend="${activePage == 'gioi-thieu'} ? 'is-active' : ''">GIỚI THIỆU</a>
+                <a th:href="@{/cua-hang/lien-he}" th:classappend="${activePage == 'lien-he'} ? 'is-active' : ''">LIÊN HỆ</a>
+                <a th:href="@{/cua-hang/theo-doi-don-hang}" th:classappend="${activePage == 'tracking'} ? 'is-active' : ''">THEO DÕI ĐƠN HÀNG</a>
+            </nav>
+
+            <div class="header-actions">
+                <form th:action="@{/cua-hang/san-pham}" method="get" class="search-form" style="position: relative;">
+                    <input name="keyword" type="text" placeholder="Tìm vợt Yonex, Victor..." class="filter-select" style="border-radius: 999px; padding: 10px 40px 10px 20px; width: 280px; background: #f3f4f6; border: none; font-size: 14px;">
+                    <button type="submit" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer;"><i class="ph ph-magnifying-glass"></i></button>
+                </form>
+
+                <a th:href="@{/cua-hang/gio-hang}" class="btn-icon" style="position: relative;">
+                    <i class="ph ph-shopping-cart text-xl"></i>
+                    <span class="header-cart-badge" th:if="${session.gioHangOnline != null && not #lists.isEmpty(session.gioHangOnline)}" th:text="${#aggregates.sum(session.gioHangOnline.![soLuong])}">1</span>
+                </a>
+                <a th:if="${session.khachHangOnlineId == null}" th:href="@{/cua-hang/dang-nhap}" class="btn-icon">
+                    <i class="ph ph-user text-xl"></i>
+                </a>
+                <div th:if="${session.khachHangOnlineId != null}" class="header-user-dropdown">
+                    <button class="header-user-btn">
+                        <i class="ph ph-user text-xl"></i>
+                        <span th:text="${session.khachHangOnlineTen}">Khách hàng</span>
+                    </button>
+                    <div class="header-user-menu">
+                        <a th:href="@{/cua-hang/ho-so}" class="header-user-item">Hồ sơ</a>
+                        <a th:href="@{/cua-hang/don-hang-cua-toi}" class="header-user-item">Đơn hàng của tôi</a>
+                        <a th:href="@{/cua-hang/doi-mat-khau}" class="header-user-item">Đổi mật khẩu</a>
+                        <form th:action="@{/cua-hang/dang-xuat}" method="post" class="header-user-form">
+                            <button type="submit" class="header-user-item text-danger">Đăng xuất</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="site-main">
+        <th:block th:replace="${dynamicContent}"></th:block>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container-wide">
+            <div class="footer-grid">
+                <div>
+                    <a href="#" class="brand" style="background: white; padding: 8px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">
+                        <img th:src="@{/images/Logo_Da.jpg}" alt="Aerion Sports" style="height: 36px;" />
+                    </a>
+                    <p style="color: #9ca3af; font-size: 14px; line-height: 1.6;">
+                        Chuyên cung cấp vợt cầu lông chính hãng. Nơi hội tụ đam mê của các lông thủ với chất lượng dịch vụ hàng đầu.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="footer-title">Về Chúng Tôi</h4>
+                    <ul class="footer-list">
+                        <li><a th:href="@{/}">Trang Chủ</a></li>
+                        <li><a th:href="@{/cua-hang/san-pham}">Sản Phẩm</a></li>
+                        <li><a th:href="@{/cua-hang/gioi-thieu}">Giới Thiệu</a></li>
+                        <li><a th:href="@{/cua-hang/lien-he}">Liên Hệ</a></li>
+                        <li><a th:href="@{/cua-hang/theo-doi-don-hang}">Theo Dõi Đơn Hàng</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="footer-title">Chính Sách</h4>
+                    <ul class="footer-list">
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Chính sách bảo hành</a></li>
+                        <li><a href="#">Chính sách vận chuyển</a></li>
+                    </ul>
+                </div>
+
+
+                <div>
+                    <h4 class="footer-title">Liên Hệ</h4>
+                    <ul class="footer-list">
+                        <li style="display: flex; gap: 10px; color: #9ca3af; font-size: 14px;"><i class="ph ph-phone" style="color: var(--secondary); font-size: 18px;"></i> 1900 6868</li>
+                        <li style="display: flex; gap: 10px; color: #9ca3af; font-size: 14px;"><i class="ph ph-envelope-simple" style="color: var(--secondary); font-size: 18px;"></i> support@aerionsports.vn</li>
+                        <li style="display: flex; gap: 10px; color: #9ca3af; font-size: 14px;">
+                            <a th:href="@{/cua-hang/lien-he#map}" style="display: flex; gap: 10px; color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='inherit'">
+                                <i class="ph ph-map-pin" style="color: var(--secondary); font-size: 18px; flex-shrink: 0;"></i>
+                                <span>36 Đ. Hồ Tùng Mậu, Phú Diễn, Hà Nội</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 40px; padding-top: 24px; color: #6b7280; font-size: 13px;">
+                © 2026 Aerion Sports. All rights reserved.
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div class="aerion-chat-widget">
+    <div id="aerion-chat-container" class="chat-container closed">
+        <div class="chat-header">
+            <div>
+                <div class="chat-title">Aerion Sports Support</div>
+                <span id="chat-status-badge" class="status-badge">Hỗ trợ AI</span>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <button id="request-staff-btn" class="request-btn" onclick="requestStaffSupport()">Gặp NV</button>
+                <button class="close-chat-btn" onclick="toggleChatWindow()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+
+        <div id="customer-chat-messages" class="messages-box">
+            <div class="msg msg-ai">Xin chào! Tôi là trợ lý ảo của Aerion Sports. Bạn cần tôi hỗ trợ gì ạ?</div>
+        </div>
+
+        <div class="quick-replies-container">
+            <button class="quick-btn" onclick="sendQuickMessage('Tư vấn cho tôi các dòng vợt Yonex hot nhất')">🏸 Vợt Yonex</button>
+            <button class="quick-btn" onclick="sendQuickMessage('Phí vận chuyển và thời gian giao hàng?')">🚚 Vận chuyển</button>
+            <button class="quick-btn" onclick="sendQuickMessage('Địa chỉ cửa hàng ở đâu?')">📍 Cửa hàng</button>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="customer-msg-input" class="input-text" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendCustomerMessage()">
+            <button onclick="sendCustomerMessage()" class="send-btn">Gửi</button>
+        </div>
+    </div>
+
+    <button id="chat-launcher" class="chat-launcher-btn" onclick="toggleChatWindow()">
+        <i id="launcher-icon" class="fa-solid fa-comment-dots"></i>
+    </button>
+</div>
+
+<div id="toast-container" class="toast-container">
+    <div th:if="${cartSuccess != null}" class="toast toast-success">
+        <i class="ph ph-check-circle"></i>
+        <span th:text="${cartSuccess}"></span>
+    </div>
+    <div th:if="${checkoutSuccess != null}" class="toast toast-success">
+        <i class="ph ph-check-circle"></i>
+        <span th:text="${checkoutSuccess}"></span>
+    </div>
+    <div th:if="${trackingSuccess != null}" class="toast toast-success">
+        <i class="ph ph-check-circle"></i>
+        <span th:text="${trackingSuccess}"></span>
+    </div>
+    <div th:if="${authSuccess != null}" class="toast toast-success">
+        <i class="ph ph-check-circle"></i>
+        <span th:text="${authSuccess}"></span>
+    </div>
+    <div th:if="${profileSuccess != null}" class="toast toast-success">
+        <i class="ph ph-check-circle"></i>
+        <span th:text="${profileSuccess}"></span>
+    </div>
+    <div th:if="${passwordSuccess != null}" class="toast toast-success">
+        <i class="ph ph-check-circle"></i>
+        <span th:text="${passwordSuccess}"></span>
+    </div>
+    <div th:if="${orderSuccess != null}" class="toast toast-success">
+        <i class="ph ph-check-circle"></i>
+        <span th:text="${orderSuccess}"></span>
+    </div>
+
+    <div th:if="${cartError != null}" class="toast toast-error">
+        <i class="ph ph-warning-circle"></i>
+        <span th:text="${cartError}"></span>
+    </div>
+    <div th:if="${checkoutError != null}" class="toast toast-error">
+        <i class="ph ph-warning-circle"></i>
+        <span th:text="${checkoutError}"></span>
+    </div>
+    <div th:if="${authError != null}" class="toast toast-error">
+        <i class="ph ph-warning-circle"></i>
+        <span th:text="${authError}"></span>
+    </div>
+    <div th:if="${error != null}" class="toast toast-error">
+        <i class="ph ph-warning-circle"></i>
+        <span th:text="${error}"></span>
+    </div>
+    <div th:if="${profileError != null}" class="toast toast-error">
+        <i class="ph ph-warning-circle"></i>
+        <span th:text="${profileError}"></span>
+    </div>
+    <div th:if="${passwordError != null}" class="toast toast-error">
+        <i class="ph ph-warning-circle"></i>
+        <span th:text="${passwordError}"></span>
+    </div>
+    <div th:if="${orderError != null}" class="toast toast-error">
+        <i class="ph ph-warning-circle"></i>
+        <span th:text="${orderError}"></span>
+    </div>
+</div>
+
+<div id="aerion-confirm-modal" class="aerion-modal-overlay" style="display: none;">
+    <div class="aerion-modal-card">
+        <button type="button" class="aerion-modal-close" onclick="AerionConfirm.close()" title="Đóng">&times;</button>
+        <div class="aerion-modal-icon-wrapper theme-warning" id="aerion-modal-icon-container">
+            <i id="aerion-modal-icon" class="ph ph-warning-octagon"></i>
+        </div>
+        <div class="aerion-modal-body">
+            <h3 id="aerion-modal-title" class="aerion-modal-title">Xác nhận thao tác</h3>
+            <p id="aerion-modal-message" class="aerion-modal-message">Bạn có chắc chắn muốn thực hiện thao tác này không?</p>
+        </div>
+        <div class="aerion-modal-actions">
+            <button type="button" id="aerion-modal-btn-cancel" class="aerion-btn-modal aerion-btn-modal-cancel">Hủy bỏ</button>
+            <button type="button" id="aerion-modal-btn-confirm" class="aerion-btn-modal aerion-btn-modal-confirm">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+
+<script th:inline="javascript">
+    const khachHangId = 12;
+    let currentRoomId = null;
+    let stompClient = null;
+
+    function toggleChatWindow() {
+        const chatBox = document.getElementById('aerion-chat-container');
+        const icon = document.getElementById('launcher-icon');
+
+        chatBox.classList.toggle('closed');
+
+        if(chatBox.classList.contains('closed')) {
+            icon.className = "fa-solid fa-comment-dots";
+        } else {
+            icon.className = "fa-solid fa-chevron-down";
+        }
+    }
+
+    /* ⚡ HÀM XỬ LÝ KHI BẤM NÚT NHẮN NHANH */
+    function sendQuickMessage(text) {
+        const input = document.getElementById('customer-msg-input');
+        if (input) {
+            input.value = text;
+            sendCustomerMessage();
+        }
+    }
+
+    function connectCustomerChat() {
+        const socket = new SockJS('/ws-chat');
+        stompClient = Stomp.over(socket);
+
+        stompClient.debug = function (str) {
+            console.log("STOMP CUSTOMER: " + str);
+        };
+
+        stompClient.connect({}, function (frame) {
+            console.log('✅ Khách hàng kết nối WebSocket thành công!');
+
+            stompClient.subscribe('/topic/room/customer/' + khachHangId, function (response) {
+                const msg = JSON.parse(response.body);
+
+                if (msg.type === 'REQUEST_STAFF_WAITING') {
+                    const badge = document.getElementById('chat-status-badge');
+                    if (badge) {
+                        badge.innerText = "⏳ Đang đợi NV...";
+                        badge.style.backgroundColor = "#fee2e2";
+                        badge.style.color = "#ef4444";
+                    }
+                    document.getElementById('request-staff-btn').disabled = true;
+                    return;
+                }
+
+                if (msg.type === 'MODE_CHANGE' && msg.chatMode === 'STAFF_REPLY') {
+                    const badge = document.getElementById('chat-status-badge');
+                    if (badge) {
+                        badge.innerText = "Chat với NV";
+                        badge.style.backgroundColor = "#dcfce7";
+                        badge.style.color = "#16a34a";
+                    }
+                    document.getElementById('request-staff-btn').disabled = true;
+                    return;
+                }
+
+                if (msg.roomId && !currentRoomId) {
+                    subscribeToRoomChannel(msg.roomId);
+                }
+            });
+        }, function (error) {
+            console.error("❌ Lỗi kết nối: ", error);
+        });
+    }
+
+    function subscribeToRoomChannel(roomId) {
+        if (!roomId || currentRoomId === roomId) return;
+        currentRoomId = roomId;
+        stompClient.subscribe('/topic/room/' + roomId, function (response) {
+            const msg = JSON.parse(response.body);
+
+            if (msg.type === 'MODE_CHANGE' && msg.chatMode === 'STAFF_REPLY') {
+                const badge = document.getElementById('chat-status-badge');
+                if (badge) {
+                    badge.innerText = "Chat với NV";
+                    badge.style.backgroundColor = "#dcfce7";
+                    badge.style.color = "#16a34a";
+                }
+                document.getElementById('request-staff-btn').disabled = true;
+                return;
+            }
+
+            const sender = msg.nguoiGui ? msg.nguoiGui.toUpperCase() : "";
+            if (sender !== 'CUSTOMER' && sender !== 'KHACH_HANG') {
+                renderMessage(msg);
+            }
+        });
+    }
+
+    function sendCustomerMessage() {
+        const input = document.getElementById('customer-msg-input');
+        const content = input.value.trim();
+
+        if (!content) return;
+        if (!stompClient || !stompClient.connected) {
+            alert("Mất kết nối tới máy chủ! Vui lòng làm mới trang.");
+            return;
+        }
+
+        const payload = {
+            roomId: currentRoomId,
+            khachHangId: khachHangId,
+            nguoiGui: "CUSTOMER",
+            noiDung: content,
+            nguoiGuiId: khachHangId
+        };
+        renderMessage({
+            nguoiGui: "CUSTOMER",
+            noiDung: content
+        });
+
+        stompClient.send("/app/chat.sendFromClient", {}, JSON.stringify(payload));
+        input.value = '';
+    }
+
+    function requestStaffSupport() {
+        if (!stompClient || !stompClient.connected) {
+            alert("Vui lòng đợi hệ thống kết nối trong giây lát!");
+            return;
+        }
+
+        stompClient.send("/app/chat.requestStaff", {}, JSON.stringify({
+            roomId: currentRoomId,
+            khachHangId: khachHangId,
+            nguoiGui: "CUSTOMER",
+            noiDung: "Yêu cầu gặp nhân viên hỗ trợ",
+            nguoiGuiId: khachHangId
+        }));
+
+        const badge = document.getElementById('chat-status-badge');
+        badge.innerText = "⏳ Đang đợi NV...";
+        badge.style.backgroundColor = "#fee2e2";
+        badge.style.color = "#ef4444";
+        document.getElementById('request-staff-btn').disabled = true;
+    }
+
+    function renderMessage(msg) {
+        if (!msg.noiDung && msg.type !== 'END_CHAT') return;
+
+        if (msg.type === 'END_CHAT') {
+            const badge = document.getElementById('chat-status-badge');
+            if (badge) {
+                badge.innerText = "Hỗ trợ AI";
+                badge.style.backgroundColor = "#fef3c7";
+                badge.style.color = "#d97706";
+            }
+
+            const btn = document.getElementById('request-staff-btn');
+            if (btn) btn.disabled = false;
+
+            const container = document.getElementById('customer-chat-messages');
+            const div = document.createElement('div');
+            div.className = 'msg msg-ai';
+            div.innerText = msg.noiDung || "Cuộc trò chuyện đã kết thúc bởi nhân viên.";
+            container.appendChild(div);
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            return;
+        }
+
+        if (msg.roomId && !currentRoomId) {
+            currentRoomId = msg.roomId;
+        }
+
+        const container = document.getElementById('customer-chat-messages');
+        const div = document.createElement('div');
+        const sender = msg.nguoiGui ? msg.nguoiGui.toUpperCase() : "";
+
+        if (sender === 'CUSTOMER' || sender === 'KHACH_HANG') {
+            div.className = 'msg msg-me';
+        } else if (sender === 'AI') {
+            div.className = 'msg msg-ai';
+        } else if (sender === 'NHAN_VIEN' || sender === 'STAFF') {
+            div.className = 'msg msg-staff';
+            const badge = document.getElementById('chat-status-badge');
+            if (badge) {
+                badge.innerText = "Chat với NV";
+                badge.style.backgroundColor = "#dcfce7";
+                badge.style.color = "#16a34a";
+            }
+            document.getElementById('request-staff-btn').disabled = true;
+        } else {
+            div.className = 'msg msg-staff';
+        }
+
+        div.innerText = msg.noiDung;
+        container.appendChild(div);
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        console.log("Khởi chạy Widget Chat...");
+        connectCustomerChat();
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const PHONE_PATTERN = /^0\d{9}$/;
+        const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        const PHONE_MESSAGE = 'Số điện thoại phải bắt đầu bằng 0 và đủ 10 số.';
+        const EMAIL_MESSAGE = 'Email không đúng định dạng.';
+        const phoneSelector = 'input[name="sdt"], input[name="soDienThoai"], input[name="sdtNguoiNhan"]';
+        const emailSelector = 'input[name="email"]';
+
+        function isHiddenInput(input) {
+            return input.type === 'hidden';
+        }
+
+        function normalizePhoneInput(input) {
+            const oldValue = input.value || '';
+            const newValue = oldValue.replace(/\s+/g, '').replace(/\D/g, '').slice(0, 10);
+            if (oldValue !== newValue) {
+                input.value = newValue;
+            }
+            return newValue;
+        }
+
+        function setupPhoneInput(input) {
+            if (isHiddenInput(input)) return;
+            input.setAttribute('inputmode', 'numeric');
+            input.setAttribute('maxlength', '10');
+            input.setAttribute('pattern', '0[0-9]{9}');
+            input.setAttribute('title', PHONE_MESSAGE);
+            input.addEventListener('input', function () {
+                normalizePhoneInput(input);
+                input.setCustomValidity('');
+            });
+            input.addEventListener('blur', function () {
+                normalizePhoneInput(input);
+            });
+        }
+
+        function setupEmailInput(input) {
+            if (isHiddenInput(input)) return;
+            input.setAttribute('title', EMAIL_MESSAGE);
+            input.addEventListener('input', function () {
+                input.value = (input.value || '').replace(/\s+/g, '');
+                input.setCustomValidity('');
+            });
+        }
+
+        function controlsOfForm(form) {
+            const controls = Array.from(form.querySelectorAll('input, select, textarea'));
+            if (form.id) {
+                const escapedFormId = window.CSS && CSS.escape ? CSS.escape(form.id) : form.id.replace(/"/g, '\\"');
+                controls.push(...document.querySelectorAll(`[form="${escapedFormId}"]`));
+            }
+            return controls.filter((item, index, array) => array.indexOf(item) === index);
+        }
+
+        function validateInput(input) {
+            if (isHiddenInput(input) || input.disabled || input.readOnly) {
+                return true;
+            }
+            if (input.matches(phoneSelector)) {
+                const value = normalizePhoneInput(input);
+                if (input.required && !PHONE_PATTERN.test(value)) {
+                    input.setCustomValidity(PHONE_MESSAGE);
+                    input.reportValidity();
+                    return false;
+                }
+                input.setCustomValidity('');
+            }
+            if (input.matches(emailSelector)) {
+                input.value = (input.value || '').replace(/\s+/g, '');
+                if (input.required && !EMAIL_PATTERN.test(input.value)) {
+                    input.setCustomValidity(EMAIL_MESSAGE);
+                    input.reportValidity();
+                    return false;
+                }
+                input.setCustomValidity('');
+            }
+            return true;
+        }
+
+        document.querySelectorAll(phoneSelector).forEach(setupPhoneInput);
+        document.querySelectorAll(emailSelector).forEach(setupEmailInput);
+
+        document.querySelectorAll('form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                const controls = controlsOfForm(form);
+                for (const control of controls) {
+                    if (!validateInput(control)) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        control.focus();
+                        return;
+                    }
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    window.AerionConfirm = {
+        show: function(options) {
+            return new Promise(function(resolve) {
+                const overlay = document.getElementById('aerion-confirm-modal');
+                const iconContainer = document.getElementById('aerion-modal-icon-container');
+                const iconEl = document.getElementById('aerion-modal-icon');
+                const titleEl = document.getElementById('aerion-modal-title');
+                const messageEl = document.getElementById('aerion-modal-message');
+                const cancelBtn = document.getElementById('aerion-modal-btn-cancel');
+                const confirmBtn = document.getElementById('aerion-modal-btn-confirm');
+
+                if (!overlay) return resolve(false);
+
+                const title = options.title || 'Xác nhận thao tác';
+                const message = options.message || 'Bạn có chắc chắn muốn thực hiện thao tác này không?';
+                const confirmText = options.confirmText || 'Xác nhận';
+                const cancelText = options.cancelText || 'Hủy bỏ';
+                const type = options.type || 'warning';
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                confirmBtn.textContent = confirmText;
+                cancelBtn.textContent = cancelText;
+
+                iconContainer.className = 'aerion-modal-icon-wrapper theme-' + type;
+                confirmBtn.className = 'aerion-btn-modal aerion-btn-modal-confirm' + (type === 'danger' ? ' btn-danger' : '');
+
+                if (type === 'danger') {
+                    iconEl.className = 'ph ph-warning-octagon';
+                } else if (type === 'warning') {
+                    iconEl.className = 'ph ph-warning-amber';
+                } else if (type === 'info') {
+                    iconEl.className = 'ph ph-info';
+                } else {
+                    iconEl.className = 'ph ph-check-circle';
+                }
+
+                function handleConfirm() {
+                    cleanup();
+                    resolve(true);
+                }
+
+                function handleCancel() {
+                    cleanup();
+                    resolve(false);
+                }
+
+                function cleanup() {
+                    overlay.classList.remove('active');
+                    setTimeout(function() {
+                        overlay.style.display = 'none';
+                    }, 250);
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                    cancelBtn.removeEventListener('click', handleCancel);
+                }
+
+                confirmBtn.addEventListener('click', handleConfirm);
+                cancelBtn.addEventListener('click', handleCancel);
+
+                overlay.style.display = 'flex';
+                overlay.offsetHeight; // reflow
+                overlay.classList.add('active');
+            });
+        },
+
+        close: function() {
+            const cancelBtn = document.getElementById('aerion-modal-btn-cancel');
+            if (cancelBtn) cancelBtn.click();
+        }
+    };
+
+    window.confirmPlaceOrder = function(buttonEl) {
+        const form = document.getElementById('checkout-order-form');
+        if (!form) return;
+
+        const inputs = Array.from(document.querySelectorAll('[form="checkout-order-form"]'));
+        for (const input of inputs) {
+            if (!input.checkValidity()) {
+                input.reportValidity();
+                return;
+            }
+        }
+
+        AerionConfirm.show({
+            title: 'Xác nhận đặt hàng',
+            message: 'Bạn có chắc chắn muốn tiến hành đặt đơn hàng này không?',
+            confirmText: 'Đồng ý đặt hàng',
+            cancelText: 'Hủy bỏ',
+            type: 'info'
+        }).then(function(confirmed) {
+            if (confirmed) {
+                form.submit();
+            }
+        });
+    };
+
+    window.confirmCancelOrder = function(buttonEl) {
+        AerionConfirm.show({
+            title: 'Hủy đơn hàng',
+            message: 'Bạn có chắc chắn muốn hủy đơn hàng này không? Đơn hàng sau khi hủy sẽ không thể hoàn tác.',
+            confirmText: 'Đồng ý hủy',
+            cancelText: 'Quay lại',
+            type: 'danger'
+        }).then(function(confirmed) {
+            if (confirmed && buttonEl) {
+                const form = buttonEl.closest('form');
+                if (form) form.submit();
+            }
+        });
+    };
+
+    window.confirmUpdateDelivery = function(buttonEl) {
+        const form = document.getElementById('sua-thong-tin-giao-hang');
+        if (form && form.checkValidity()) {
+            AerionConfirm.show({
+                title: 'Cập nhật thông tin giao hàng',
+                message: 'Bạn có chắc chắn muốn cập nhật lại thông tin người nhận và địa chỉ giao hàng cho đơn hàng này?',
+                confirmText: 'Lưu cập nhật',
+                cancelText: 'Hủy',
+                type: 'info'
+            }).then(function(confirmed) {
+                if (confirmed) form.submit();
+            });
+        } else if (form) {
+            form.reportValidity();
+        }
+    };
+
+    window.confirmSetDefaultAddress = function(checkboxEl) {
+        if (!checkboxEl) return;
+        if (checkboxEl.getAttribute('data-is-default') === 'true') {
+            checkboxEl.checked = true;
+            return;
+        }
+        checkboxEl.checked = false;
+        AerionConfirm.show({
+            title: 'Thiết lập địa chỉ mặc định',
+            message: 'Bạn có muốn đặt địa chỉ này làm địa chỉ nhận hàng mặc định không?',
+            confirmText: 'Đặt mặc định',
+            cancelText: 'Hủy',
+            type: 'warning'
+        }).then(function(confirmed) {
+            if (confirmed) {
+                checkboxEl.checked = true;
+                if (checkboxEl.form) checkboxEl.form.submit();
+            }
+        });
+    };
+
+    window.confirmDeleteAddress = function(buttonEl) {
+        if (!buttonEl) return;
+        AerionConfirm.show({
+            title: 'Xóa địa chỉ',
+            message: 'Bạn có chắc chắn muốn xóa địa chỉ nhận hàng này không?',
+            confirmText: 'Đồng ý xóa',
+            cancelText: 'Hủy',
+            type: 'danger'
+        }).then(function(confirmed) {
+            if (confirmed) {
+                const form = buttonEl.closest('form');
+                if (form) form.submit();
+            }
+        });
+    };
+
+    window.confirmUpdateAddress = function(buttonEl) {
+        if (!buttonEl) return;
+        const form = buttonEl.closest('form');
+        if (form && form.checkValidity()) {
+            AerionConfirm.show({
+                title: 'Cập nhật địa chỉ',
+                message: 'Bạn có chắc chắn muốn lưu thông tin thay đổi cho địa chỉ nhận hàng này?',
+                confirmText: 'Lưu thay đổi',
+                cancelText: 'Hủy',
+                type: 'info'
+            }).then(function(confirmed) {
+                if (confirmed) form.submit();
+            });
+        } else if (form) {
+            form.reportValidity();
+        }
+    };
+
+    window.confirmSaveProfile = function(buttonEl) {
+        if (!buttonEl) return;
+        const form = buttonEl.closest('form');
+        if (form && form.checkValidity()) {
+            AerionConfirm.show({
+                title: 'Lưu thông tin cá nhân',
+                message: 'Bạn có chắc chắn muốn lưu các thay đổi cho hồ sơ cá nhân không?',
+                confirmText: 'Lưu thay đổi',
+                cancelText: 'Hủy',
+                type: 'info'
+            }).then(function(confirmed) {
+                if (confirmed) form.submit();
+            });
+        } else if (form) {
+            form.reportValidity();
+        }
+    };
+
+    window.confirmChangePassword = function(buttonEl) {
+        if (!buttonEl) return;
+        const form = buttonEl.closest('form');
+        if (!form) return;
+
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const newPass = form.querySelector('input[name="matKhauMoi"]')?.value;
+        const confirmPass = form.querySelector('input[name="xacNhanMatKhau"]')?.value;
+
+        if (newPass && confirmPass && newPass !== confirmPass) {
+            AerionConfirm.show({
+                title: 'Lỗi mật khẩu',
+                message: 'Mật khẩu mới và xác nhận mật khẩu không trùng khớp. Vui lòng kiểm tra lại.',
+                confirmText: 'Đã hiểu',
+                cancelText: '',
+                type: 'danger'
+            });
+            return;
+        }
+
+        AerionConfirm.show({
+            title: 'Xác nhận đổi mật khẩu',
+            message: 'Bạn có chắc chắn muốn thay đổi mật khẩu tài khoản Aerion Sports không?',
+            confirmText: 'Cập nhật',
+            cancelText: 'Hủy',
+            type: 'warning'
+        }).then(function(confirmed) {
+            if (confirmed) form.submit();
+        });
+    };
+
+    // Tự động ẩn các thông báo (toast) sau 3 giây
+    document.addEventListener('DOMContentLoaded', function () {
+        const toasts = document.querySelectorAll('.toast');
+        if (toasts.length > 0) {
+            setTimeout(function () {
+                toasts.forEach(function (toast) {
+                    toast.classList.add('hide');
+                    setTimeout(function () {
+                        toast.remove();
+                    }, 300);
+                });
+            }, 3000);
+        }
+    });
+
+    // Bật/tắt ẩn hiện mật khẩu bằng icon con mắt
+    document.addEventListener('click', function (e) {
+        const toggleBtn = e.target.closest('.auth-toggle-password');
+        if (!toggleBtn) return;
+        e.preventDefault();
+
+        const wrapper = toggleBtn.closest('.auth-input-wrapper') || toggleBtn.parentElement;
+        const input = wrapper ? wrapper.querySelector('input') : null;
+        if (!input) return;
+
+        const icon = toggleBtn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) {
+                icon.className = 'ph ph-eye-slash';
+            }
+        } else {
+            input.type = 'password';
+            if (icon) {
+                icon.className = 'ph ph-eye';
+            }
+        }
+    });
+</script>
+
+</body>
+
+</html>

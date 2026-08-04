@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::section}, ${pageTitle})}">
+<head>
+    <title th:text="${pageTitle}">Giới thiệu</title>
+</head>
+<body>
+    <section class="about-page">
+        <link rel="stylesheet" th:href="@{/ban-hang-online/gioi-thieu.css(v=2)}">
+
+        <div class="about-hero-section">
+            <div class="container-wide">
+                <div class="about-hero-content">
+                    <span class="badge-text">VỀ CHÚNG TÔI</span>
+                    <h1 class="about-title">Aerion Sports</h1>
+                    <p class="about-subtitle">Đam mê của bạn - Trách nhiệm của chúng tôi</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-story-section">
+            <div class="container-wide">
+                <div class="about-grid">
+                    <div class="about-text-content">
+                        <h2>Hành trình của sự cống hiến</h2>
+                        <div class="divider"></div>
+                        <p class="lead-text">Aerion Sports ra đời từ niềm đam mê cầu lông thuần túy, hướng tới mang lại trải nghiệm thi đấu và tập luyện hoàn hảo nhất cho người chơi.</p>
+                        <p>Chúng tôi chuyên cung cấp các dòng vợt, giày và phụ kiện cầu lông chính hãng đến từ những thương hiệu hàng đầu thế giới như Yonex, Victor, Li-Ning, đáp ứng trọn vẹn nhu cầu từ người chơi phong trào đến vận động viên chuyên nghiệp.</p>
+                        <p>Tất cả sản phẩm tại Aerion Sports đều được nhập khẩu chính ngạch, đảm bảo nguồn gốc xuất xứ rõ ràng cùng chính sách bảo hành minh bạch và dịch vụ tư vấn chuyên nghiệp, tận tâm.</p>
+
+                        <div class="stats-row">
+                            <div class="stat-box">
+                                <span class="stat-num">5000+</span>
+                                <span class="stat-label">Khách hàng tin tưởng</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-num">100%</span>
+                                <span class="stat-label">Sản phẩm chính hãng</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="about-image-wrapper">
+                        <div class="image-backdrop"></div>
+                        <img src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=2070&auto=format&fit=crop" alt="Badminton Match" class="main-image"/>
+                        <div class="floating-card">
+                            <i class="ph-fill ph-star"></i>
+                            <div>
+                                <strong>Chất lượng hàng đầu</strong>
+                                <span>Tiêu chuẩn quốc tế</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-features-section">
+            <div class="container-wide">
+                <div class="section-heading text-center">
+                    <span class="badge-text">GIÁ TRỊ CỐT LÕI</span>
+                    <h2>Tại sao chọn Aerion Sports?</h2>
+                </div>
+
+                <div class="about-features">
+                    <div class="feature-card">
+                        <div class="icon-circle">
+                            <i class="ph-duotone ph-shield-check"></i>
+                        </div>
+                        <h3>Cam kết chính hãng</h3>
+                        <p>100% sản phẩm phân phối chính hãng, đầy đủ tem mác và chứng nhận chất lượng từ nhà sản xuất.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-circle">
+                            <i class="ph-duotone ph-truck"></i>
+                        </div>
+                        <h3>Giao hàng toàn quốc</h3>
+                        <p>Xử lý đơn hàng nhanh chóng, đóng gói tiêu chuẩn và giao hàng hỏa tốc đến tận tay khách hàng.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-circle">
+                            <i class="ph-duotone ph-arrows-clockwise"></i>
+                        </div>
+                        <h3>Đổi trả linh hoạt</h3>
+                        <p>Chính sách 1 đổi 1 trong vòng 7 ngày đối với các sản phẩm phát sinh lỗi từ nhà sản xuất.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-circle">
+                            <i class="ph-duotone ph-headset"></i>
+                        </div>
+                        <h3>Tư vấn chuyên nghiệp</h3>
+                        <p>Đội ngũ am hiểu chuyên môn, sẵn sàng tư vấn chọn sản phẩm phù hợp nhất với trình độ và lối đánh của bạn.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

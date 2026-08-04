@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#login-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="login-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/auth.css(v=3)}">
+
+    <div class="container-wide">
+        <div class="auth-breadcrumb">
+            <a th:href="@{/cua-hang}">Trang chủ</a> &gt; <span>Đăng nhập</span>
+        </div>
+
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1 class="auth-title">Đăng nhập</h1>
+
+                <div th:if="${authError != null}" class="auth-message auth-message--error" th:text="${authError}"></div>
+                <div th:if="${authSuccess != null}" class="auth-message auth-message--success" th:text="${authSuccess}"></div>
+
+                <form th:action="@{/cua-hang/dang-nhap}" method="post">
+                    <div class="auth-form-group">
+                        <input type="email"
+                               name="email"
+                               class="auth-input"
+                               placeholder="Email"
+                               th:value="${loginEmail}"
+                               autocomplete="email"
+                               required>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <div class="auth-input-wrapper">
+                            <input type="password"
+                                   name="matKhau"
+                                   class="auth-input auth-input--has-toggle"
+                                   placeholder="Mật khẩu"
+                                   autocomplete="current-password"
+                                   required>
+                            <button type="button" class="auth-toggle-password" title="Hiện/Ẩn mật khẩu">
+                                <i class="ph ph-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-btn">ĐĂNG NHẬP</button>
+                </form>
+
+                <div class="auth-inline-link">
+                    <a th:href="@{/cua-hang/quen-mat-khau}">Quên mật khẩu?</a>
+                </div>
+
+                <div class="auth-footer">
+                    Chưa có tài khoản? <a th:href="@{/cua-hang/dang-ky}">Đăng ký</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

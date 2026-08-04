@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#my-orders-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="my-orders-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/don-hang.css(v=2)}">
+
+    <div class="my-orders-container">
+        <div class="my-orders-header">
+            <h1 class="my-orders-title">Đơn hàng của tôi</h1>
+            <a th:href="@{/cua-hang/theo-doi-don-hang}" class="btn-public-track">Tra cứu đơn hàng công khai</a>
+        </div>
+
+
+
+        <div class="my-orders-tabs">
+            <a th:each="option : ${trangThaiOptions}"
+               th:href="@{/cua-hang/don-hang-cua-toi(trangThai=${option.value})}"
+               class="order-tab"
+               th:classappend="${(trangThai == null and option.value == null) or (trangThai != null and option.value != null and trangThai == option.value)} ? ' active' : ''"
+               th:text="${option.label}">
+                Tất cả
+            </a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(danhSachDonHang)}" class="orders-empty">
+            <i class="ph ph-package"></i>
+            <h2>Chưa tìm thấy đơn hàng nào</h2>
+            <p>Không có đơn hàng phù hợp với bộ lọc hiện tại.</p>
+            <a th:href="@{/cua-hang/san-pham}" class="btn-public-track">Tiếp tục mua hàng</a>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(danhSachDonHang)}" class="my-orders-layout">
+            <div class="orders-list">
+                <a class="order-card"
+                   th:each="donHang : ${danhSachDonHang}"
+                   th:href="@{/cua-hang/don-hang-cua-toi(trangThai=${trangThai},code=${donHang.hoaDon.maHoaDon})}"
+                   th:classappend="${donHangDangChon != null and donHangDangChon.hoaDon.maHoaDon == donHang.hoaDon.maHoaDon} ? ' active' : ''">
+                    <div class="order-card-header">
+                        <span class="order-code" th:text="${donHang.hoaDon.maHoaDon}">HD001</span>
+                        <span class="order-badge"
+                              th:classappend="${donHang.statusClass}"
+                              th:text="${donHang.hoaDon.trangThaiName}">Chờ xác nhận</span>
+                    </div>
+                    <div class="order-datetime"
+                         th:text="${donHang.hoaDon.ngayTao != null ? #temporals.format(donHang.hoaDon.ngayTao, 'HH:mm:ss dd/MM/yyyy') : 'Chưa có thời gian'}">
+                        12:00:00 17/07/2026
+                    </div>
+                    <div class="order-info-grid">
+                        <span class="label">Người nhận:</span>
+                        <span class="val" th:text="${donHang.hoaDon.tenNguoiNhan ?: 'Chưa cập nhật'}">Người nhận</span>
+                        <span class="label">SĐT nhận:</span>
+                        <span class="val" th:text="${donHang.hoaDon.sdtNguoiNhan ?: 'Chưa cập nhật'}">0123456789</span>
+                        <span class="label">Sản phẩm:</span>
+                        <span class="val" th:text="${donHang.tongSanPham}">1</span>
+                        <span class="label">Thanh toán:</span>
+                        <span class="val">
+                            <span th:text="${donHang.phuongThucThanhToan}">COD</span>
+                            <span class="payment-badge"
+                                  th:classappend="${donHang.daThanhToan} ? ' payment-badge-paid' : ''"
+                                  th:text="${donHang.trangThaiThanhToan}">
+                                Chưa thanh toán
+                            </span>
+                        </span>
+                    </div>
+                    <div class="order-price"
+                         th:text="${#numbers.formatDecimal(donHang.hoaDon.tongTienThanhToan, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                        0 đ
+                    </div>
+                </a>
+            </div>
+
+            <div class="order-detail-view" th:if="${donHangDangChon != null}">
+                <div class="detail-header">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <h2 class="detail-code" style="margin: 0;">
+                                Mã đơn:
+                                <span th:text="${donHangDangChon.hoaDon.maHoaDon}">HD001</span>
+                            </h2>
+                            <span class="order-badge"
+                                  th:classappend="${donHangDangChon.statusClass}"
+                                  th:text="${donHangDangChon.hoaDon.trangThaiName}">
+                                Chờ xác nhận
+                            </span>
+                        </div>
+                        <div class="detail-datetime"
+                             th:text="${donHangDangChon.hoaDon.ngayTao != null ? 'Đặt lúc: ' + #temporals.format(donHangDangChon.hoaDon.ngayTao, 'HH:mm:ss dd/MM/yyyy') : 'Chưa có thời gian'}">
+                            Đặt lúc: 12:00:00 17/07/2026
+                        </div>
+                    </div>
+                    <div class="order-action-stack" th:if="${donHangDangChon.hoaDon.trangThai == 0}">
+                        <a href="#sua-thong-tin-giao-hang" class="btn-edit-delivery">Cập nhật thông tin</a>
+                        <form method="post"
+                              th:action="@{/cua-hang/don-hang-cua-toi/{maHoaDon}/huy(maHoaDon=${donHangDangChon.hoaDon.maHoaDon})}">
+                            <button type="button"
+                                    class="btn-cancel-order"
+                                    onclick="confirmCancelOrder(this)">
+                                Hủy đơn hàng
+                            </button>
+                        </form>
+                    </div>
+                    <div class="order-action-stack" th:if="${donHangDangChon.hoaDon.trangThai == 8}">
+                        <form method="post"
+                              th:action="@{/cua-hang/don-hang-cua-toi/{maHoaDon}/thanh-toan-lai(maHoaDon=${donHangDangChon.hoaDon.maHoaDon})}">
+                            <button type="submit" class="btn-edit-delivery">Thanh toán lại</button>
+                        </form>
+                        <form method="post"
+                              th:action="@{/cua-hang/don-hang-cua-toi/{maHoaDon}/huy(maHoaDon=${donHangDangChon.hoaDon.maHoaDon})}">
+                            <button type="button" class="btn-cancel-order" onclick="confirmCancelOrder(this)">
+                                Hủy đơn hàng
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3 class="section-title">Thông tin giao hàng</h3>
+                    <div class="delivery-grid">
+                        <span class="label">Khách hàng:</span>
+                        <span class="val" th:text="${donHangDangChon.hoaDon.tenKhachHang ?: donHangDangChon.hoaDon.tenNguoiNhan}">Khách hàng</span>
+                        <span class="label">SĐT đặt:</span>
+                        <span class="val" th:text="${donHangDangChon.hoaDon.sdtKhachHang ?: donHangDangChon.hoaDon.sdtNguoiNhan}">0123456789</span>
+                        <span class="label">Người nhận:</span>
+                        <span class="val" th:text="${donHangDangChon.hoaDon.tenNguoiNhan ?: 'Chưa cập nhật'}">Người nhận</span>
+                        <span class="label">SĐT nhận:</span>
+                        <span class="val" th:text="${donHangDangChon.hoaDon.sdtNguoiNhan ?: 'Chưa cập nhật'}">0123456789</span>
+                        <span class="label">Địa chỉ:</span>
+                        <span class="val delivery-address" th:text="${donHangDangChon.hoaDon.diaChiNhan ?: 'Chưa cập nhật'}">Địa chỉ</span>
+                        <span class="label">Ghi chú:</span>
+                        <span class="val delivery-address"
+                              th:text="${donHangDangChon.hoaDon.ghiChu != null && !donHangDangChon.hoaDon.ghiChu.isBlank() ? donHangDangChon.hoaDon.ghiChu : 'Không có ghi chú'}">
+                            Không có ghi chú
+                        </span>
+                    </div>
+
+                    <form id="sua-thong-tin-giao-hang"
+                          th:if="${donHangDangChon.hoaDon.trangThai == 0}"
+                          method="post"
+                          class="delivery-edit-form"
+                          th:action="@{/cua-hang/don-hang-cua-toi/{maHoaDon}/cap-nhat-giao-hang(maHoaDon=${donHangDangChon.hoaDon.maHoaDon})}">
+                        <div class="edit-form-title">Sửa thông tin giao hàng</div>
+                        <div class="edit-form-grid">
+                            <label>
+                                <span>Người nhận</span>
+                                <input type="text"
+                                       name="tenNguoiNhan"
+                                       required
+                                       th:value="${donHangDangChon.hoaDon.tenNguoiNhan}">
+                            </label>
+                            <label>
+                                <span>Số điện thoại</span>
+                                <input type="text"
+                                       name="sdtNguoiNhan"
+                                       required
+                                       th:value="${donHangDangChon.hoaDon.sdtNguoiNhan}">
+                            </label>
+                            <label>
+                                <span>Tỉnh / Thành phố <span style="color: #ef4444;">*</span></span>
+                                <select id="edit-province" name="tinhThanh" required>
+                                    <option value="">Đang tải tỉnh/thành phố...</option>
+                                </select>
+                            </label>
+                            <label>
+                                <span>Quận / Huyện <span style="color: #ef4444;">*</span></span>
+                                <select id="edit-district" name="quanHuyen" disabled required>
+                                    <option value="">Chọn tỉnh/thành phố trước</option>
+                                </select>
+                            </label>
+                            <label class="edit-form-full">
+                                <span>Phường / Xã <span style="color: #ef4444;">*</span></span>
+                                <select id="edit-ward" name="phuongXa" disabled required>
+                                    <option value="">Chọn quận/huyện trước</option>
+                                </select>
+                            </label>
+                            <label class="edit-form-full">
+                                <span>Địa chỉ cụ thể (Số nhà, tên đường...)</span>
+                                <input type="text"
+                                       id="edit-address-detail"
+                                       name="diaChiChiTiet"
+                                       placeholder="Ví dụ: Số 12, Ngõ 34...">
+                            </label>
+                            <input type="hidden" id="edit-full-address-raw" th:value="${donHangDangChon.hoaDon.diaChiNhan}">
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                            <button type="button"
+                                    class="btn-save-delivery"
+                                    onclick="confirmUpdateDelivery(this)">
+                                Cập nhật
+                            </button>
+                        </div>
+                    </form>
+
+                    <script>
+                        (function () {
+                            const provinceSelect = document.getElementById('edit-province');
+                            const districtSelect = document.getElementById('edit-district');
+                            const wardSelect = document.getElementById('edit-ward');
+                            const detailInput = document.getElementById('edit-address-detail');
+                            const fullAddressRaw = document.getElementById('edit-full-address-raw')?.value || '';
+
+                            if (!provinceSelect || !districtSelect || !wardSelect) {
+                                return;
+                            }
+
+                            const API_BASE = 'https://provinces.open-api.vn/api/v1';
+
+                            function renderOptions(selectElement, items, placeholder) {
+                                const options = [`<option value="">${placeholder}</option>`];
+                                items.forEach(function (item) {
+                                    options.push(`<option value="${item.name}" data-code="${item.code}">${item.name}</option>`);
+                                });
+                                selectElement.innerHTML = options.join('');
+                            }
+
+                            function setLoading(selectElement, message, disabled) {
+                                selectElement.innerHTML = `<option value="">${message}</option>`;
+                                selectElement.disabled = disabled;
+                            }
+
+                            function cleanStr(str) {
+                                return String(str || '')
+                                    .toLowerCase()
+                                    .replace(/^(tỉnh|thành phố|tp\.|quận|huyện|thị xã|tp|phường|xã|thị trấn)\s+/i, '')
+                                    .trim();
+                            }
+
+                            function parseAddressParts(rawAddress) {
+                                if (!rawAddress) return { detail: '', ward: '', district: '', province: '' };
+                                const parts = rawAddress.split(',').map(s => s.trim()).filter(Boolean);
+                                if (parts.length >= 4) {
+                                    const province = parts[parts.length - 1];
+                                    const district = parts[parts.length - 2];
+                                    const ward = parts[parts.length - 3];
+                                    const detail = parts.slice(0, parts.length - 3).join(', ');
+                                    return { detail, ward, district, province };
+                                } else if (parts.length === 3) {
+                                    return { detail: '', ward: parts[0], district: parts[1], province: parts[2] };
+                                }
+                                return { detail: rawAddress, ward: '', district: '', province: '' };
+                            }
+
+                            function findMatchingOption(selectElement, targetName) {
+                                if (!targetName) return null;
+                                const targetClean = cleanStr(targetName);
+                                return Array.from(selectElement.options).find(opt => {
+                                    if (!opt.value) return false;
+                                    const optClean = cleanStr(opt.value);
+                                    return optClean === targetClean || optClean.includes(targetClean) || targetClean.includes(optClean);
+                                });
+                            }
+
+                            const parsed = parseAddressParts(fullAddressRaw);
+                            if (detailInput && parsed.detail) {
+                                detailInput.value = parsed.detail;
+                            }
+
+                            async function initAddressDropdowns() {
+                                try {
+                                    setLoading(provinceSelect, 'Đang tải tỉnh/thành phố...', true);
+                                    const res = await fetch(`${API_BASE}/p/`);
+                                    if (!res.ok) throw new Error('Cannot load provinces');
+                                    const provinces = await res.json();
+                                    renderOptions(provinceSelect, provinces, 'Chọn tỉnh/thành phố');
+                                    provinceSelect.disabled = false;
+
+                                    const matchedProvince = findMatchingOption(provinceSelect, parsed.province);
+                                    if (matchedProvince) {
+                                        provinceSelect.value = matchedProvince.value;
+                                        const provCode = matchedProvince.dataset.code;
+                                        if (provCode) {
+                                            await loadDistricts(provCode, parsed.district, parsed.ward);
+                                        }
+                                    }
+                                } catch (err) {
+                                    console.error(err);
+                                    setLoading(provinceSelect, 'Không tải được tỉnh/thành phố', true);
+                                }
+                            }
+
+                            async function loadDistricts(provinceCode, targetDistrict, targetWard) {
+                                try {
+                                    setLoading(districtSelect, 'Đang tải quận/huyện...', true);
+                                    setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+
+                                    const res = await fetch(`${API_BASE}/p/${provinceCode}?depth=2`);
+                                    if (!res.ok) throw new Error('Cannot load districts');
+                                    const provData = await res.json();
+                                    const districts = Array.isArray(provData.districts) ? provData.districts : [];
+                                    renderOptions(districtSelect, districts, 'Chọn quận/huyện');
+                                    districtSelect.disabled = false;
+
+                                    if (targetDistrict) {
+                                        const matchedDist = findMatchingOption(districtSelect, targetDistrict);
+                                        if (matchedDist) {
+                                            districtSelect.value = matchedDist.value;
+                                            const distCode = matchedDist.dataset.code;
+                                            if (distCode) {
+                                                await loadWards(distCode, targetWard);
+                                            }
+                                        }
+                                    }
+                                } catch (err) {
+                                    console.error(err);
+                                    setLoading(districtSelect, 'Không tải được quận/huyện', true);
+                                }
+                            }
+
+                            async function loadWards(districtCode, targetWard) {
+                                try {
+                                    setLoading(wardSelect, 'Đang tải phường/xã...', true);
+                                    const res = await fetch(`${API_BASE}/d/${districtCode}?depth=2`);
+                                    if (!res.ok) throw new Error('Cannot load wards');
+                                    const distData = await res.json();
+                                    const wards = Array.isArray(distData.wards) ? distData.wards : [];
+                                    renderOptions(wardSelect, wards, 'Chọn phường/xã');
+                                    wardSelect.disabled = false;
+
+                                    if (targetWard) {
+                                        const matchedWard = findMatchingOption(wardSelect, targetWard);
+                                        if (matchedWard) {
+                                            wardSelect.value = matchedWard.value;
+                                        }
+                                    }
+                                } catch (err) {
+                                    console.error(err);
+                                    setLoading(wardSelect, 'Không tải được phường/xã', true);
+                                }
+                            }
+
+                            provinceSelect.addEventListener('change', function () {
+                                const code = this.selectedOptions[0]?.dataset.code;
+                                if (!code) {
+                                    setLoading(districtSelect, 'Chọn tỉnh/thành phố trước', true);
+                                    setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                                    return;
+                                }
+                                loadDistricts(code);
+                            });
+
+                            districtSelect.addEventListener('change', function () {
+                                const code = this.selectedOptions[0]?.dataset.code;
+                                if (!code) {
+                                    setLoading(wardSelect, 'Chọn quận/huyện trước', true);
+                                    return;
+                                }
+                                loadWards(code);
+                            });
+
+                            initAddressDropdowns();
+                        })();
+                    </script>
+
+
+                </div>
+
+                <div class="detail-section">
+                    <h3 class="section-title">Sản phẩm</h3>
+                    <div th:if="${#lists.isEmpty(donHangDangChon.chiTiet)}" class="orders-empty-small">
+                        Chưa có sản phẩm trong đơn.
+                    </div>
+                    <div class="product-item" th:each="item : ${donHangDangChon.chiTiet}">
+                        <img th:src="${item.anh != null && !item.anh.isBlank() ? item.anh : '/images/Logo_Da.jpg'}"
+                             alt="Sản phẩm"
+                             class="product-img">
+                        <div class="product-info">
+                            <div class="product-name" th:text="${item.tenSanPham}">Tên sản phẩm</div>
+                            <div class="product-variant"
+                                 th:text="${'Phân loại: ' + (item.mauSac != null ? item.mauSac : 'Mặc định') + ' / ' + (item.trongLuong != null ? item.trongLuong : 'Mặc định')}">
+                                Phân loại
+                            </div>
+                            <div class="product-qty" th:text="${'Số lượng: ' + item.soLuong}">Số lượng: 1</div>
+                        </div>
+                        <div class="product-price"
+                             th:text="${#numbers.formatDecimal(item.thanhTien != null ? item.thanhTien : 0, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                            0 đ
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section payment-section">
+                    <h3 class="section-title">Thanh toán</h3>
+                    <div class="payment-row">
+                        <span>Tiền hàng</span>
+                        <span th:text="${#numbers.formatDecimal(donHangDangChon.hoaDon.tongTienHang, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Giảm giá</span>
+                        <span th:text="${'- ' + #numbers.formatDecimal(donHangDangChon.hoaDon.tienGiam, 0, 'POINT', 0, 'COMMA') + ' đ'}">- 0 đ</span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Phí vận chuyển</span>
+                        <span th:text="${#numbers.formatDecimal(donHangDangChon.hoaDon.tienVanChuyen, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Phương thức</span>
+                        <div>
+                            <span th:text="${donHangDangChon.phuongThucThanhToan}">COD</span>
+                            <span class="payment-badge"
+                                  th:classappend="${donHangDangChon.daThanhToan} ? ' payment-badge-paid' : ''"
+                                  th:text="${donHangDangChon.trangThaiThanhToan}">
+                                Chưa thanh toán
+                            </span>
+                        </div>
+                    </div>
+                    <hr class="payment-divider">
+                    <div class="payment-row total-row">
+                        <span>Tổng thanh toán</span>
+                        <span class="total-price"
+                              th:text="${#numbers.formatDecimal(donHangDangChon.hoaDon.tongTienThanhToan, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                            0 đ
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

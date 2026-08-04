@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/ban-hang-online-layout :: ban-hang-online-layout(~{::#products-page}, ${pageTitle})}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="products-page">
+    <link rel="stylesheet" th:href="@{/ban-hang-online/danh-sach-san-pham.css(v=2)}">
+    <section class="section">
+        <div class="container-wide">
+            <div class="products-breadcrumb">
+                <i class="ph ph-house"></i> / Vợt Cầu Lông
+            </div>
+            
+            <div class="section__head products-head">
+                <div>
+                    <h1 class="products-title">VỢT CẦU LÔNG</h1>
+                    <p class="section-subtitle" th:text="${totalItems + ' sản phẩm phù hợp'}">19 sản phẩm phù hợp</p>
+                </div>
+                <div class="products-sort-wrapper">
+                    <form id="sortForm" method="get" th:action="@{/cua-hang/san-pham}">
+                        <!-- Retain search filter state when sorting -->
+                        <input type="hidden" name="keyword" th:value="${selectedKeyword}">
+                        <input type="hidden" name="category" th:value="${selectedCategory}">
+                        <input type="hidden" name="brand" th:value="${selectedBrand}">
+                        <input type="hidden" name="color" th:value="${selectedColor}">
+                        <input type="hidden" name="weight" th:value="${selectedWeight}">
+                        <input type="hidden" name="origin" th:value="${selectedOrigin}">
+                        <input type="hidden" name="stiffness" th:value="${selectedStiffness}">
+                        <input type="hidden" name="balancePoint" th:value="${selectedBalancePoint}">
+                        <input type="hidden" name="gripSize" th:value="${selectedGripSize}">
+                        <input type="hidden" name="shaftMaterial" th:value="${selectedShaftMaterial}">
+                        <input type="hidden" name="frameMaterial" th:value="${selectedFrameMaterial}">
+                        <input type="hidden" name="minPrice" th:value="${selectedMinPrice}">
+                        <input type="hidden" name="maxPrice" th:value="${selectedMaxPrice}">
+                        <input type="hidden" name="status" th:value="${selectedStatus}">
+                        
+                        <select class="filter-select products-sort-select" id="sort" name="sort" onchange="this.form.submit()">
+                            <option value="newest" th:selected="${selectedSort == 'newest'}">Mới nhất</option>
+                            <option value="price-asc" th:selected="${selectedSort == 'price-asc'}">Giá tăng dần</option>
+                            <option value="price-desc" th:selected="${selectedSort == 'price-desc'}">Giá giảm dần</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="products-divider"></div>
+
+            <div class="layout-grid">
+                <!-- Product Filter Sidebar Card -->
+                <form id="filterForm" method="get" th:action="@{/cua-hang/san-pham}">
+                    <input type="hidden" name="sort" th:value="${selectedSort}">
+                    
+                    <aside class="filter-card-panel">
+                        <div class="filter-card-header">
+                            <h2 class="filter-card-title">Bộ lọc sản phẩm</h2>
+                            <a th:href="@{/cua-hang/san-pham}" class="filter-card-reset-link">Xóa</a>
+                        </div>
+
+                        <!-- 1. Từ khóa -->
+                        <div class="filter-card-group">
+                            <label class="filter-card-label" for="keyword">Từ khóa</label>
+                            <div class="filter-search-input-wrapper">
+                                <i class="ph ph-magnifying-glass filter-search-icon"></i>
+                                <input type="text" id="keyword" name="keyword" th:value="${selectedKeyword}" class="filter-card-input search-input" placeholder="Tên sản phẩm, mô tả..." onchange="this.form.submit()">
+                            </div>
+                        </div>
+
+                        <!-- 2. Loại sản phẩm -->
+                        <div class="filter-card-group" th:if="${categoryOptions != null and !#lists.isEmpty(categoryOptions)}">
+                            <label class="filter-card-label" for="category">Loại sản phẩm</label>
+                            <select id="category" name="category" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả loại sản phẩm</option>
+                                <option th:each="cat : ${categoryOptions}" th:value="${cat}" th:text="${cat}" th:selected="${selectedCategory == cat}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 3. Thương hiệu -->
+                        <div class="filter-card-group" th:if="${brandOptions != null and !#lists.isEmpty(brandOptions)}">
+                            <label class="filter-card-label" for="brand">Thương hiệu</label>
+                            <select id="brand" name="brand" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả thương hiệu</option>
+                                <option th:each="b : ${brandOptions}" th:value="${b.label}" th:text="${b.label}" th:selected="${selectedBrand == b.label}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 4. Màu sắc -->
+                        <div class="filter-card-group" th:if="${colorOptions != null and !#lists.isEmpty(colorOptions)}">
+                            <label class="filter-card-label" for="color">Màu sắc</label>
+                            <select id="color" name="color" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả màu sắc</option>
+                                <option th:each="c : ${colorOptions}" th:value="${c}" th:text="${c}" th:selected="${selectedColor == c}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 5. Kích thước / Trọng lượng -->
+                        <div class="filter-card-group" th:if="${weightOptions != null and !#lists.isEmpty(weightOptions)}">
+                            <label class="filter-card-label" for="weight">Kích thước</label>
+                            <select id="weight" name="weight" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả kích thước</option>
+                                <option th:each="w : ${weightOptions}" th:value="${w}" th:text="${w}" th:selected="${selectedWeight == w}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 6. Xuất xứ -->
+                        <div class="filter-card-group" th:if="${originOptions != null and !#lists.isEmpty(originOptions)}">
+                            <label class="filter-card-label" for="origin">Xuất xứ</label>
+                            <select id="origin" name="origin" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả xuất xứ</option>
+                                <option th:each="o : ${originOptions}" th:value="${o}" th:text="${o}" th:selected="${selectedOrigin == o}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 7. Trọng lượng -->
+                        <!-- 8. Độ cứng thân -->
+                        <div class="filter-card-group" th:if="${stiffnessOptions != null and !#lists.isEmpty(stiffnessOptions)}">
+                            <label class="filter-card-label" for="stiffness">Độ cứng thân</label>
+                            <select id="stiffness" name="stiffness" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả độ cứng thân</option>
+                                <option th:each="s : ${stiffnessOptions}" th:value="${s}" th:text="${s}" th:selected="${selectedStiffness == s}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 9. Điểm cân bằng -->
+                        <div class="filter-card-group" th:if="${balancePointOptions != null and !#lists.isEmpty(balancePointOptions)}">
+                            <label class="filter-card-label" for="balancePoint">Điểm cân bằng</label>
+                            <select id="balancePoint" name="balancePoint" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả điểm cân bằng</option>
+                                <option th:each="bp : ${balancePointOptions}" th:value="${bp}" th:text="${bp}" th:selected="${selectedBalancePoint == bp}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 10. Chu vi cán -->
+                        <div class="filter-card-group" th:if="${gripSizeOptions != null and !#lists.isEmpty(gripSizeOptions)}">
+                            <label class="filter-card-label" for="gripSize">Chu vi cán</label>
+                            <select id="gripSize" name="gripSize" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả chu vi cán</option>
+                                <option th:each="g : ${gripSizeOptions}" th:value="${g}" th:text="${g}" th:selected="${selectedGripSize == g}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 11. Chất liệu thân -->
+                        <div class="filter-card-group" th:if="${shaftMaterialOptions != null and !#lists.isEmpty(shaftMaterialOptions)}">
+                            <label class="filter-card-label" for="shaftMaterial">Chất liệu thân</label>
+                            <select id="shaftMaterial" name="shaftMaterial" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả chất liệu thân</option>
+                                <option th:each="sm : ${shaftMaterialOptions}" th:value="${sm}" th:text="${sm}" th:selected="${selectedShaftMaterial == sm}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 12. Chất liệu khung -->
+                        <div class="filter-card-group" th:if="${frameMaterialOptions != null and !#lists.isEmpty(frameMaterialOptions)}">
+                            <label class="filter-card-label" for="frameMaterial">Chất liệu khung</label>
+                            <select id="frameMaterial" name="frameMaterial" class="filter-card-select" onchange="this.form.submit()">
+                                <option value="">Tất cả chất liệu khung</option>
+                                <option th:each="fm : ${frameMaterialOptions}" th:value="${fm}" th:text="${fm}" th:selected="${selectedFrameMaterial == fm}"></option>
+                            </select>
+                        </div>
+
+                        <!-- 13. Khoảng giá -->
+                        <div class="filter-card-group">
+                            <label class="filter-card-label">Khoảng giá</label>
+                            <div class="price-inputs-grid">
+                                <div class="price-input-box">
+                                    <span class="price-box-tag">TỪ</span>
+                                    <input type="number" id="minPriceInput" name="minPrice" th:value="${selectedMinPrice != null ? selectedMinPrice : 0}" min="0" max="10000000" step="50000" onchange="updatePriceDisplayAndSubmit(this.form)">
+                                </div>
+                                <div class="price-input-box">
+                                    <span class="price-box-tag">ĐẾN</span>
+                                    <input type="number" id="maxPriceInput" name="maxPrice" th:value="${selectedMaxPrice != null ? selectedMaxPrice : 5500000}" min="0" max="10000000" step="50000" onchange="updatePriceDisplayAndSubmit(this.form)">
+                                </div>
+                            </div>
+                            <div class="price-inputs-values">
+                                <span id="minPriceValueDisplay" th:text="${selectedMinPrice != null ? selectedMinPrice : 0}">0</span>
+                                <span id="maxPriceValueDisplay" th:text="${selectedMaxPrice != null ? selectedMaxPrice : 5500000}">5500000</span>
+                            </div>
+                            <div class="price-slider-wrapper">
+                                <input type="range" id="priceRangeSlider" min="0" max="10000000" step="100000" th:value="${selectedMaxPrice != null ? selectedMaxPrice : 5500000}" oninput="syncSliderToMaxPrice(this.value)" onchange="this.form.submit()">
+                            </div>
+                            <div class="price-range-label" id="priceRangeText">
+                                <span id="formattedMinPrice">0 đ</span> - <span id="formattedMaxPrice">5.500.000 đ</span>
+                            </div>
+                        </div>
+
+                        <!-- 14. Tình trạng -->
+                        <div class="filter-card-group">
+                            <label class="filter-card-label">Tình trạng</label>
+                            <input type="hidden" id="statusInput" name="status" th:value="${selectedStatus != null ? selectedStatus : 'tat-ca'}">
+                            <div class="status-btn-stack">
+                                <button type="button" class="status-pill-btn" th:classappend="${selectedStatus == null or selectedStatus == 'tat-ca' or selectedStatus == '' ? 'active' : ''}" onclick="selectStatus('tat-ca', this)">Tất cả</button>
+                                <button type="button" class="status-pill-btn" th:classappend="${selectedStatus == 'con-hang' ? 'active' : ''}" onclick="selectStatus('con-hang', this)">Còn hàng</button>
+                                <button type="button" class="status-pill-btn" th:classappend="${selectedStatus == 'het-hang' ? 'active' : ''}" onclick="selectStatus('het-hang', this)">Hết hàng</button>
+                            </div>
+                        </div>
+
+                        <!-- 15. Action Reset Button -->
+                        <div class="filter-card-action">
+                            <a th:href="@{/cua-hang/san-pham}" class="btn-reset-filter-full">
+                                <i class="ph ph-arrows-counter-clockwise"></i> Xóa toàn bộ bộ lọc
+                            </a>
+                        </div>
+                    </aside>
+                </form>
+
+                <!-- Products Grid & Pagination -->
+                <div>
+                    <div class="product-grid" th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
+                        <article class="product-card" th:each="product : ${featuredProducts}">
+                            <div class="product-card__media">
+                                <a th:href="@{/cua-hang/san-pham/{id}(id=${product.productId})}">
+                                    <img th:src="${product.imageUrl != null and product.imageUrl != '' ? product.imageUrl : '/images/default_racket.jpg'}"
+                                         th:data-fallback="'/images/default_racket.jpg'"
+                                         onerror="this.src=this.getAttribute('data-fallback');"
+                                         th:alt="${product.name}">
+                                </a>
+                                <span class="badge badge-out-of-stock"
+                                      th:if="${product.stock == null or product.stock <= 0}">Hết hàng</span>
+                                <span class="badge"
+                                      th:if="${product.stock != null and product.stock > 0 and product.onSale}"
+                                      th:text="${'-' + product.discountPercent.intValue() + '%'}">-0%</span>
+                                <div class="product-card__action">
+                                    <button type="button"
+                                            class="btn-action-full"
+                                            th:if="${product.stock != null and product.stock > 0}"
+                                            th:onclick="'window.location.href=\'/cua-hang/san-pham/' + ${product.productId} + '\''">
+                                        <i class="ph ph-shopping-cart"></i> THÊM GIỎ HÀNG
+                                    </button>
+                                    <button type="button"
+                                            class="btn-action-full"
+                                            th:if="${product.stock == null or product.stock <= 0}"
+                                            disabled>
+                                        Hết hàng
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="product-card__body">
+                                <h3 class="product-card__name">
+                                    <a th:href="@{/cua-hang/san-pham/{id}(id=${product.productId})}" th:text="${product.name}" class="products-product-name-link">Ten san pham</a>
+                                </h3>
+                                
+                                <div class="price-row" style="margin-top: 4px;">
+                                    <div class="products-price-row-wrapper">
+                                        <span class="price" th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA') + ' đ'}">1.000.000 đ</span>
+                                        <span class="price--old" th:if="${product.onSale}" th:text="${#numbers.formatDecimal(product.originalPrice, 0, 'POINT', 0, 'COMMA') + ' đ'}">1.200.000 đ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(featuredProducts)}" class="products-empty-state">
+                        <h3 class="products-empty-title">Không tìm thấy sản phẩm nào</h3>
+                        <p>Thử bỏ bớt một vài bộ lọc hoặc tìm kiếm bằng từ khóa khác.</p>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div th:if="${totalPages > 1}" class="products-pagination">
+                        <form method="get" th:action="@{/cua-hang/san-pham}" style="display: flex; gap: 8px; align-items: center;">
+                            <input type="hidden" name="keyword" th:value="${selectedKeyword}">
+                            <input type="hidden" name="category" th:value="${selectedCategory}">
+                            <input type="hidden" name="brand" th:value="${selectedBrand}">
+                            <input type="hidden" name="color" th:value="${selectedColor}">
+                            <input type="hidden" name="weight" th:value="${selectedWeight}">
+                            <input type="hidden" name="origin" th:value="${selectedOrigin}">
+                            <input type="hidden" name="stiffness" th:value="${selectedStiffness}">
+                            <input type="hidden" name="balancePoint" th:value="${selectedBalancePoint}">
+                            <input type="hidden" name="gripSize" th:value="${selectedGripSize}">
+                            <input type="hidden" name="shaftMaterial" th:value="${selectedShaftMaterial}">
+                            <input type="hidden" name="frameMaterial" th:value="${selectedFrameMaterial}">
+                            <input type="hidden" name="minPrice" th:value="${selectedMinPrice}">
+                            <input type="hidden" name="maxPrice" th:value="${selectedMaxPrice}">
+                            <input type="hidden" name="status" th:value="${selectedStatus}">
+                            <input type="hidden" name="sort" th:value="${selectedSort}">
+
+                            <button th:if="${currentPage > 0}" type="submit" name="page" th:value="${currentPage - 1}" class="page-btn">
+                                <i class="ph ph-caret-left"></i>
+                            </button>
+                            
+                            <button th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                                    type="submit" name="page" th:value="${i}" 
+                                    class="page-btn" 
+                                    th:classappend="${currentPage == i ? 'active' : ''}" 
+                                    th:text="${i + 1}">1</button>
+
+                            <button th:if="${currentPage < totalPages - 1}" type="submit" name="page" th:value="${currentPage + 1}" class="page-btn">
+                                <i class="ph ph-caret-right"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JavaScript for Price Sync & Filter Interaction -->
+    <script>
+        function formatVND(amount) {
+            const num = parseInt(amount) || 0;
+            return num.toLocaleString('vi-VN') + ' đ';
+        }
+
+        function updatePriceLabels() {
+            const minEl = document.getElementById('minPriceInput');
+            const maxEl = document.getElementById('maxPriceInput');
+            if (!minEl || !maxEl) return;
+
+            const minVal = minEl.value || 0;
+            const maxVal = maxEl.value || 0;
+            
+            const minDisplay = document.getElementById('minPriceValueDisplay');
+            const maxDisplay = document.getElementById('maxPriceValueDisplay');
+            if (minDisplay) minDisplay.innerText = minVal;
+            if (maxDisplay) maxDisplay.innerText = maxVal;
+            
+            const formattedMin = document.getElementById('formattedMinPrice');
+            const formattedMax = document.getElementById('formattedMaxPrice');
+            if (formattedMin) formattedMin.innerText = formatVND(minVal);
+            if (formattedMax) formattedMax.innerText = formatVND(maxVal);
+        }
+
+        function syncSliderToMaxPrice(val) {
+            const maxEl = document.getElementById('maxPriceInput');
+            if (maxEl) maxEl.value = val;
+            updatePriceLabels();
+        }
+
+        function updatePriceDisplayAndSubmit(form) {
+            updatePriceLabels();
+            form.submit();
+        }
+
+        function selectStatus(statusVal, btn) {
+            const statusInput = document.getElementById('statusInput');
+            if (statusInput) statusInput.value = statusVal;
+            const buttons = btn.parentElement.querySelectorAll('.status-pill-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            btn.closest('form').submit();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePriceLabels();
+        });
+    </script>
+</div>
+</body>
+</html>

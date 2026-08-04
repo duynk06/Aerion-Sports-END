@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: main-layout(~{::#chat-staff-page-custom})}">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Aerion Sports - Chat Hỗ Trợ</title>
+  <th:block th:fragment="extraHead"></th:block>
+</head>
+<body>
+
+<div id="chat-staff-page-custom">
+  <style>
+    :root {
+      --primary-color: #4f46e5;
+      --bg-light: #f8fafc;
+      --border-color: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --danger-color: #ef4444;
+    }
+
+    .chat-wrapper-fixed {
+      display: flex;
+      height: 82vh !important;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: 10px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+
+    .room-panel-fixed {
+      width: 340px;
+      min-width: 340px;
+      background: #ffffff;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .room-header-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modern-search {
+      width: 100%;
+      padding: 10px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: #f1f5f9;
+      font-size: 14px;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .modern-search:focus {
+      background: #ffffff;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .room-item-chat {
+      padding: 14px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .room-item-chat:hover {
+      background: #f8fafc;
+    }
+    .room-item-chat.active-room {
+      background: #eff6ff !important;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .avatar-chat-container {
+      position: relative;
+      display: inline-block;
+    }
+    .modern-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .mode-chat-badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: inline-block;
+      margin-top: 4px;
+    }
+    .mode-ai { background-color: #fef3c7; color: #d97706; }
+    .mode-staff { background-color: #dcfce7; color: #16a34a; }
+
+    .chat-panel-fixed {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+      height: 100%;
+    }
+    .chat-header-top {
+      padding: 16px 25px;
+      background: #ffffff;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 16px;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .msg-bubble {
+      max-width: 65%;
+      padding: 12px 18px;
+      border-radius: 16px;
+      word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+    .msg-customer {
+      align-self: flex-start;
+      background: #ffffff;
+      color: var(--text-main);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .msg-ai {
+      align-self: flex-start;
+      background: #fef3c7;
+      color: #92400e;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      font-style: italic;
+    }
+    .msg-staff {
+      align-self: flex-end;
+      background: var(--primary-color);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+    }
+
+    .input-bar-container {
+      padding: 15px 25px;
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .modern-input-text {
+      flex: 1;
+      padding: 12px 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+    .modern-input-text:focus {
+      background: #ffffff;
+      border-color: var(--primary-color);
+    }
+    .modern-send-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modern-send-btn:hover:not(:disabled) {
+      background: #4338ca;
+      transform: translateY(-1px);
+    }
+    .modern-send-btn:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    /* Nút thao tác trên Header Chat */
+    .btn-action-header {
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-takeover { background: #10b981; color: white; }
+    .btn-takeover:hover { background: #059669; }
+    .btn-end-chat { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+    .btn-end-chat:hover { background: #dc2626; color: white; }
+
+    .info-panel-fixed {
+      width: 320px;
+      min-width: 320px;
+      background: #ffffff;
+      border-left: 1px solid var(--border-color);
+      padding: 30px 20px;
+      overflow-y: auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .big-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: #e0e7ff;
+      color: var(--primary-color);
+      font-size: 32px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    .info-card {
+      width: 100%;
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    .info-card .info-item {
+      font-size: 13.5px;
+      margin-bottom: 10px;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+    }
+    .info-item span:first-child { font-weight: 600; color: #64748b; }
+    .view-profile-btn {
+      width: 100%;
+      background: #ffffff;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 20px;
+      transition: all 0.2s;
+    }
+    .view-profile-btn:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+  </style>
+
+  <!-- Cấu trúc HTML 3 Cột Clean UI -->
+  <div class="chat-wrapper-fixed">
+    <!-- CỘT 1: Danh sách phòng -->
+    <div class="room-panel-fixed">
+      <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+        <div class="room-header-title">
+          <span>Cuộc trò chuyện</span>
+        </div>
+        <input type="text" id="search-input" class="modern-search" placeholder="Tìm khách hàng..." oninput="filterRooms(this.value)">
+      </div>
+      <div id="room-list" style="flex: 1; overflow-y: auto;">
+        <!-- JS render danh sách phòng ở đây -->
+      </div>
+    </div>
+
+    <!-- CỘT 2: Hộp chat chính -->
+    <div class="chat-panel-fixed">
+      <div id="chat-header" class="chat-header-top">
+        <span>Nội dung chat</span>
+      </div>
+
+      <!-- Vùng hiển thị tin nhắn -->
+      <div id="chat-messages" style="flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+        <div style="text-align: center; margin-top: 40px; color: var(--text-muted); font-size: 14px;">
+          Chọn một cuộc trò chuyện để bắt đầu hỗ trợ khách hàng
+        </div>
+      </div>
+
+      <!-- Thanh công cụ gửi tin nhắn -->
+      <div class="input-bar-container">
+        <input type="text" id="msg-input" class="modern-input-text" placeholder="Nhập tin nhắn hỗ trợ khách hàng..."
+               onkeypress="if(event.key==='Enter') sendStaffMessage()" disabled>
+        <button onclick="sendStaffMessage()" id="send-btn" class="modern-send-btn" disabled>Gửi</button>
+      </div>
+    </div>
+
+    <!-- CỘT 3: Chi tiết khách hàng -->
+    <div class="info-panel-fixed" id="customer-info-content">
+      <div class="text-muted text-center py-5" style="font-size: 14px; color: var(--text-muted);">
+        Chọn một cuộc trò chuyện để xem hồ sơ khách hàng
+      </div>
+    </div>
+  </div>
+
+  <!-- Tải các thư viện WebSocket -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+  <!-- Logic WebSocket Đồng bộ Realtime -->
+  <script th:inline="javascript" charset="UTF-8">
+    let currentRoomId = null;
+    let currentKhachHangId = null;
+    let stompClient = null;
+    let currentRoomSubscription = null;
+    const processedMsgKeys = new Set(); // Chống hiển thị tin nhắn trùng lặp
+
+    // Helper lấy tên khách hàng an toàn
+    function getCustomerName(khachHang) {
+      if (!khachHang) return null;
+      return khachHang.ten || khachHang.hoTen || khachHang.tenKhachHang || null;
+    }
+
+    // Helper bóc tách Khách hàng ID chuẩn xác từ Entity ChatRoom
+    function extractKhachHangId(room) {
+      if (!room) return null;
+      if (room.khachHang && room.khachHang.id) return room.khachHang.id;
+      if (room.khachHangId) return room.khachHangId;
+      return null; // Trả về null nếu là Khách vãng lai
+    }
+
+    // 1. Kết nối endpoint '/ws-chat'
+    function connect() {
+      try {
+        const socket = new SockJS('/ws-chat');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, () => {
+          console.log("✅ WebSocket Connected for Staff");
+
+          stompClient.subscribe('/topic/room/staff/new-request', function (response) {
+            console.log("🔄 Phát hiện yêu cầu hỗ trợ mới từ khách hàng!");
+            loadRooms();
+          });
+
+          stompClient.subscribe('/topic/room/staff/global-updates', function (response) {
+            loadRooms();
+          });
+        }, (err) => {
+          console.error("❌ Lỗi kết nối WebSocket:", err);
+        });
+      } catch(e) {
+        console.error("❌ Không thể khởi tạo kết nối SockJS:", e);
+      }
+    }
+
+    async function loadRooms() {
+      try {
+        const res = await fetch('/api/chat/rooms/staff');
+        const rooms = await res.json();
+        const container = document.getElementById('room-list');
+
+        if (!container) return;
+
+        const scrollTop = container.scrollTop;
+        container.innerHTML = '';
+
+        rooms.forEach(room => {
+          // Chỉ hiện phòng đang cần nhân viên (STAFF_REPLY)
+          if (room.chatMode !== 'STAFF_REPLY') return;
+
+          const div = document.createElement('div');
+          div.id = `room-item-${room.id}`;
+          div.className = `room-item-chat ${currentRoomId === room.id ? 'active-room' : ''}`;
+
+          const badgeClass = 'mode-staff';
+          const badgeText = 'Cần Nhân Viên';
+
+          const khName = getCustomerName(room.khachHang);
+          let tenKhachHang = `Phòng chat #${room.id}`;
+          let chuCaiDau = "K";
+
+          if (khName) {
+            tenKhachHang = khName;
+            chuCaiDau = khName.charAt(0).toUpperCase();
+          } else {
+            tenKhachHang = `Khách vãng lai #${room.id}`;
+          }
+
+          div.innerHTML = `
+                <div class="avatar-chat-container">
+                    <div class="modern-avatar">
+                        ${chuCaiDau}
+                    </div>
+                </div>
+                <div style="flex:1; min-width: 0;">
+                    <div style="font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14.5px; display: flex; justify-content: space-between;">
+                        <span>${tenKhachHang}</span>
+                    </div>
+                    <span class="mode-chat-badge ${badgeClass}">${badgeText}</span>
+                </div>
+            `;
+          div.onclick = () => openRoom(room.id, room);
+          container.appendChild(div);
+        });
+
+        container.scrollTop = scrollTop;
+      } catch (err) {
+        console.error("Lỗi tiến trình render danh sách phòng: ", err);
+      }
+    }
+    function openRoom(roomId, room) {
+      currentRoomId = roomId;
+      currentKhachHangId = extractKhachHangId(room);
+      processedMsgKeys.clear();
+
+      document.querySelectorAll('.room-item-chat').forEach(el => el.classList.remove('active-room'));
+      const currentItem = document.getElementById(`room-item-${roomId}`);
+      if (currentItem) currentItem.classList.add('active-room');
+
+      const khName = getCustomerName(room.khachHang);
+      let labelTen = `Phòng #${room.id}`;
+      if(khName) labelTen = khName;
+      else labelTen = `Khách vãng lai #${room.id}`;
+
+      const isAiMode = room.chatMode === 'AI_REPLY' || room.chatMode === null;
+
+      const headerHtml = `
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span>Đang trò chuyện với: <strong>${labelTen}</strong></span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        ${isAiMode ? `
+                            <button id="btn-takeover-${roomId}" onclick="takeOverChat(${room.id})" class="btn-action-header btn-takeover">
+                                Tiếp nhận cuộc hội thoại
+                            </button>
+                        ` : `<span style="font-size: 13px; color: #16a34a; background: #dcfce7; padding: 4px 10px; border-radius: 6px; font-weight: 600;">Đã tiếp nhận</span>`}
+
+                        <button onclick="endChat(${room.id})" class="btn-action-header btn-end-chat">
+                            Kết thúc trò chuyện
+                        </button>
+                    </div>
+                </div>
+            `;
+
+      document.getElementById('chat-header').innerHTML = headerHtml;
+      document.getElementById('msg-input').disabled = false;
+      document.getElementById('send-btn').disabled = false;
+
+      loadHistory(roomId);
+      updateCustomerInfo(room);
+
+      if (currentRoomSubscription) {
+        currentRoomSubscription.unsubscribe();
+      }
+
+      if (stompClient && stompClient.connected) {
+        currentRoomSubscription = stompClient.subscribe(`/topic/room/${roomId}`, function (response) {
+          const data = JSON.parse(response.body);
+
+          if (data.type === 'MODE_CHANGE') {
+            const headerRightArea = document.getElementById('chat-header').querySelector('div > div');
+            if (headerRightArea) {
+              headerRightArea.innerHTML = `
+                                <span style="font-size: 13px; color: #16a34a; background: #dcfce7; padding: 4px 10px; border-radius: 6px; font-weight: 600;">🟢 Đã tiếp nhận</span>
+                                <button onclick="endChat(${roomId})" class="btn-action-header btn-end-chat">
+                                    Kết thúc trò chuyện
+                                </button>
+                            `;
+            }
+            if (data.noiDung) {
+              appendMessageToBox({ nguoiGui: 'AI', noiDung: data.noiDung });
+            }
+            loadRooms();
+            return;
+          }
+          if (data.type === 'END_CHAT') {
+            alert('Cuộc trò chuyện này đã kết thúc!');
+            resetChatView();
+            loadRooms();
+            return;
+          }
+
+          appendMessageToBox(data);
+        });
+      }
+    }
+
+    function takeOverChat(roomId) {
+      if (!stompClient || !stompClient.connected) return;
+
+      const payload = {
+        roomId: roomId,
+        khachHangId: currentKhachHangId
+      };
+
+      stompClient.send("/app/chat.switchToStaff", {}, JSON.stringify(payload));
+    }
+
+    function endChat(roomId) {
+      if (!confirm("Bạn có chắc chắn muốn kết thúc cuộc trò chuyện này không?")) return;
+
+      if (stompClient && stompClient.connected) {
+        const payload = {
+          roomId: roomId,
+          khachHangId: currentKhachHangId,
+          nguoiGui: "NHAN_VIEN"
+        };
+
+        stompClient.send("/app/chat.endSession", {}, JSON.stringify(payload));
+      }
+
+      resetChatView();
+      setTimeout(() => {
+        loadRooms();
+      }, 300);
+    }
+
+    function resetChatView() {
+      currentRoomId = null;
+      currentKhachHangId = null;
+      processedMsgKeys.clear();
+
+      if (currentRoomSubscription) {
+        currentRoomSubscription.unsubscribe();
+        currentRoomSubscription = null;
+      }
+
+      document.getElementById('chat-header').innerHTML = '<span>Nội dung chat</span>';
+      document.getElementById('chat-messages').innerHTML = `
+                <div style="text-align: center; margin-top: 40px; color: var(--text-muted); font-size: 14px;">
+                    Chọn một cuộc trò chuyện để bắt đầu hỗ trợ khách hàng
+                </div>
+            `;
+      document.getElementById('customer-info-content').innerHTML = `
+                <div class="text-muted text-center py-5" style="font-size: 14px; color: var(--text-muted);">
+                    Chọn một cuộc trò chuyện để xem hồ sơ khách hàng
+                </div>
+            `;
+      document.getElementById('msg-input').value = '';
+      document.getElementById('msg-input').disabled = true;
+      document.getElementById('send-btn').disabled = true;
+
+      document.querySelectorAll('.room-item-chat').forEach(el => el.classList.remove('active-room'));
+    }
+
+    async function loadHistory(roomId) {
+      try {
+        const res = await fetch('/api/chat/history/' + roomId);
+        const msgs = await res.json();
+        const container = document.getElementById('chat-messages');
+        container.innerHTML = '';
+        msgs.forEach(msg => appendMessageToBox(msg));
+      } catch (err) {
+        console.error("Lỗi tải lịch sử chat:", err);
+      }
+    }
+
+    function appendMessageToBox(msg) {
+      const container = document.getElementById('chat-messages');
+
+      if (!msg || !msg.noiDung) return;
+
+      const msgKey = (msg.id ? msg.id : '') + '_' + msg.noiDung + '_' + msg.nguoiGui;
+      if (processedMsgKeys.has(msgKey)) return;
+      processedMsgKeys.add(msgKey);
+
+      if (container.querySelector('div[style*="text-align: center"]')) {
+        container.innerHTML = '';
+      }
+
+      const div = document.createElement('div');
+
+      let typeClass = 'msg-customer me-auto';
+      if (msg.nguoiGui === 'NHAN_VIEN' || msg.nguoiGui === 'STAFF') {
+        typeClass = 'msg-staff ms-auto';
+      } else if (msg.nguoiGui === 'AI') {
+        typeClass = 'msg-ai me-auto';
+      }
+
+      div.className = `msg-bubble ${typeClass}`;
+      div.innerText = msg.noiDung;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function updateCustomerInfo(room) {
+      const info = document.getElementById('customer-info-content');
+      const khName = getCustomerName(room.khachHang);
+
+      if (!room.khachHang) {
+        info.innerHTML = `
+                    <div class="big-avatar">K</div>
+                    <h5 style="font-weight:700; color: var(--text-main); margin: 5px 0 0 0; font-size: 16px;">Khách vãng lai</h5>
+                    <small style="color: var(--text-muted)">ID phòng: #${room.id}</small>
+                    <div class="info-card">
+                        <div class="info-item"><span>Trạng thái</span><span>Chưa đăng ký tài khoản</span></div>
+                    </div>
+                `;
+        return;
+      }
+
+      const phone = room.khachHang.soDienThoai || room.khachHang.sdt || 'Chưa có';
+      const email = room.khachHang.email || 'Chưa có';
+
+      info.innerHTML = `
+                <div class="big-avatar">
+                    ${(khName || 'K').charAt(0).toUpperCase()}
+                </div>
+                <h5 style="font-weight:700; color: var(--text-main); margin: 5px 0 0 0; font-size: 16px;">${khName || 'Khách hàng'}</h5>
+                <small style="color: var(--text-muted)">ID Thành viên: #${room.khachHang.id}</small>
+
+                <div class="info-card">
+                    <div class="info-item"><span> Điện thoại</span><span>${phone}</span></div>
+                    <div class="info-item"><span> Email</span><span>${email}</span></div>
+                    <div class="info-item"><span> Đơn mua</span><span style="color: #10b981; font-weight:600">${room.khachHang.tongDon || 0} đơn</span></div>
+                </div>
+
+                <a href="/khach-hang/chi-tiet/${room.khachHang.id}" class="view-profile-btn">Xem hồ sơ chi tiết</a>
+            `;
+    }
+    function sendStaffMessage() {
+      const input = document.getElementById('msg-input');
+      const text = input.value.trim();
+      if (!text || !currentRoomId) return;
+
+      const payload = {
+        roomId: currentRoomId,
+        khachHangId: currentKhachHangId,
+        nguoiGui: "NHAN_VIEN",
+        noiDung: text,
+        nguoiGuiId: 1
+      };
+
+      stompClient.send("/app/chat.sendFromStaff", {}, JSON.stringify(payload));
+      input.value = '';
+    }
+
+    function filterRooms(keyword) {
+      const rooms = document.querySelectorAll('.room-item-chat');
+      rooms.forEach(room => {
+        const txt = room.textContent.toLowerCase();
+        if(txt.includes(keyword.toLowerCase())) {
+          room.style.display = 'flex';
+        } else {
+          room.style.display = 'none';
+        }
+      });
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log(" DOM fully loaded, initializing chat staff system...");
+      connect();
+      loadRooms();
+    });
+  </script>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="menu-sidebar" class="menu-list" style="width: 250px; background: #fff; min-height: 100vh; padding: 15px; border-right: 1px solid #ddd; font-family: sans-serif;">
+
+  <!-- Logo -->
+  <div class="logo">
+    <img src="/images/Logo_Da.jpg" alt="">
+  </div>
+
+  <style>
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:35px;
+      padding:0 10px;
+    }
+
+    .logo img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+    .menu-list .item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      text-decoration: none;
+      color: #4b5563;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .menu-list .item:hover {
+      background-color: #f9fafb;
+      color: #f79b66;
+    }
+    .menu-list .item i:first-child {
+      width: 24px;
+      text-align: left;
+      font-size: 16px;
+    }
+    .menu-list .item.active {
+      color: #f79b66;
+      font-weight: 600;
+      background: #fff3ec;
+    }
+    .menu-list .submenu {
+      display: none;
+      padding-left: 36px;
+      margin-bottom: 5px;
+    }
+    .menu-list .sub-item {
+      display: block;
+      padding: 8px 0;
+      text-decoration: none;
+      color: #6b7280;
+      font-size: 13px;
+    }
+    .menu-list .sub-item:hover {
+      color: #f79b66;
+    }
+    .menu-list .sub-item.active {
+      color: #f79b66;
+      font-weight: 600;
+    }
+  </style>
+
+  <!-- 2. Thống kê -->
+  <a th:href="@{/thong-ke}" class="item" id="menuThongKe">
+    <i class="fa-solid fa-chart-line"></i> <span>Thống kê</span>
+  </a>
+
+  <!-- 3. Bán hàng -->
+  <a th:href="@{/ban-hang}" class="item">
+    <i class="fa-solid fa-cart-shopping"></i> <span>Bán hàng</span>
+  </a>
+
+  <!-- 4. Hóa đơn -->
+  <a th:href="@{/hoa-don}" class="item">
+    <i class="fa-solid fa-file-invoice"></i> <span>Hóa đơn</span>
+  </a>
+
+  <!-- 5. Sản phẩm (Có Menu con) -->
+  <div class="dropdown-menu">
+    <div class="item" onclick="toggleSubmenu(this)">
+      <i class="fa-solid fa-box"></i> <span>Sản phẩm</span>
+      <i class="fa-solid fa-chevron-right toggle-icon" style="margin-left: auto; width: auto; font-size: 10px;"></i>
+    </div>
+    <div class="submenu">
+      <a th:href="@{/san-pham}" class="sub-item">Danh sách sản phẩm</a>
+      <a th:href="@{/san-pham/danh-sach-bien-the}" class="sub-item">Danh sách biến thể</a>
+    </div>
+  </div>
+
+  <!-- 6. Thuộc tính (Có Menu con) -->
+  <div class="dropdown-menu">
+    <div class="item" onclick="toggleSubmenu(this)">
+      <i class="fa-solid fa-layer-group"></i> <span>Thuộc tính</span>
+      <i class="fa-solid fa-chevron-right toggle-icon" style="margin-left: auto; width: auto; font-size: 10px;"></i>
+    </div>
+    <div class="submenu">
+      <a th:href="@{/thuoc-tinh/danh-muc}" class="sub-item">Danh mục sản phẩm</a>
+      <a th:href="@{/thuoc-tinh/thuong-hieu}" class="sub-item">Thương hiệu</a>
+      <a th:href="@{/thuoc-tinh/xuat-xu}" class="sub-item">Xuất xứ</a>
+      <a th:href="@{/thuoc-tinh/mau-sac}" class="sub-item">Màu sắc</a>
+      <a th:href="@{/thuoc-tinh/trong-luong}" class="sub-item">Trọng lượng</a>
+      <a th:href="@{/thuoc-tinh/do-cung}" class="sub-item">Độ cứng thân</a>
+      <a th:href="@{/thuoc-tinh/diem-can-bang}" class="sub-item">Điểm cân bằng</a>
+      <a th:href="@{/thuoc-tinh/chu-vi-can}" class="sub-item">Chu vi cán</a>
+      <a th:href="@{/thuoc-tinh/chat-lieu-than}" class="sub-item">Chất liệu thân</a>
+      <a th:href="@{/thuoc-tinh/chat-lieu-khung}" class="sub-item">Chất liệu khung</a>
+    </div>
+  </div>
+
+  <!-- 7. Phiếu giảm giá -->
+  <a th:href="@{/phieu-giam-gia/hien-thi}" class="item">
+    <i class="fa-solid fa-ticket"></i> <span>Phiếu giảm giá</span>
+  </a>
+
+  <!-- 8. Đợt giảm giá -->
+  <a th:href="@{/dot-giam-gia}" class="item" id="menuDotGiamGia">
+    <i class="fa-solid fa-percent"></i> <span>Đợt giảm giá</span>
+  </a>
+
+  <!-- 9. Nhân viên -->
+  <a th:href="@{/nhan-vien}" class="item" id="menuNhanVien">
+    <i class="fa-solid fa-user-tie"></i> <span>Nhân viên</span>
+  </a>
+
+  <!-- 12. Khách hàng -->
+  <a th:href="@{/khach-hang}" class="item">
+    <i class="fa-solid fa-users"></i> <span>Khách hàng</span>
+  </a>
+
+  <a th:href="@{/chat-nhan-vien}" class="item" id="menu-chat-sidebar">
+    <i class="fa-solid fa-comments"></i>
+    <span>Chat Hỗ Trợ</span>
+  </a>
+  <!-- JS xử lý Đóng/Mở và Tự động Sáng Menu -->
+  <script>
+    // Hàm đóng mở menu thủ công
+    function toggleSubmenu(element) {
+      const submenu = element.nextElementSibling;
+      const chevron = element.querySelector('.toggle-icon');
+
+      if (submenu.style.display === "block") {
+        submenu.style.display = "none";
+        chevron.classList.replace('fa-chevron-down', 'fa-chevron-right');
+      } else {
+        submenu.style.display = "block";
+        chevron.classList.replace('fa-chevron-right', 'fa-chevron-down');
+      }
+    }
+
+    // Script tự động kích hoạt menu, ẩn menu theo vai trò và đổi tiêu đề Header dựa vào URL
+    document.addEventListener("DOMContentLoaded", function() {
+
+      // 🌟 Ẩn các mục quản trị cấp cao nếu người đăng nhập là Nhân viên (NV)
+      const role = sessionStorage.getItem("role");
+
+      if (role === "NV") {
+        const menuThongKe = document.getElementById("menuThongKe");
+        if (menuThongKe) menuThongKe.style.display = "none";
+
+        const menuNhanVien = document.getElementById("menuNhanVien");
+        if (menuNhanVien) menuNhanVien.style.display = "none";
+      }
+      const currentPath = window.location.pathname;
+      const links = document.querySelectorAll('.menu-list a');
+
+      // Tìm thẻ tiêu đề ở trên Header của Layout
+      const mainTitleElement = document.querySelector('.main-layout-title');
+      const baseTitle = "Quản lý hệ thống"; // Tiêu đề gốc mặc định
+
+      links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+
+        // Nếu đường dẫn hiện tại khớp đúng hoặc là trang con của href
+        if (currentPath === href || currentPath.startsWith(href + '/')) {
+          link.classList.add('active');
+
+          let breadcrumbText = baseTitle;
+
+          // TRƯỜNG HỢP 1: Nếu là menu con (sub-item)
+          if (link.classList.contains('sub-item')) {
+            const submenu = link.closest('.submenu');
+            if (submenu) {
+              submenu.style.display = 'block'; // Mở danh sách con
+
+              const parentItem = submenu.previousElementSibling;
+              if (parentItem) {
+                parentItem.classList.add('active'); // Làm sáng mục cha (vd: Thuộc tính)
+                const chevron = parentItem.querySelector('.toggle-icon');
+                if (chevron) {
+                  chevron.classList.replace('fa-chevron-right', 'fa-chevron-down');
+                }
+
+                // Lấy text của mục cha và mục con để tạo chuỗi: "Quản lý hệ thống / Thuộc tính / Màu sắc"
+                const parentText = parentItem.querySelector('span').textContent.trim();
+                const childText = link.textContent.trim();
+                breadcrumbText += ` / ${parentText} / ${childText}`;
+              }
+            }
+          }
+          // TRƯỜNG HỢP 2: Nếu là menu cấp 1 bình thường (Trang chủ, Hóa đơn, Bán hàng,...)
+          else {
+            const itemText = link.querySelector('span').textContent.trim();
+            // Tránh bị lặp chữ nếu bấm vào trang chủ/hoặc trang trùng tên
+            if(itemText !== baseTitle) {
+              breadcrumbText += ` / ${itemText}`;
+            }
+          }
+
+          // Cập nhật text lên Header của Layout nếu tìm thấy thẻ
+          if (mainTitleElement) {
+            mainTitleElement.textContent = breadcrumbText;
+          }
+        }
+      });
+    });
+  </script>
+
+</div>
+</body>
+</html>
