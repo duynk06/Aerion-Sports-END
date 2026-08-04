@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal" created-in="IU-261.25134.95">
+    <data-source name="QUANLYVOTCAULONG23@localhost" uuid="702d28f0-6c50-4d8e-a944-236c641b68dd">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="MSSQL" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="QUANLYVOTCAULONG28@localhost" uuid="dbf7ec0e-b2be-40de-bb46-b024c3ff31ce">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="MSSQL" />
+      <schema-mapping />
+    </data-source>
+  </component>
+</project>
